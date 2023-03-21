@@ -8,8 +8,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from torch.distributions.categorical import Categorical
-
 from argparse import ArgumentParser
 from tqdm import tqdm
 
@@ -111,7 +109,7 @@ class MNISTNet(nn.Module):
 
 
 class MNISTSum2Net(nn.Module):
-  def __init__(self, provenance, k):
+  def __init__(self):
     super(MNISTSum2Net, self).__init__()
 
     # MNIST Digit Recognition Network
@@ -169,8 +167,8 @@ class MNISTSum2Net(nn.Module):
 
 
 class Trainer():
-  def __init__(self, train_loader, test_loader, learning_rate, k, provenance):
-    self.network = MNISTSum2Net(provenance, k)
+  def __init__(self, train_loader, test_loader, learning_rate):
+    self.network = MNISTSum2Net()
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -221,12 +219,7 @@ if __name__ == "__main__":
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--seed", type=int, default=1234)
-  parser.add_argument("--provenance", type=str, default="difftopkproofs")
-  parser.add_argument("--top-k", type=int, default=3)
   parser.add_argument("--n-samples", type=int, default=100)
-  parser.add_argument("--pool-processes", type=int, default=64)
-  parser.add_argument("--jit", action="store_true")
-  parser.add_argument("--dispatch", type=str, default="parallel")
   args = parser.parse_args()
 
   # Parameters
@@ -234,8 +227,6 @@ if __name__ == "__main__":
   batch_size_train = args.batch_size_train
   batch_size_test = args.batch_size_test
   learning_rate = args.learning_rate
-  k = args.top_k
-  provenance = args.provenance
   torch.manual_seed(args.seed)
   random.seed(args.seed)
 
@@ -246,5 +237,5 @@ if __name__ == "__main__":
   train_loader, test_loader = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
 
   # Create trainer and train
-  trainer = Trainer(train_loader, test_loader, learning_rate, k, provenance)
+  trainer = Trainer(train_loader, test_loader, learning_rate)
   trainer.train(n_epochs)

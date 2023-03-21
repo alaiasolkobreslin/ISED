@@ -8,8 +8,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from torch.distributions.categorical import Categorical
-
 from argparse import ArgumentParser
 from tqdm import tqdm
 
@@ -115,7 +113,7 @@ class MNISTNet(nn.Module):
 
 
 class MNISTSort2Net(nn.Module):
-  def __init__(self, provenance, train_k, test_k, max_digit=9):
+  def __init__(self, max_digit=9):
     super(MNISTSort2Net, self).__init__()
     self.max_digit = max_digit
     self.num_classes = max_digit + 1
@@ -168,8 +166,8 @@ class MNISTSort2Net(nn.Module):
 
 
 class Trainer():
-  def __init__(self, train_loader, test_loader, learning_rate, loss, train_k, test_k, provenance, max_digit=9):
-    self.network = MNISTSort2Net(provenance, train_k=train_k, test_k=test_k, max_digit=max_digit)
+  def __init__(self, train_loader, test_loader, learning_rate, max_digit=9):
+    self.network = MNISTSort2Net(max_digit=max_digit)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -218,11 +216,7 @@ if __name__ == "__main__":
   parser.add_argument("--n-epochs", type=int, default=10)
   parser.add_argument("--batch-size", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
-  parser.add_argument("--loss-fn", type=str, default="bce")
   parser.add_argument("--seed", type=int, default=1234)
-  parser.add_argument("--provenance", type=str, default="difftopkproofs")
-  parser.add_argument("--train-k", type=int, default=3)
-  parser.add_argument("--test-k", type=int, default=3)
   parser.add_argument("--n-samples", type=int, default=100)
   parser.add_argument("--wmc-type", type=str, default="bottom-up")
   parser.add_argument("--max-digit", type=int, default=9)
@@ -239,5 +233,5 @@ if __name__ == "__main__":
   train_loader, test_loader = mnist_sort_2_loader(data_dir, args.batch_size, max_digit=args.max_digit)
 
   # Create trainer and train
-  trainer = Trainer(train_loader, test_loader, args.learning_rate, args.loss_fn, args.train_k, args.test_k, args.provenance, max_digit=args.max_digit)
+  trainer = Trainer(train_loader, test_loader, args.learning_rate, max_digit=args.max_digit)
   trainer.train(args.n_epochs)
