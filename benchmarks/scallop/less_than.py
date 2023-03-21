@@ -13,27 +13,10 @@ from torch.distributions.categorical import Categorical
 from argparse import ArgumentParser
 from tqdm import tqdm
 
+from util import sample
 
-def sample_fn(arg):
-  a_dist, b_dist, y = arg[0], arg[1], arg[2]
-
-  a_cat, b_cat = Categorical(probs=a_dist), Categorical(probs=b_dist)
-  a_samples, b_samples = a_cat.sample((args.n_samples,)), b_cat.sample((args.n_samples,))
-  a_on, b_on = dict.fromkeys(range(10), 0), dict.fromkeys(range(10), 0)
-  for i in range(args.n_samples):
-    if a_samples[i] >= b_samples[i] == y:
-      a_on[a_samples[i].item()] += 1
-      b_on[b_samples[i].item()] += 1
-
-  total = sum(a_on.values())
-  
-  if total:
-    a_ret = torch.tensor([a_on[i]/total for i in range(10)]).view(1,-1)
-    b_ret = torch.tensor([b_on[i]/total for i in range(10)]).view(1,-1)
-  else:
-    a_ret, b_ret = torch.zeros((1,10)), torch.zeros((1,10))
-
-  return (a_ret, b_ret)
+def less_than_forward(inputs):
+  return (inputs[0] < inputs[1]).long()
 
 class MNISTSort2Dataset(torch.utils.data.Dataset):
   mnist_img_transform = torchvision.transforms.Compose([
@@ -140,15 +123,11 @@ class MNISTSort2Net(nn.Module):
     # MNIST Digit Recognition Network
     self.mnist_net = MNISTNet(num_classes=self.num_classes)
 
+    self.sampling = sample.Sample(n_inputs=2, n_samples=args.n_samples, input_mapping=[10, 10], fn=less_than_forward)
+
   def less_than_test(self, digit_1, digit_2):
-    (dim, _) = digit_1.shape
-    a_cat, b_cat = Categorical(probs=digit_1), Categorical(probs=digit_2)
-    a_samples = torch.t(a_cat.sample((args.n_samples,)))
-    b_samples = torch.t(b_cat.sample((args.n_samples,)))
-    results = torch.zeros(dim)
-    for i in range(dim):
-      results[i] = torch.mode(a_samples[i] < b_samples[i]).values.item()
-    return results  
+    input_distrs = [digit_1, digit_2]
+    return self.sampling.sample_test(input_distrs)
 
   def forward(self, x: Tuple[torch.Tensor, torch.Tensor], y: List[int]):
     (a_imgs, b_imgs) = x
@@ -160,7 +139,7 @@ class MNISTSort2Net(nn.Module):
     a_distrs_list = list(a_distrs.clone().detach())
     b_distrs_list = list(b_distrs.clone().detach())
     argss = list(zip(a_distrs_list, b_distrs_list, y))
-    out_pred = map(sample_fn, argss)
+    out_pred = map(self.sampling.sample_train, argss)
     out_pred = list(zip(*out_pred))
 
     a_pred, b_pred = out_pred[0], out_pred[1]
