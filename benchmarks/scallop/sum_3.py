@@ -13,7 +13,7 @@ from torch.distributions.categorical import Categorical
 from argparse import ArgumentParser
 from tqdm import tqdm
 
-import scallopy
+from util import sample
 
 mnist_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -22,28 +22,8 @@ mnist_img_transform = torchvision.transforms.Compose([
   )
 ])
 
-def sample_fn(arg):
-  a_dist, b_dist, c_dist, y = arg[0], arg[1], arg[2], arg[3]
-
-  a_cat, b_cat, c_cat = Categorical(probs=a_dist), Categorical(probs=b_dist), Categorical(probs=c_dist)
-  a_samples, b_samples, c_samples = a_cat.sample((args.n_samples,)), b_cat.sample((args.n_samples,)), c_cat.sample((args.n_samples,))
-  a_on, b_on, c_on = dict.fromkeys(range(10), 0), dict.fromkeys(range(10), 0), dict.fromkeys(range(10), 0)
-  for i in range(args.n_samples):
-    if a_samples[i] + b_samples[i] + c_samples[i] == y:
-      a_on[a_samples[i].item()] += 1
-      b_on[b_samples[i].item()] += 1
-      c_on[c_samples[i].item()] += 1
-
-  total = sum(a_on.values())
-  
-  if total:
-    a_ret = torch.tensor([a_on[i]/total for i in range(10)]).view(1,-1)
-    b_ret = torch.tensor([b_on[i]/total for i in range(10)]).view(1,-1)
-    c_ret = torch.tensor([c_on[i]/total for i in range(10)]).view(1,-1)
-  else:
-    a_ret, b_ret, c_ret = torch.zeros((1,10)), torch.zeros((1,10)), torch.zeros((1,10))
-
-  return (a_ret, b_ret, c_ret)
+def sum_3_forward(inputs):
+  return inputs[0] + inputs[1] + inputs[2]
 
 class MNISTSum3Dataset(torch.utils.data.Dataset):
   def __init__(
@@ -139,18 +119,11 @@ class MNISTSum3Net(nn.Module):
     # MNIST Digit Recognition Network
     self.mnist_net = MNISTNet()
 
+    self.sampling = sample.Sample(n_inputs=3, n_samples=args.n_samples, input_mapping=[10, 10, 10], fn=sum_3_forward)
+
   def sum_3_test(self, digit_1, digit_2, digit_3):
-    (dim, _) = digit_1.shape
-    a_cat = Categorical(probs=digit_1)
-    b_cat = Categorical(probs=digit_2)
-    c_cat = Categorical(probs=digit_3)
-    a_samples = torch.t(a_cat.sample((args.n_samples,)))
-    b_samples = torch.t(b_cat.sample((args.n_samples,)))
-    c_samples = torch.t(c_cat.sample((args.n_samples,)))
-    results = torch.zeros(dim)
-    for i in range(dim):
-      results[i] = torch.mode(a_samples[i] + b_samples[i] + c_samples[i]).values.item()
-    return results
+    input_distrs = [digit_1, digit_2, digit_3]
+    return self.sampling.sample_test(input_distrs)
 
   def forward(self, x: Tuple[torch.Tensor, torch.Tensor], y: List[int]):
     """
@@ -171,7 +144,7 @@ class MNISTSum3Net(nn.Module):
     c_distrs_list = list(c_distrs.clone().detach())
     
     argss = list(zip(a_distrs_list, b_distrs_list, c_distrs_list, y))
-    out_pred = map(sample_fn, argss)
+    out_pred = map(self.sampling.sample_train, argss)
     out_pred = list(zip(*out_pred))
 
     a_pred, b_pred, c_pred = out_pred[0], out_pred[1], out_pred[2]
@@ -238,6 +211,7 @@ class Trainer():
         iter.set_description(f"[Test Epoch {epoch}] Accuracy: {correct}/{num_items} ({perc:.2f}%)")
 
   def train(self, n_epochs):
+    self.test_epoch(0)
     for epoch in range(1, n_epochs + 1):
       self.train_epoch(epoch)
       self.test_epoch(epoch)
