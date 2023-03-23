@@ -179,7 +179,7 @@ class MNISTAddTwoNumbersNet(nn.Module):
     # MNIST Digit Recognition Network
     self.mnist_net = MNISTNet()
 
-    self.sampling = sample.Sample(n_inputs=2, n_samples=args.n_samples, input_mapping=[10, 10], fn=add_two_numbers_forward)
+    self.sampling = sample.Sample(n_inputs=4, n_samples=args.n_samples, input_mapping=[10, 10, 10, 10], fn=add_two_numbers_forward)
 
   def add_two_numbers_test(self, digits):
     return self.sampling.sample_test(digits)
@@ -195,7 +195,8 @@ class MNISTAddTwoNumbersNet(nn.Module):
     total_digits = n_digits * 2
 
     # First recognize the digits
-    distrs = [self.mnist_net(imgs[i]) for i in range(total_digits)]
+    batched = torch.cat(tuple(imgs))
+    distrs = self.mnist_net(batched).split(imgs[0].shape[0])
     distrs_list = [distr.clone().detach() for distr in distrs]
 
     argss = list(zip(*(tuple(distrs_list)), y))
@@ -264,7 +265,7 @@ class Trainer():
         iter.set_description(f"[Test Epoch {epoch}] Accuracy: {correct}/{num_items} ({perc:.2f}%)")
 
   def train(self, n_epochs):
-    self.test_epoch(0)
+    # self.test_epoch(0)
     for epoch in range(1, n_epochs + 1):
       self.train_epoch(epoch)
       self.test_epoch(epoch)
@@ -287,7 +288,7 @@ if __name__ == "__main__":
   batch_size_train = args.batch_size_train
   batch_size_test = args.batch_size_test
   learning_rate = args.learning_rate
-  n_digits = 1
+  n_digits = 2
   torch.manual_seed(args.seed)
   random.seed(args.seed)
 
