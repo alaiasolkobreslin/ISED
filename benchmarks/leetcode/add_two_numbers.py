@@ -179,7 +179,7 @@ class MNISTAddTwoNumbersNet(nn.Module):
     # MNIST Digit Recognition Network
     self.mnist_net = MNISTNet()
 
-    self.sampling = sample.Sample(n_inputs=4, n_samples=args.n_samples, input_mapping=[10, 10, 10, 10], fn=add_two_numbers_forward)
+    self.sampling = sample.Sample(n_inputs=2, n_samples=args.n_samples, input_mapping=[10, 10], fn=add_two_numbers_forward)
 
   def add_two_numbers_test(self, digits):
     return self.sampling.sample_test(digits)
@@ -287,7 +287,7 @@ if __name__ == "__main__":
   batch_size_train = args.batch_size_train
   batch_size_test = args.batch_size_test
   learning_rate = args.learning_rate
-  n_digits = 2
+  n_digits = 1
   torch.manual_seed(args.seed)
   random.seed(args.seed)
 
