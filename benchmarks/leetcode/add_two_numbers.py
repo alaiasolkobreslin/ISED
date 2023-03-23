@@ -27,14 +27,6 @@ def list_to_linked_list(digits):
         cur = cur.next
     return dummy.next
 
-# def linked_list_to_list(digits):
-#     result = []
-#     cur = digits
-#     while cur:
-#       result.append(cur.val)
-#       cur = cur.next
-#     return result
-
 def linked_list_to_int(digits):
     result = ''
     cur = digits
@@ -65,24 +57,17 @@ def add_two_numbers(l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[
           l1 = l1.next
         if l2 != None:
           l2 = l2.next
-        # l1 = l1.next if l1 != None else None
-        # l2 = l2.next if l2 != None else None
 
     return result.next
 
 def add_two_numbers_forward(inputs):
   size = int(len(inputs) / 2)
   n_samples = inputs[0].shape[0]
-  # results = torch.full(n_samples, None)
-  # results = torch.empty((n_samples,), dtype=Optional[ListNode])
   results = [None] * n_samples
   for i in range(n_samples):
     a_digits = list_to_linked_list(input[i].item() for input in inputs[:size])
     b_digits = list_to_linked_list(input[i].item() for input in inputs[size:])
     results[i] = torch.tensor(linked_list_to_int(add_two_numbers(a_digits, b_digits)))
-  # a_digits = list_to_linked_list(inputs[:size])
-  # b_digits = list_to_linked_list(inputs[size:])
-  # return add_two_numbers(a_digits, b_digits)
   return torch.stack(results)
 
 mnist_img_transform = torchvision.transforms.Compose([
@@ -120,31 +105,23 @@ class MNISTAddTwoNumbersDataset(torch.utils.data.Dataset):
   def __getitem__(self, idx):
     # Get two data points
     total_digits = self.n_digits * 2
-    # imgs = torch.stack([self.mnist_dataset[self.index_map[idx * total_digits + i]][0] for i in range(total_digits)])
-    # digits = [self.mnist_dataset[self.index_map[idx * total_digits + i]][1] for i in range(total_digits)]
+
     imgs_digits = [self.mnist_dataset[self.index_map[idx * total_digits + i]] for i in range(total_digits)]
+    imgs = torch.stack([imgs_digits[i][0] for i in range(total_digits)])
+    digits = [imgs_digits[i][1] for i in range(total_digits)]
 
-    a_imgs = torch.stack([imgs_digits[i][0] for i in range(self.n_digits)])
-    b_imgs = torch.stack([imgs_digits[self.n_digits + i][0] for i in range(self.n_digits)])
-
-    a_digits = [imgs_digits[i][1] for i in range(self.n_digits)]
-    b_digits = [imgs_digits[self.n_digits + i][1] for i in range(self.n_digits)]
-
-    a_lst = list_to_linked_list(a_digits)
-    b_lst = list_to_linked_list(b_digits)
+    a_lst = list_to_linked_list(digits[:self.n_digits])
+    b_lst = list_to_linked_list(digits[self.n_digits:])
     result = linked_list_to_int(add_two_numbers(a_lst, b_lst))
 
-    # Each data has two images and the GT is the sum of two digits
-    return (a_imgs, b_imgs, result)
+    return (imgs, result)
 
   @staticmethod
   def collate_fn(batch):
-    # a_imgs = torch.stack([torch.stack([item[0]]) for item in batch])
-    n_digits = batch[0][0].shape[0]
-    a_imgs = torch.stack([torch.stack([item[0][i] for item in batch]) for i in range(n_digits)])
-    b_imgs = torch.stack([torch.stack([item[1][i] for item in batch]) for i in range(n_digits)])
-    digits = [item[2] for item in batch]
-    return ((a_imgs, b_imgs), digits)
+    total_digits = batch[0][0].shape[0]
+    imgs = torch.stack([torch.stack([item[0][i] for item in batch]) for i in range(total_digits)])
+    digits = [item[1] for item in batch]
+    return (imgs, digits)
 
 
 def MNIST_add_two_numbers_loader(data_dir, n_digits, batch_size_train, batch_size_test):
@@ -204,14 +181,8 @@ class MNISTAddTwoNumbersNet(nn.Module):
 
     self.sampling = sample.Sample(n_inputs=4, n_samples=args.n_samples, input_mapping=[10, 10, 10, 10], fn=add_two_numbers_forward)
 
-  def add_two_numbers_test(self, digit_1, digit_2):
-    input_distrs_1 = [digit_1[i] for i in range(digit_1.shape[0])]
-    input_distrs_2 = [digit_2[i] for i in range(digit_2.shape[0])]
-    input_distrs = input_distrs_1 + input_distrs_2
-    # input_distrs = torch.transpose(torch.cat((digit_1, digit_2)), 0, 1)
-    #input_distrs = torch.cat((torch.transpose(digit_1, 0, 1), torch.transpose(digit_2, 0, 1)))
-    # input_distrs = [digit_1, digit_2]
-    return self.sampling.sample_test(input_distrs)
+  def add_two_numbers_test(self, digits):
+    return self.sampling.sample_test(digits)
 
   def forward(self, x: Tuple[torch.Tensor, torch.Tensor], y: List[int]):
     """
@@ -220,25 +191,20 @@ class MNISTAddTwoNumbersNet(nn.Module):
     Takes in input pair of images (x_a, x_b) and the ground truth output sum (r)
     Returns the loss (a single scalar)
     """
-    (a_imgs, b_imgs) = x
+    imgs = x
+    total_digits = n_digits * 2
 
-    # First recognize the two digits
-    a_distrs = [self.mnist_net(a_imgs[i]).clone().detach() for i in range(n_digits)]
-    b_distrs = [self.mnist_net(b_imgs[i]).clone().detach() for i in range(n_digits)] # Tensor 64 x 10
+    # First recognize the digits
+    distrs = [self.mnist_net(imgs[i]) for i in range(total_digits)]
+    distrs_list = [distr.clone().detach() for distr in distrs]
 
-    # a_distrs_list = list(a_distrs.clone().detach())
-    # b_distrs_list = list(b_distrs.clone().detach())
-    # argss = list(zip(a_distrs, b_distrs, y))
-    argss = list(zip(*(tuple(a_distrs + b_distrs)), y))
+    argss = list(zip(*(tuple(distrs_list)), y))
     out_pred = map(self.sampling.sample_train, argss)
     out_pred = list(zip(*out_pred))
+    preds = [torch.stack(out_pred[i]).view([distrs[i].shape[0], 10]) for i in range(total_digits)]
 
-    a_pred, b_pred = out_pred[0], out_pred[1]
-    a_pred = torch.stack(a_pred).view([a_distrs.shape[0],10])
-    b_pred = torch.stack(b_pred).view([b_distrs.shape[0],10])
-
-    cat_distrs = torch.cat((a_distrs, b_distrs))
-    cat_pred = torch.cat((a_pred, b_pred))
+    cat_distrs = torch.cat(distrs)
+    cat_pred = torch.cat(preds)
     l = F.mse_loss(cat_distrs,cat_pred)
     return l
 
@@ -249,18 +215,14 @@ class MNISTAddTwoNumbersNet(nn.Module):
     Takes in input pair of images (x_a, x_b)
     Returns the predicted sum of the two digits (vector of dimension 19)
     """
-    (a_imgs, b_imgs) = x
-
-    # n_digits = a_imgs.shape[0]
+    imgs = x
+    total_digits = n_digits * 2
 
     # First recognize the two digits
-    # a_distrs = self.mnist_net(a_imgs) # Tensor 64 x 10
-    # b_distrs = self.mnist_net(b_imgs) # Tensor 64 x 10
-    a_distrs = torch.stack([self.mnist_net(a_imgs[i]) for i in range(n_digits)]) # Tensor 64 x 10
-    b_distrs = torch.stack([self.mnist_net(b_imgs[i]) for i in range(n_digits)]) # Tensor 64 x 10
+    distrs = [self.mnist_net(imgs[i]) for i in range(total_digits)]
 
     # Testing: execute the reasoning module; the result is a size 19 tensor
-    return self.add_two_numbers_test(digit_1=a_distrs, digit_2=b_distrs) # Tensor 64 x 19
+    return self.add_two_numbers_test(distrs) # Tensor 64 x 19
 
 
 class Trainer():
@@ -302,7 +264,7 @@ class Trainer():
         iter.set_description(f"[Test Epoch {epoch}] Accuracy: {correct}/{num_items} ({perc:.2f}%)")
 
   def train(self, n_epochs):
-    # self.test_epoch(0)
+    self.test_epoch(0)
     for epoch in range(1, n_epochs + 1):
       self.train_epoch(epoch)
       self.test_epoch(epoch)
