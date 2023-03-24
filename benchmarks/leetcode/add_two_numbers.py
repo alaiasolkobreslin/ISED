@@ -15,60 +15,21 @@ from util import sample
 
 # Problem: https://leetcode.com/problems/add-two-numbers/
 
-class ListNode(object):
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-def list_to_linked_list(digits):
-    cur = dummy = ListNode(0)
-    for e in digits:
-        cur.next = ListNode(e)
-        cur = cur.next
-    return dummy.next
-
-def linked_list_to_int(digits):
-    result = ''
-    cur = digits
-    while cur:
-      result = str(cur.val) + result
-      cur = cur.next
-    return int(result)
-
-def add_two_numbers(l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:
-    carry = 0
-    result = ListNode(0)
-    pointer = result
-    length = 0
-      
-    while (l1 != None or l2 != None or carry):
-        first_num = second_num = 0
-        if l1 != None:
-          first_num = l1.val
-        if l2:
-          second_num = l2.val
-        summation = first_num + second_num + carry
-        num = summation % 10
-        carry = int(summation / 10)
-        pointer.next = ListNode(num)
-        pointer = pointer.next
-        length += 1
-        if l1 != None:
-          l1 = l1.next
-        if l2 != None:
-          l2 = l2.next
-
-    return result.next
-
 def add_two_numbers_forward(inputs):
   size = int(len(inputs) / 2)
   n_samples = inputs[0].shape[0]
-  results = [None] * n_samples
-  for i in range(n_samples):
-    a_digits = list_to_linked_list(input[i].item() for input in inputs[:size])
-    b_digits = list_to_linked_list(input[i].item() for input in inputs[size:])
-    results[i] = torch.tensor(linked_list_to_int(add_two_numbers(a_digits, b_digits)))
-  return torch.stack(results)
+  
+  a_inputs = torch.stack(inputs[:size])
+  b_inputs = torch.stack(inputs[size:])
+
+  a_nums = torch.zeros(n_samples)
+  b_nums = torch.zeros(n_samples)
+
+  for i in range(size):
+    a_nums = a_nums + a_inputs[i] * (10 ** i)
+    b_nums = b_nums + b_inputs[i] * (10 ** i)
+
+  return a_nums + b_nums
 
 mnist_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -110,10 +71,14 @@ class MNISTAddTwoNumbersDataset(torch.utils.data.Dataset):
     imgs = torch.stack([imgs_digits[i][0] for i in range(total_digits)])
     digits = [imgs_digits[i][1] for i in range(total_digits)]
 
-    a_lst = list_to_linked_list(digits[:self.n_digits])
-    b_lst = list_to_linked_list(digits[self.n_digits:])
-    result = linked_list_to_int(add_two_numbers(a_lst, b_lst))
+    a_num = b_num = 0
+    a_digits = digits[:self.n_digits]
+    b_digits = digits[self.n_digits:]
+    for i in range(self.n_digits):
+      a_num = a_num + a_digits[i] * (10 ** i)
+      b_num = b_num + b_digits[i] * (10 ** i)
 
+    result = a_num + b_num
     return (imgs, result)
 
   @staticmethod
