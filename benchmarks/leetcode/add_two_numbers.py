@@ -1,4 +1,5 @@
 import os
+import json
 import random
 from typing import *
 
@@ -138,13 +139,15 @@ class MNISTNet(nn.Module):
 
 
 class MNISTAddTwoNumbersNet(nn.Module):
-  def __init__(self):
+  def __init__(self, n_digits):
     super(MNISTAddTwoNumbersNet, self).__init__()
 
     # MNIST Digit Recognition Network
     self.mnist_net = MNISTNet()
 
-    self.sampling = sample.Sample(n_inputs=4, n_samples=args.n_samples, input_mapping=[10, 10, 10, 10], fn=add_two_numbers_forward)
+    input_mapping = [10] * (n_digits * 2)
+
+    self.sampling = sample.Sample(n_inputs=n_digits*2, n_samples=args.n_samples, input_mapping=input_mapping, fn=add_two_numbers_forward)
 
   def add_two_numbers_test(self, digits):
     return self.sampling.sample_test(digits)
@@ -192,8 +195,8 @@ class MNISTAddTwoNumbersNet(nn.Module):
 
 
 class Trainer():
-  def __init__(self, train_loader, test_loader, learning_rate):
-    self.network = MNISTAddTwoNumbersNet()
+  def __init__(self, train_loader, test_loader, learning_rate, n_digits):
+    self.network = MNISTAddTwoNumbersNet(n_digits)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -248,12 +251,16 @@ if __name__ == "__main__":
   parser.add_argument("--difficulty", type=str, default="easy")
   args = parser.parse_args()
 
+  # Read json
+  dir_path = os.path.dirname(os.path.realpath(__file__))
+  data = json.load(open(os.path.join(dir_path ,os.path.join('specs', 'add_two_numbers.json'))))
+
   # Parameters
   n_epochs = args.n_epochs
   batch_size_train = args.batch_size_train
   batch_size_test = args.batch_size_test
   learning_rate = args.learning_rate
-  n_digits = 2
+  n_digits = data['n_digits'][args.difficulty]
   torch.manual_seed(args.seed)
   random.seed(args.seed)
 
@@ -264,5 +271,5 @@ if __name__ == "__main__":
   train_loader, test_loader = MNIST_add_two_numbers_loader(data_dir, n_digits, batch_size_train, batch_size_test)
 
   # Create trainer and train
-  trainer = Trainer(train_loader, test_loader, learning_rate)
+  trainer = Trainer(train_loader, test_loader, learning_rate, n_digits)
   trainer.train(n_epochs)
