@@ -1,5 +1,6 @@
 import torch
 from torch.distributions.categorical import Categorical
+from functools import reduce
 
 class Sample(object):
     def __init__(self, n_inputs, n_samples, input_mapping, fn):
@@ -14,23 +15,19 @@ class Sample(object):
       input_distrs = inputs[:self.n_inputs]
 
       samples = [Categorical(probs=distr).sample((self.n_samples,)) for distr in input_distrs]
-      inputs_on = [dict.fromkeys(range(self.input_mapping[i]), 0) for i in range(self.n_inputs)]
-
-      total_on = 0
+      output = self.fn(samples)
+      I_p, I_m = [], []
       for i in range(self.n_samples):
-         inputs = [samples[i] for i in range(self.n_inputs)]
-         output = self.fn(inputs)
+         inputs_probs = [input_distrs[dist][samples[dist][i]] for dist in range(self.n_inputs)]
+         output_prob =  reduce(lambda x, y: x*y, inputs_probs)
          if output[i] == ground_truth:
-            total_on += 1
-            for j in range(self.n_inputs):
-               inputs_on[j][samples[j][i].item()] += 1
-
-      if total_on:
-        target_distrs = [torch.tensor([inputs_on[j][i]/total_on for i in range(self.input_mapping[j])]).view(1,-1) for j in range(self.n_inputs)]
-      else:
-        target_distrs = [torch.zeros((1, self.input_mapping[i])) for i in range(self.n_inputs)]
-
-      return tuple(target_distrs)
+            I_p.append(output_prob)
+         else:
+            I_m.append(output_prob)
+  
+      I_p = sum(I_p, start=torch.tensor(0., requires_grad=True)) * 1/self.n_samples
+      I_m = sum(I_m,start=torch.tensor(0., requires_grad=True)) * 1/self.n_samples
+      return I_p, I_m
     
     def sample_test(self, input_distrs):
       batch_size, _ = input_distrs[0].shape

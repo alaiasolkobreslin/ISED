@@ -13,6 +13,7 @@ from tqdm import tqdm
 
 from util import sample
 
+
 mnist_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
   torchvision.transforms.Normalize(
@@ -133,20 +134,21 @@ class MNISTSum2Net(nn.Module):
     # First recognize the two digits
     a_distrs = self.mnist_net(a_imgs) # Tensor 64 x 10
     b_distrs = self.mnist_net(b_imgs) # Tensor 64 x 10
+    argss = list(zip(a_distrs, b_distrs, y))
 
-    a_distrs_list = list(a_distrs.clone().detach())
-    b_distrs_list = list(b_distrs.clone().detach())
-    argss = list(zip(a_distrs_list, b_distrs_list, y))
     out_pred = map(self.sampling.sample_train, argss)
     out_pred = list(zip(*out_pred))
 
-    a_pred, b_pred = out_pred[0], out_pred[1]
-    a_pred = torch.stack(a_pred).view([a_distrs.shape[0],10])
-    b_pred = torch.stack(b_pred).view([b_distrs.shape[0],10])
+    I_p, I_m = out_pred[0], out_pred[1]
 
-    cat_distrs = torch.cat((a_distrs, b_distrs))
-    cat_pred = torch.cat((a_pred, b_pred))
-    l = F.mse_loss(cat_distrs,cat_pred)
+    I_p = torch.stack(I_p).view([a_distrs.shape[0],1])
+    I_m = torch.stack(I_m).view([b_distrs.shape[0],1])
+
+    I_p_one = torch.ones(size=I_p.shape)
+    I_m_zero = torch.zeros(size=I_m.shape)
+    
+    I, truth = torch.cat((I_p, I_m), dim=0), torch.cat((I_p_one, I_m_zero), dim=0)
+    l = F.mse_loss(I, truth)
     return l
 
   def evaluate(self, x: Tuple[torch.Tensor, torch.Tensor]):
