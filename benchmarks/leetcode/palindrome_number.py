@@ -17,24 +17,17 @@ from util import sample
 # Problem: https://leetcode.com/problems/palindrome-number/
 
 def is_palindrome(x):
-  # return False if x < 0 else str(x)[::-1] == str(x)
-  return x == x.reverse()
-
-# def list_to_int(digits):
-#     return int("".join(map(str, digits)))
+  x_cmp = x[:]
+  x_cmp.reverse()
+  return x == x_cmp
 
 def is_palindrome_forward(inputs):
-  # size = int(len(inputs) / 2)
   n_samples = inputs[0].shape[0]
   results = torch.zeros(n_samples)
   for i in range(n_samples):
     digits = [input[i].item() for input in inputs]
     result = 1 if is_palindrome(digits) else 0
     results[i] = result
-    # a_digits = list_to_linked_list(input[i].item() for input in inputs[:size])
-    # b_digits = list_to_linked_list(input[i].item() for input in inputs[size:])
-    # results[i] = torch.tensor(linked_list_to_int(add_two_numbers(a_digits, b_digits)))
-    # results[i] = torch.tensor(0)
   return results
 
 mnist_img_transform = torchvision.transforms.Compose([
@@ -231,7 +224,7 @@ class Trainer():
         iter.set_description(f"[Test Epoch {epoch}] Accuracy: {correct}/{num_items} ({perc:.2f}%)")
 
   def train(self, n_epochs):
-    # self.test_epoch(0)
+    self.test_epoch(0)
     for epoch in range(1, n_epochs + 1):
       self.train_epoch(epoch)
       self.test_epoch(epoch)
