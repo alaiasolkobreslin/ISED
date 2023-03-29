@@ -272,7 +272,7 @@ if __name__ == "__main__":
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--cuda", action="store_true")
   parser.add_argument("--gpu", type=int, default=0)
-  parser.add_argument("--n-samples", type=int, default=100)
+  parser.add_argument("--n-samples", type=int, default=10)
   parser.add_argument("--difficulty", type=str, default="easy")
   args = parser.parse_args()
 
