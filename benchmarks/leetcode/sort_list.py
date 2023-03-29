@@ -142,7 +142,7 @@ class MNISTSortListNet(nn.Module):
   def sort_list_test(self, digits):
     return self.sampling.sample_test(digits)
 
-  def forward(self, x: Tuple[torch.Tensor, torch.Tensor], y: List[int]):
+  def forward(self, x: torch.Tensor, y: List[int]):
     """
     Invoked during training
 
