@@ -183,8 +183,7 @@ class Trainer():
       loss = self.network.forward(data, target)
       loss.backward()
       for param in self.network.parameters():
-        if hasattr(param.grad, "data"):
-          param.grad.data.clamp_(-1, 1)
+        param.grad.data.clamp_(-1, 1)
       self.optimizer.step()
       total_loss += loss.item()
       avg_loss = total_loss / (batch_id + 1)
