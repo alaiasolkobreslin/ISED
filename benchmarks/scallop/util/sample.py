@@ -1,6 +1,5 @@
 import torch
 from torch.distributions.categorical import Categorical
-from functools import reduce
 
 class Sample(object):
     def __init__(self, n_inputs, n_samples, input_mapping, fn):
@@ -18,7 +17,7 @@ class Sample(object):
       for _ in range(self.n_samples):
          idxs = [i.sample() for i in input_sampler]
          idxs_probs = torch.stack([input_distrs[i][idx] for i, idx in enumerate(idxs)])
-         output_prob = torch.mean(idxs_probs, dim=0)
+         output_prob = torch.prod(idxs_probs, dim=0)
          if self.fn(idxs) == ground_truth:
             I_p.append(output_prob)
          else:

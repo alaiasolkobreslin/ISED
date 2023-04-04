@@ -134,20 +134,19 @@ class MNISTSum2Net(nn.Module):
     a_distrs = self.mnist_net(a_imgs) # Tensor 64 x 10
     b_distrs = self.mnist_net(b_imgs) # Tensor 64 x 10
 
-    a_distrs_list = list(a_distrs.clone().detach())
-    b_distrs_list = list(b_distrs.clone().detach())
-    argss = list(zip(a_distrs_list, b_distrs_list, y))
+
+    argss = list(zip(a_distrs, b_distrs, y))
     out_pred = map(self.sampling.sample_train, argss)
     out_pred = list(zip(*out_pred))
     I_p, I_m = out_pred[0], out_pred[1]
-    I_p = torch.stack(I_p).view([a_distrs.shape[0],1])
-    I_m = torch.stack(I_m).view([b_distrs.shape[0],1])
+    I_p = torch.stack(I_p).view(-1)
+    I_m = torch.stack(I_m).view(-1)
 
+    I = torch.cat((I_p, I_m))
+    I_truth = torch.cat((torch.ones(size=I_p.shape, requires_grad=True), torch.zeros(size=I_m.shape, requires_grad=True)))
 
-    p_loss = F.mse_loss(I_p, torch.ones(size=I_p.shape, requires_grad=True))
-    m_loss = F.mse_loss(I_m, torch.zeros(size=I_m.shape, requires_grad=True))
-
-    l = p_loss + m_loss
+    l = F.mse_loss(I, I_truth)
+    
     return l
 
   def evaluate(self, x: Tuple[torch.Tensor, torch.Tensor]):
