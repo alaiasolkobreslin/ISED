@@ -14,23 +14,21 @@ from tqdm import tqdm
 
 from util import sample
 
-# Problem: https://leetcode.com/problems/add-two-numbers/
+# Problem: https://leetcode.com/problems/palindrome-number/
 
-def add_two_numbers_forward(inputs):
-  size = int(len(inputs) / 2)
+def is_palindrome(x):
+  x_cmp = x[:]
+  x_cmp.reverse()
+  return x == x_cmp
+
+def is_palindrome_forward(inputs):
   n_samples = inputs[0].shape[0]
-  
-  a_inputs = torch.stack(inputs[:size])
-  b_inputs = torch.stack(inputs[size:])
-
-  a_nums = torch.zeros(n_samples)
-  b_nums = torch.zeros(n_samples)
-
-  for i in range(size):
-    a_nums = a_nums + a_inputs[i] * (10 ** i)
-    b_nums = b_nums + b_inputs[i] * (10 ** i)
-
-  return a_nums + b_nums
+  results = torch.zeros(n_samples)
+  for i in range(n_samples):
+    digits = [input[i].item() for input in inputs]
+    result = 1 if is_palindrome(digits) else 0
+    results[i] = result
+  return results
 
 mnist_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -39,7 +37,7 @@ mnist_img_transform = torchvision.transforms.Compose([
   )
 ])
 
-class MNISTAddTwoNumbersDataset(torch.utils.data.Dataset):
+class MNISTPalindromeDataset(torch.utils.data.Dataset):
   def __init__(
     self,
     root: str,
@@ -72,14 +70,7 @@ class MNISTAddTwoNumbersDataset(torch.utils.data.Dataset):
     imgs = torch.stack([imgs_digits[i][0] for i in range(total_digits)])
     digits = [imgs_digits[i][1] for i in range(total_digits)]
 
-    a_num = b_num = 0
-    a_digits = digits[:self.n_digits]
-    b_digits = digits[self.n_digits:]
-    for i in range(self.n_digits):
-      a_num = a_num + a_digits[i] * (10 ** i)
-      b_num = b_num + b_digits[i] * (10 ** i)
-
-    result = a_num + b_num
+    result = is_palindrome(digits)
     return (imgs, result)
 
   @staticmethod
@@ -90,29 +81,29 @@ class MNISTAddTwoNumbersDataset(torch.utils.data.Dataset):
     return (imgs, digits)
 
 
-def MNIST_add_two_numbers_loader(data_dir, n_digits, batch_size_train, batch_size_test):
+def MNIST_palindrome_loader(data_dir, n_digits, batch_size_train, batch_size_test):
   train_loader = torch.utils.data.DataLoader(
-    MNISTAddTwoNumbersDataset(
+    MNISTPalindromeDataset(
       data_dir,
       n_digits,
       train=True,
       download=True,
       transform=mnist_img_transform,
     ),
-    collate_fn=MNISTAddTwoNumbersDataset.collate_fn,
+    collate_fn=MNISTPalindromeDataset.collate_fn,
     batch_size=batch_size_train,
     shuffle=True
   )
 
   test_loader = torch.utils.data.DataLoader(
-    MNISTAddTwoNumbersDataset(
+    MNISTPalindromeDataset(
       data_dir,
       n_digits,
       train=False,
       download=True,
       transform=mnist_img_transform,
     ),
-    collate_fn=MNISTAddTwoNumbersDataset.collate_fn,
+    collate_fn=MNISTPalindromeDataset.collate_fn,
     batch_size=batch_size_test,
     shuffle=True
   )
@@ -138,21 +129,21 @@ class MNISTNet(nn.Module):
     return F.softmax(x, dim=1)
 
 
-class MNISTAddTwoNumbersNet(nn.Module):
+class MNISTPalindromeNet(nn.Module):
   def __init__(self, n_digits):
-    super(MNISTAddTwoNumbersNet, self).__init__()
+    super(MNISTPalindromeNet, self).__init__()
 
     # MNIST Digit Recognition Network
     self.mnist_net = MNISTNet()
 
     input_mapping = [10] * (n_digits * 2)
 
-    self.sampling = sample.Sample(n_inputs=n_digits*2, n_samples=args.n_samples, input_mapping=input_mapping, fn=add_two_numbers_forward)
+    self.sampling = sample.Sample(n_inputs=n_digits*2, n_samples=args.n_samples, input_mapping=input_mapping, fn=is_palindrome_forward)
 
-  def add_two_numbers_test(self, digits):
+  def palindrome_test(self, digits):
     return self.sampling.sample_test(digits)
 
-  def forward(self, x: Tuple[torch.Tensor, torch.Tensor], y: List[int]):
+  def forward(self, x: torch.Tensor, y: List[int]):
     """
     Invoked during training
 
@@ -191,12 +182,12 @@ class MNISTAddTwoNumbersNet(nn.Module):
     distrs = [self.mnist_net(imgs[i]) for i in range(total_digits)]
 
     # Testing: execute the reasoning module; the result is a size 19 tensor
-    return self.add_two_numbers_test(distrs) # Tensor 64 x 19
+    return self.palindrome_test(distrs) # Tensor 64 x 19
 
 
 class Trainer():
   def __init__(self, train_loader, test_loader, learning_rate, n_digits):
-    self.network = MNISTAddTwoNumbersNet(n_digits)
+    self.network = MNISTPalindromeNet(n_digits)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -241,19 +232,19 @@ class Trainer():
 
 if __name__ == "__main__":
   # Argument parser
-  parser = ArgumentParser("mnist_add_two_numbers_sampling")
+  parser = ArgumentParser("mnist_palindrome_sampling")
   parser.add_argument("--n-epochs", type=int, default=10)
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--seed", type=int, default=1234)
-  parser.add_argument("--n-samples", type=int, default=100)
+  parser.add_argument("--n-samples", type=int, default=10)
   parser.add_argument("--difficulty", type=str, default="easy")
   args = parser.parse_args()
 
   # Read json
   dir_path = os.path.dirname(os.path.realpath(__file__))
-  data = json.load(open(os.path.join(dir_path ,os.path.join('specs', 'add_two_numbers.json'))))
+  data = json.load(open(os.path.join(dir_path ,os.path.join('specs', 'palindrome_number.json'))))
 
   # Parameters
   n_epochs = args.n_epochs
@@ -268,7 +259,7 @@ if __name__ == "__main__":
   data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data"))
 
   # Dataloaders
-  train_loader, test_loader = MNIST_add_two_numbers_loader(data_dir, n_digits, batch_size_train, batch_size_test)
+  train_loader, test_loader = MNIST_palindrome_loader(data_dir, n_digits, batch_size_train, batch_size_test)
 
   # Create trainer and train
   trainer = Trainer(train_loader, test_loader, learning_rate, n_digits)
