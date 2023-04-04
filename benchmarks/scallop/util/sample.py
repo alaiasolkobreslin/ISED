@@ -13,21 +13,19 @@ class Sample(object):
 
       ground_truth = inputs[self.n_inputs]
       input_distrs = inputs[:self.n_inputs]
-
-      samples = [Categorical(probs=distr).sample((self.n_samples,)) for distr in input_distrs]
-      output = self.fn(samples)
+      input_sampler = [Categorical(i) for i in input_distrs]
       I_p, I_m = [], []
-      for i in range(self.n_samples):
-         inputs_probs = [input_distrs[dist][samples[dist][i]] for dist in range(self.n_inputs)]
-         output_prob =  reduce(lambda x, y: x*y, inputs_probs)
-         if output[i] == ground_truth:
+      for _ in range(self.n_samples):
+         idxs = [i.sample() for i in input_sampler]
+         idxs_probs = torch.stack([input_distrs[i][idx] for i, idx in enumerate(idxs)])
+         output_prob = torch.mean(idxs_probs, dim=0)
+         if self.fn(idxs) == ground_truth:
             I_p.append(output_prob)
          else:
             I_m.append(output_prob)
-  
-      I_p = sum(I_p, start=torch.tensor(0., requires_grad=True)) * 1/self.n_samples
-      I_m = sum(I_m,start=torch.tensor(0., requires_grad=True)) * 1/self.n_samples
-      return I_p, I_m
+      I_p_mean = torch.mean(torch.stack(I_p)) if I_p else torch.tensor(0., requires_grad=True)
+      I_m_mean = torch.mean(torch.stack(I_m)) if I_m else torch.tensor(0., requires_grad=True)
+      return I_p_mean, I_m_mean
     
     def sample_test(self, input_distrs):
       batch_size, _ = input_distrs[0].shape
