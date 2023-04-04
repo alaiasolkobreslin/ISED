@@ -11,7 +11,7 @@
         "unstructured_input_type": "Tensor[1 x 27 x 27]"
       },
       {
-        "name": "digit_1",
+        "name": "digit_2",
         "type": "int",
         "strategy": "singleton",
         "dataset": "MNIST",
@@ -34,8 +34,8 @@
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
       },
       {
-        "name": "number_1",
-        "type": "int",
+        "name": "number_2",
+        "type": "List[int]",
         "num_digits": 3,
         "strategy": "list",
         "dataset": "MNIST",

@@ -26,15 +26,8 @@ class SimpleListStrategy(Strategy):
     
     def sample(self):
         samples = [None] * self.n_samples
-        for i in range(len(self.n_samples)):
+        for i in range(self.n_samples):
             sample = random.randrange(0, len(self.input_mapping))
             idx = self.unstructured_dataset.sample_with_y(sample)
             samples[i] = self.unstructured_dataset.get(idx)
         return samples
-
-
-def get_strategy(s, unstructured_dataset, input_mapping, n_samples=None):
-    if s == SINGLETON_STRATEGY:
-        return SingletonStrategy(unstructured_dataset, input_mapping)
-    if s == SIMPLE_LIST_STRATEGY:
-        return SimpleListStrategy(unstructured_dataset, input_mapping, n_samples)
