@@ -10,9 +10,7 @@ import torch.optim as optim
 
 from argparse import ArgumentParser
 from tqdm import tqdm
-
 from util import sample
-
 
 mnist_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -118,6 +116,7 @@ class MNISTSum2Net(nn.Module):
 
     self.sampling = sample.Sample(n_inputs=2, n_samples=args.n_samples, input_mapping=[10, 10], fn=sum_2_forward)
 
+
   def sum_2_test(self, digit_1, digit_2):
     input_distrs = [digit_1, digit_2]
     return self.sampling.sample_test(input_distrs)
@@ -134,21 +133,20 @@ class MNISTSum2Net(nn.Module):
     # First recognize the two digits
     a_distrs = self.mnist_net(a_imgs) # Tensor 64 x 10
     b_distrs = self.mnist_net(b_imgs) # Tensor 64 x 10
-    argss = list(zip(a_distrs, b_distrs, y))
 
+
+    argss = list(zip(a_distrs, b_distrs, y))
     out_pred = map(self.sampling.sample_train, argss)
     out_pred = list(zip(*out_pred))
-
     I_p, I_m = out_pred[0], out_pred[1]
+    I_p = torch.stack(I_p).view(-1)
+    I_m = torch.stack(I_m).view(-1)
 
-    I_p = torch.stack(I_p).view([a_distrs.shape[0],1])
-    I_m = torch.stack(I_m).view([b_distrs.shape[0],1])
+    I = torch.cat((I_p, I_m))
+    I_truth = torch.cat((torch.ones(size=I_p.shape, requires_grad=True), torch.zeros(size=I_m.shape, requires_grad=True)))
 
-    I_p_one = torch.ones(size=I_p.shape)
-    I_m_zero = torch.zeros(size=I_m.shape)
+    l = F.mse_loss(I, I_truth)
     
-    I, truth = torch.cat((I_p, I_m), dim=0), torch.cat((I_p_one, I_m_zero), dim=0)
-    l = F.mse_loss(I, truth)
     return l
 
   def evaluate(self, x: Tuple[torch.Tensor, torch.Tensor]):
