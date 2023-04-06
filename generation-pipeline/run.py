@@ -1,17 +1,191 @@
-import json
 import os
+import json
+import random
+from typing import *
+
+import torch
+import torchvision
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
+from argparse import ArgumentParser
+from tqdm import tqdm
 
 import task_dataset
+import task_program
+import sample
+from constants import *
+
+
+class Dataset(torch.utils.data.Dataset):
+    def __init__(self, config):
+        self.dataset = task_dataset.TaskDataset(config)
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, _):
+        return self.dataset.generate_datapoint()
+
+    @staticmethod
+    def collate_fn(batch):
+        dicts = [item[0] for item in batch]
+        imgs = torch.stack([torch.stack([item[0][k]
+                           for item in batch]) for k in dicts[0].keys()])
+        results = [item[1] for item in batch]
+        return (imgs, results)
+
+
+def train_test_loader(configuration, batch_size_train, batch_size_test):
+    train_loader = torch.utils.data.DataLoader(
+        Dataset(configuration),
+        collate_fn=Dataset.collate_fn,
+        batch_size=batch_size_train,
+        shuffle=True
+    )
+
+    test_loader = torch.utils.data.DataLoader(
+        Dataset(configuration),
+        collate_fn=Dataset.collate_fn,
+        batch_size=batch_size_test,
+        shuffle=True
+    )
+
+    return train_loader, test_loader
+
+
+class TaskNet(nn.Module):
+    def __init__(self, unstructured_datasets, fn):
+        super(TaskNet, self).__init__()
+
+        self.nets = [ud.net() for ud in unstructured_datasets]
+        # self.parameters = nn.ParameterList([net.parameters for net in self.nets])
+        n_inputs = len(self.nets)
+
+        self.sampling = sample.Sample(n_inputs, args.n_samples, fn)
+
+    def parameters(self):
+        return [net.parameters() for net in self.nets]
+
+    def task_test(self, args):
+        return self.sampling.sample_test(args)
+
+    def forward(self, x, y):
+        n_inputs = len(x)
+
+        distrs = [self.nets[i](x[i]) for i in range(n_inputs)]
+        distrs_list = [distr.clone().detach() for distr in distrs]
+
+        argss = list(zip(*(tuple(distrs_list)), y))
+        out_pred = map(self.sampling.sample_train, argss)
+        out_pred = list(zip(*out_pred))
+        # TODO: fix this?
+        preds = [torch.stack(out_pred[i]).view(
+            [distrs[i].shape[0], 10]) for i in range(n_inputs)]
+
+        cat_distrs = torch.cat(distrs)
+        cat_pred = torch.cat(preds)
+        l = F.mse_loss(cat_distrs, cat_pred)
+        return l
+
+    def evaluate(self, x):
+        """
+        Invoked during testing
+        """
+        n_inputs = len(x)
+        distrs = [self.nets[i](x[i]) for i in range(n_inputs)]
+        return self.task_test(distrs)
+
+
+class Trainer():
+    def __init__(self, train_loader, test_loader, learning_rate, unstructured_datasets, fn):
+        self.network = TaskNet(unstructured_datasets, fn)
+        self.optimizers = [optim.Adam(
+            net.parameters(), lr=learning_rate) for net in self.network.nets]
+        # self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
+        self.train_loader = train_loader
+        self.test_loader = test_loader
+
+    def train_epoch(self, epoch):
+        self.network.train()
+        iter = tqdm(self.train_loader, total=len(self.train_loader))
+        total_loss = 0.0
+        for (batch_id, (data, target)) in enumerate(iter):
+            for optimizer in self.optimizers:
+                optimizer.zero_grad()
+            loss = self.network.forward(data, target)
+            loss.backward()
+            for param in self.network.parameters():
+                param.grad.data.clamp_(-1, 1)
+            for optimizer in self.optimizers:
+                optimizer.step()
+            total_loss += loss.item()
+            avg_loss = total_loss / (batch_id + 1)
+            iter.set_description(
+                f"[Train Epoch {epoch}] Avg Loss: {avg_loss:.4f}, Batch Loss: {loss.item():.4f}")
+
+    def test_epoch(self, epoch):
+        self.network.eval()
+        num_items = 0
+        correct = 0
+        with torch.no_grad():
+            iter = tqdm(self.test_loader, total=len(self.test_loader))
+            for (data, target) in iter:
+                batch_size = len(target)
+                output = self.network.evaluate(data)  # Float Tensor 64 x 19
+                for i in range(batch_size):
+                    if output[i].item() == target[i]:
+                        correct += 1
+                num_items += batch_size
+                perc = 100. * correct / num_items
+                iter.set_description(
+                    f"[Test Epoch {epoch}] Accuracy: {correct}/{num_items} ({perc:.2f}%)")
+
+    def train(self, n_epochs):
+        self.test_epoch(0)
+        for epoch in range(1, n_epochs + 1):
+            self.train_epoch(epoch)
+            self.test_epoch(epoch)
+
 
 if __name__ == "__main__":
+    # Argument parser
+    parser = ArgumentParser("mnist_add_two_numbers_sampling")
+    parser.add_argument("--n-epochs", type=int, default=10)
+    parser.add_argument("--batch-size-train", type=int, default=64)
+    parser.add_argument("--batch-size-test", type=int, default=64)
+    parser.add_argument("--learning-rate", type=float, default=0.0001)
+    parser.add_argument("--seed", type=int, default=1234)
+    parser.add_argument("--n-samples", type=int, default=100)
+    parser.add_argument("--difficulty", type=str, default="easy")
+    args = parser.parse_args()
+
+    # Read json
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    configuration = json.load(open(os.path.join(dir_path, "configuration.json")))
+    configuration = json.load(
+        open(os.path.join(dir_path, "configuration.json")))
 
+    # Parameters
+    n_epochs = args.n_epochs
+    batch_size_train = args.batch_size_train
+    batch_size_test = args.batch_size_test
+    learning_rate = args.learning_rate
+    torch.manual_seed(args.seed)
+    random.seed(args.seed)
+
+    # Dataloaders
     for task in configuration:
-        config = configuration[task]
-        dataset = task_dataset.TaskDataset(config)
+        task_config = configuration[task]
+        train_loader, test_loader = train_test_loader(
+            task_config, batch_size_train, batch_size_test)
 
-        datapoint = dataset.generate_datapoint()
-        
-        print(task)
-        print(datapoint[1])
+        py_func = task_config[PY_PROGRAM]
+        unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
+            input) for input in task_config[INPUTS]]
+        fn = task_program.dispatcher[py_func]
+
+        # Create trainer and train
+        trainer = Trainer(train_loader, test_loader,
+                          learning_rate, unstructured_datasets, fn)
+        trainer.train(n_epochs)
