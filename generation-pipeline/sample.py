@@ -21,7 +21,7 @@ class Sample(object):
             idxs_probs = torch.stack([input_distrs[i][idx]
                                      for i, idx in enumerate(idxs)])
             output_prob = torch.prod(idxs_probs, dim=0)
-            if self.fn(idxs) == ground_truth:
+            if self.fn(*idxs) == ground_truth:
                 I_p.append(output_prob)
             else:
                 I_m.append(output_prob)

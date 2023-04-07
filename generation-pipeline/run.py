@@ -73,20 +73,20 @@ class TaskNet(nn.Module):
 
     def forward(self, x, y):
         n_inputs = len(x)
-
         distrs = [self.nets[i](x[i]) for i in range(n_inputs)]
-        distrs_list = [distr.clone().detach() for distr in distrs]
-
-        argss = list(zip(*(tuple(distrs_list)), y))
+        argss = list(zip(*(tuple(distrs)), y))
         out_pred = map(self.sampling.sample_train, argss)
         out_pred = list(zip(*out_pred))
-        # TODO: fix this?
-        preds = [torch.stack(out_pred[i]).view(
-            [distrs[i].shape[0], 10]) for i in range(n_inputs)]
+        I_p, I_m = out_pred[0], out_pred[1]
+        I_p = torch.stack(I_p).view(-1)
+        I_m = torch.stack(I_m).view(-1)
 
-        cat_distrs = torch.cat(distrs)
-        cat_pred = torch.cat(preds)
-        l = F.mse_loss(cat_distrs, cat_pred)
+        I = torch.cat((I_p, I_m))
+        I_truth = torch.cat((torch.ones(size=I_p.shape, requires_grad=True), torch.zeros(
+            size=I_m.shape, requires_grad=True)))
+
+        l = F.mse_loss(I, I_truth)
+
         return l
 
     def evaluate(self, x):
@@ -116,8 +116,9 @@ class Trainer():
                 optimizer.zero_grad()
             loss = self.network.forward(data, target)
             loss.backward()
-            for param in self.network.parameters():
-                param.grad.data.clamp_(-1, 1)
+            for parameters in self.network.parameters():
+                for param in parameters:
+                    param.grad.data.clamp_(-1, 1)
             for optimizer in self.optimizers:
                 optimizer.step()
             total_loss += loss.item()
