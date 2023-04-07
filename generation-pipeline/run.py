@@ -61,7 +61,6 @@ class TaskNet(nn.Module):
         super(TaskNet, self).__init__()
 
         self.nets = [ud.net() for ud in unstructured_datasets]
-        # self.parameters = nn.ParameterList([net.parameters for net in self.nets])
         n_inputs = len(self.nets)
 
         self.sampling = sample.Sample(n_inputs, args.n_samples, fn)
@@ -104,7 +103,6 @@ class Trainer():
         self.network = TaskNet(unstructured_datasets, fn)
         self.optimizers = [optim.Adam(
             net.parameters(), lr=learning_rate) for net in self.network.nets]
-        # self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
         self.train_loader = train_loader
         self.test_loader = test_loader
 
@@ -135,7 +133,7 @@ class Trainer():
             iter = tqdm(self.test_loader, total=len(self.test_loader))
             for (data, target) in iter:
                 batch_size = len(target)
-                output = self.network.evaluate(data)  # Float Tensor 64 x 19
+                output = self.network.evaluate(data)
                 for i in range(batch_size):
                     if output[i].item() == target[i]:
                         correct += 1

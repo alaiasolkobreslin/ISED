@@ -11,6 +11,21 @@ class TaskDataset:
         self.config = config
         py_program = config[PY_PROGRAM]
         self.function = task_program.dispatcher[py_program]
+        self.structured_dataset_train = {}
+        self.structured_dataset_test = {}
+        inputs = self.config[INPUTS]
+        for input in inputs:
+            name = input[NAME]
+            unstructured_dataset_train = TaskDataset.get_unstructured_dataset(
+                input, train=True)
+            unstructured_dataset_test = TaskDataset.get_unstructured_dataset(
+                input, train=False)
+            structured_dataset_train = self.get_structured_dataset(
+                input, unstructured_dataset_train)
+            structured_dataset_test = self.get_structured_dataset(
+                input, unstructured_dataset_test)
+            self.structured_dataset_train[name] = structured_dataset_train
+            self.structured_dataset_test[name] = structured_dataset_test
 
     def __len__(self):
         # TODO: FIX
@@ -33,11 +48,12 @@ class TaskDataset:
         dispatch_args = {}
         for input in inputs:
             name = input[NAME]
-            unstructured_dataset = TaskDataset.get_unstructured_dataset(
-                input, train=train)
-            structured_dataset = self.get_structured_dataset(
-                input, unstructured_dataset)
-            (unstructured, structured) = structured_dataset.generate_datapoint()
+            if train:
+                (unstructured,
+                 structured) = self.structured_dataset_train[name].generate_datapoint()
+            else:
+                (unstructured,
+                 structured) = self.structured_dataset_test[name].generate_datapoint()
             imgs[name] = unstructured
             dispatch_args[name] = structured
 
