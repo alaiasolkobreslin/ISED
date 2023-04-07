@@ -19,14 +19,15 @@ from constants import *
 
 
 class Dataset(torch.utils.data.Dataset):
-    def __init__(self, config):
+    def __init__(self, config, train):
         self.dataset = task_dataset.TaskDataset(config)
+        self.train = train
 
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, _):
-        return self.dataset.generate_datapoint()
+        return self.dataset.generate_datapoint(train=self.train)
 
     @staticmethod
     def collate_fn(batch):
@@ -39,14 +40,14 @@ class Dataset(torch.utils.data.Dataset):
 
 def train_test_loader(configuration, batch_size_train, batch_size_test):
     train_loader = torch.utils.data.DataLoader(
-        Dataset(configuration),
+        Dataset(configuration, train=True),
         collate_fn=Dataset.collate_fn,
         batch_size=batch_size_train,
         shuffle=True
     )
 
     test_loader = torch.utils.data.DataLoader(
-        Dataset(configuration),
+        Dataset(configuration, train=False),
         collate_fn=Dataset.collate_fn,
         batch_size=batch_size_test,
         shuffle=True
@@ -183,7 +184,7 @@ if __name__ == "__main__":
 
         py_func = task_config[PY_PROGRAM]
         unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
-            input) for input in task_config[INPUTS]]
+            input, train=True) for input in task_config[INPUTS]]
         fn = task_program.dispatcher[py_func]
 
         # Create trainer and train

@@ -22,8 +22,8 @@ class UnstructuredDataset:
 
 class MNISTDataset(UnstructuredDataset):
 
-    def __init__(self):
-        self.data, self.ids_of_digit = MNIST_dataset.get_data()
+    def __init__(self, train):
+        self.data, self.ids_of_digit = MNIST_dataset.get_data(train)
 
     def sample_with_y(self, digit: int) -> int:
         return self.ids_of_digit[digit][random.randrange(0, len(self.ids_of_digit[digit]))]

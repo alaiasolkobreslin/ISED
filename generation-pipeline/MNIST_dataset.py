@@ -40,12 +40,12 @@ class MNISTDataset(torch.utils.data.Dataset):
         return self.mnist_dataset[self.index_map[idx]]
 
 
-def get_data():
+def get_data(train):
     data_dir = os.path.abspath(os.path.join(
         os.path.abspath(__file__), "../data"))
     data = MNISTDataset(
         data_dir,
-        train=True,
+        train=train,
         download=True,
         transform=mnist_img_transform,
     )

@@ -14,11 +14,11 @@ class TaskDataset:
 
     def __len__(self):
         # TODO: FIX
-        return len(MNISTDataset().data)
+        return len(MNISTDataset(train=True).data)
 
-    def get_unstructured_dataset(config):
+    def get_unstructured_dataset(config, train):
         if config[DATASET] == MNIST:
-            return MNISTDataset()
+            return MNISTDataset(train=train)
 
     def get_structured_dataset(self, config, unstructured_dataset):
         if config[TYPE] == INT_TYPE:
@@ -26,14 +26,15 @@ class TaskDataset:
         if config[TYPE] == INT_LIST_TYPE:
             return IntDataset(config, unstructured_dataset)
 
-    def generate_datapoint(self):
+    def generate_datapoint(self, train):
         prog = self.config[PY_PROGRAM]
         inputs = self.config[INPUTS]
         imgs = {}
         dispatch_args = {}
         for input in inputs:
             name = input[NAME]
-            unstructured_dataset = TaskDataset.get_unstructured_dataset(input)
+            unstructured_dataset = TaskDataset.get_unstructured_dataset(
+                input, train=train)
             structured_dataset = self.get_structured_dataset(
                 input, unstructured_dataset)
             (unstructured, structured) = structured_dataset.generate_datapoint()
