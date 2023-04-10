@@ -4,7 +4,6 @@ import random
 from typing import *
 
 import torch
-import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -12,6 +11,7 @@ import torch.optim as optim
 from argparse import ArgumentParser
 from tqdm import tqdm
 
+import unstructured_dataset
 import task_dataset
 import task_program
 import sample
@@ -60,13 +60,21 @@ class TaskNet(nn.Module):
     def __init__(self, unstructured_datasets, fn):
         super(TaskNet, self).__init__()
 
-        self.nets = [ud.net() for ud in unstructured_datasets]
+        self.nets_dict = {}
+        self.nets = []
+        for ud in unstructured_datasets:
+            if type(ud) is unstructured_dataset.MNISTDataset:
+                if MNIST not in self.nets_dict:
+                    self.nets_dict[MNIST] = ud.net()
+                self.nets.append(self.nets_dict[MNIST])
+            # TODO: finish
+
         n_inputs = len(self.nets)
 
         self.sampling = sample.Sample(n_inputs, args.n_samples, fn)
 
     def parameters(self):
-        return [net.parameters() for net in self.nets]
+        return [net.parameters() for net in self.nets_dict.values()]
 
     def task_test(self, args):
         return self.sampling.sample_test(args)
@@ -102,7 +110,7 @@ class Trainer():
     def __init__(self, train_loader, test_loader, learning_rate, unstructured_datasets, fn):
         self.network = TaskNet(unstructured_datasets, fn)
         self.optimizers = [optim.Adam(
-            net.parameters(), lr=learning_rate) for net in self.network.nets]
+            net.parameters(), lr=learning_rate) for net in self.network.nets_dict.values()]
         self.train_loader = train_loader
         self.test_loader = test_loader
 
