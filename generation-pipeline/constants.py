@@ -14,10 +14,12 @@ LENGTH = "length"
 INT_TYPE = "int"
 INT_LIST_TYPE = "List[int]"
 INT_LIST_LIST_TYPE = "List[List[int]]"
+STRING_TYPE = "str"
 
 # Datasets
 DATASET = "dataset"
 MNIST = "MNIST"
+HWF_SYMBOL = "HWF"
 
 # Strategies
 

@@ -5,7 +5,7 @@ import strategy
 
 class StructuredDataset:
 
-    def generate_datapoint():
+    def generate_datapoint(self):
         pass
 
 
@@ -66,3 +66,20 @@ class IntListDataset(StructuredDataset):
 
         # TODO
         pass
+
+
+class StringDataset(StructuredDataset):
+
+    def __init__(self, config, unstructured_dataset):
+        self.config = config
+        self.unstructured_dataset = unstructured_dataset
+
+    def generate_datapoint(self):
+        s = self.config[STRATEGY]
+        input_mapping = [i for i in range(10)]
+
+        if s == SINGLETON_STRATEGY:
+            strat = strategy.SingletonStrategy(
+                self.unstructured_dataset, input_mapping)
+
+        return strat.sample()

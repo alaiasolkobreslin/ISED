@@ -42,7 +42,7 @@ class MNISTDataset(torch.utils.data.Dataset):
 
 def get_data(train):
     data_dir = os.path.abspath(os.path.join(
-        os.path.abspath(__file__), "../data"))
+        os.path.abspath(__file__), "../../data"))
     data = MNISTDataset(
         data_dir,
         train=train,

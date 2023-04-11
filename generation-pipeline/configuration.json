@@ -45,5 +45,17 @@
     "output": {
       "type": "int"
     }
+  },
+  "hwf": {
+    "py_func" : "hwf",
+    "inputs": [
+      {
+        "name": "expr",
+        "type": "str",
+        "strategy": "singleton",
+        "dataset": "HWF",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ]
   }
 }
