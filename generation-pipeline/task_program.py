@@ -11,8 +11,8 @@ def sum_4(digit_1, digit_2, digit_3, digit_4):
     return digit_1 + digit_2 + digit_3 + digit_4
 
 
-def hwf(symbols):
-    pass
+def hwf(expr):
+    return eval(expr)
 
 # Leetcode problems
 
@@ -88,7 +88,10 @@ dispatcher = {
 def dispatch(name, dispatch_args):
     args = '('
     for i, k in enumerate(dispatch_args):
-        next_str = k + '=' + str(dispatch_args[k])
+        arg = dispatch_args[k]
+        if type(arg) is str:
+            arg = "\'" + dispatch_args[k] + "\'"
+        next_str = k + '=' + str(arg)
         if i != len(dispatch_args) - 1:
             next_str += ', '
         args += next_str

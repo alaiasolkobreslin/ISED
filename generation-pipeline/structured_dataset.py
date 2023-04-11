@@ -76,10 +76,11 @@ class StringDataset(StructuredDataset):
 
     def generate_datapoint(self):
         s = self.config[STRATEGY]
-        input_mapping = [i for i in range(10)]
+        input_mapping = [i for i in range(len(self.unstructured_dataset))]
 
         if s == SINGLETON_STRATEGY:
             strat = strategy.SingletonStrategy(
                 self.unstructured_dataset, input_mapping)
 
-        return strat.sample()
+        (imgs, expr, _) = strat.sample()
+        return (imgs, expr)

@@ -13,6 +13,7 @@ class TaskDataset:
         self.function = task_program.dispatcher[py_program]
         self.structured_dataset_train = {}
         self.structured_dataset_test = {}
+        self.unstructured_datasets = {}
         inputs = self.config[INPUTS]
         for input in inputs:
             name = input[NAME]
@@ -24,12 +25,17 @@ class TaskDataset:
                 input, unstructured_dataset_train)
             structured_dataset_test = self.get_structured_dataset(
                 input, unstructured_dataset_test)
+            self.unstructured_datasets[name] = unstructured_dataset_train
             self.structured_dataset_train[name] = structured_dataset_train
             self.structured_dataset_test[name] = structured_dataset_test
 
     def __len__(self):
         # TODO: FIX
         return len(MNISTDataset(train=True).data)
+
+    @staticmethod
+    def collate(batch_dict):
+        pass
 
     def get_unstructured_dataset(config, train):
         if config[DATASET] == MNIST:
@@ -62,4 +68,4 @@ class TaskDataset:
             dispatch_args[name] = structured
 
         result = task_program.dispatch(prog, dispatch_args)
-        return (imgs, result)
+        return (imgs, self.unstructured_datasets, result)
