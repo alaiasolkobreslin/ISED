@@ -14,23 +14,24 @@ from tqdm import tqdm
 
 from util import sample
 
-# Problem: https://leetcode.com/problems/add-two-numbers/
+# Problem: https://leetcode.com/problems/sort-list/
 
-def add_two_numbers_forward(inputs):
-  size = int(len(inputs) / 2)
+def sort_list(x):
+  indices = torch.argsort(torch.tensor(x))
+  result = 0
+  for i in range(len(x)):
+    result += indices[i].item() * (10 ** i)
+  return result
+
+def sort_list_forward(inputs):
+  n_inputs = len(inputs)
   n_samples = inputs[0].shape[0]
-  
-  a_inputs = torch.stack(inputs[:size])
-  b_inputs = torch.stack(inputs[size:])
-
-  a_nums = torch.zeros(n_samples)
-  b_nums = torch.zeros(n_samples)
-
-  for i in range(size):
-    a_nums = a_nums + a_inputs[i] * (10 ** i)
-    b_nums = b_nums + b_inputs[i] * (10 ** i)
-
-  return a_nums + b_nums
+  t = torch.stack(inputs).T
+  sorted_indices = torch.argsort(t, dim=1).T
+  results = torch.zeros(n_samples)
+  for i in range(n_inputs):
+    results += sorted_indices[i] * (10 ** i)
+  return results
 
 mnist_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -39,7 +40,7 @@ mnist_img_transform = torchvision.transforms.Compose([
   )
 ])
 
-class MNISTAddTwoNumbersDataset(torch.utils.data.Dataset):
+class MNISTSortListDataset(torch.utils.data.Dataset):
   def __init__(
     self,
     root: str,
@@ -62,57 +63,46 @@ class MNISTAddTwoNumbersDataset(torch.utils.data.Dataset):
     self.n_digits = n_digits
 
   def __len__(self):
-    return int(len(self.mnist_dataset) / (self.n_digits * 2))
+    return int(len(self.mnist_dataset) / self.n_digits)
 
   def __getitem__(self, idx):
-    # Get two data points
-    total_digits = self.n_digits * 2
+    imgs_digits = [self.mnist_dataset[self.index_map[idx * n_digits + i]] for i in range(n_digits)]
+    imgs = torch.stack([imgs_digits[i][0] for i in range(n_digits)])
+    digits = [imgs_digits[i][1] for i in range(n_digits)]
 
-    imgs_digits = [self.mnist_dataset[self.index_map[idx * total_digits + i]] for i in range(total_digits)]
-    imgs = torch.stack([imgs_digits[i][0] for i in range(total_digits)])
-    digits = [imgs_digits[i][1] for i in range(total_digits)]
-
-    a_num = b_num = 0
-    a_digits = digits[:self.n_digits]
-    b_digits = digits[self.n_digits:]
-    for i in range(self.n_digits):
-      a_num = a_num + a_digits[i] * (10 ** i)
-      b_num = b_num + b_digits[i] * (10 ** i)
-
-    result = a_num + b_num
+    result = sort_list(digits)
     return (imgs, result)
 
   @staticmethod
   def collate_fn(batch):
-    total_digits = batch[0][0].shape[0]
-    imgs = torch.stack([torch.stack([item[0][i] for item in batch]) for i in range(total_digits)])
+    imgs = torch.stack([torch.stack([item[0][i] for item in batch]) for i in range(n_digits)])
     digits = [item[1] for item in batch]
     return (imgs, digits)
 
 
-def MNIST_add_two_numbers_loader(data_dir, n_digits, batch_size_train, batch_size_test):
+def MNIST_sort_list_loader(data_dir, n_digits, batch_size_train, batch_size_test):
   train_loader = torch.utils.data.DataLoader(
-    MNISTAddTwoNumbersDataset(
+    MNISTSortListDataset(
       data_dir,
       n_digits,
       train=True,
       download=True,
       transform=mnist_img_transform,
     ),
-    collate_fn=MNISTAddTwoNumbersDataset.collate_fn,
+    collate_fn=MNISTSortListDataset.collate_fn,
     batch_size=batch_size_train,
     shuffle=True
   )
 
   test_loader = torch.utils.data.DataLoader(
-    MNISTAddTwoNumbersDataset(
+    MNISTSortListDataset(
       data_dir,
       n_digits,
       train=False,
       download=True,
       transform=mnist_img_transform,
     ),
-    collate_fn=MNISTAddTwoNumbersDataset.collate_fn,
+    collate_fn=MNISTSortListDataset.collate_fn,
     batch_size=batch_size_test,
     shuffle=True
   )
@@ -138,21 +128,21 @@ class MNISTNet(nn.Module):
     return F.softmax(x, dim=1)
 
 
-class MNISTAddTwoNumbersNet(nn.Module):
+class MNISTSortListNet(nn.Module):
   def __init__(self, n_digits):
-    super(MNISTAddTwoNumbersNet, self).__init__()
+    super(MNISTSortListNet, self).__init__()
 
     # MNIST Digit Recognition Network
     self.mnist_net = MNISTNet()
 
-    input_mapping = [10] * (n_digits * 2)
+    input_mapping = [10] * n_digits
 
-    self.sampling = sample.Sample(n_inputs=n_digits*2, n_samples=args.n_samples, input_mapping=input_mapping, fn=add_two_numbers_forward)
+    self.sampling = sample.Sample(n_inputs=n_digits, n_samples=args.n_samples, input_mapping=input_mapping, fn=sort_list_forward)
 
-  def add_two_numbers_test(self, digits):
+  def sort_list_test(self, digits):
     return self.sampling.sample_test(digits)
 
-  def forward(self, x: Tuple[torch.Tensor, torch.Tensor], y: List[int]):
+  def forward(self, x: torch.Tensor, y: List[int]):
     """
     Invoked during training
 
@@ -160,7 +150,6 @@ class MNISTAddTwoNumbersNet(nn.Module):
     Returns the loss (a single scalar)
     """
     imgs = x
-    total_digits = n_digits * 2
 
     # First recognize the digits
     batched = torch.cat(tuple(imgs))
@@ -170,7 +159,7 @@ class MNISTAddTwoNumbersNet(nn.Module):
     argss = list(zip(*(tuple(distrs_list)), y))
     out_pred = map(self.sampling.sample_train, argss)
     out_pred = list(zip(*out_pred))
-    preds = [torch.stack(out_pred[i]).view([distrs[i].shape[0], 10]) for i in range(total_digits)]
+    preds = [torch.stack(out_pred[i]).view([distrs[i].shape[0], 10]) for i in range(n_digits)]
 
     cat_distrs = torch.cat(distrs)
     cat_pred = torch.cat(preds)
@@ -185,18 +174,17 @@ class MNISTAddTwoNumbersNet(nn.Module):
     Returns the predicted sum of the two digits (vector of dimension 19)
     """
     imgs = x
-    total_digits = n_digits * 2
 
     # First recognize the two digits
-    distrs = [self.mnist_net(imgs[i]) for i in range(total_digits)]
+    distrs = [self.mnist_net(imgs[i]) for i in range(n_digits)]
 
     # Testing: execute the reasoning module; the result is a size 19 tensor
-    return self.add_two_numbers_test(distrs) # Tensor 64 x 19
+    return self.sort_list_test(distrs) # Tensor 64 x 19
 
 
 class Trainer():
   def __init__(self, train_loader, test_loader, learning_rate, n_digits):
-    self.network = MNISTAddTwoNumbersNet(n_digits)
+    self.network = MNISTSortListNet(n_digits)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -241,7 +229,7 @@ class Trainer():
 
 if __name__ == "__main__":
   # Argument parser
-  parser = ArgumentParser("mnist_add_two_numbers_sampling")
+  parser = ArgumentParser("mnist_sort_list_sampling")
   parser.add_argument("--n-epochs", type=int, default=10)
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
@@ -253,7 +241,7 @@ if __name__ == "__main__":
 
   # Read json
   dir_path = os.path.dirname(os.path.realpath(__file__))
-  data = json.load(open(os.path.join(dir_path ,os.path.join('specs', 'add_two_numbers.json'))))
+  data = json.load(open(os.path.join(dir_path ,os.path.join('specs', 'sort_list.json'))))
 
   # Parameters
   n_epochs = args.n_epochs
@@ -268,7 +256,7 @@ if __name__ == "__main__":
   data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data"))
 
   # Dataloaders
-  train_loader, test_loader = MNIST_add_two_numbers_loader(data_dir, n_digits, batch_size_train, batch_size_test)
+  train_loader, test_loader = MNIST_sort_list_loader(data_dir, n_digits, batch_size_train, batch_size_test)
 
   # Create trainer and train
   trainer = Trainer(train_loader, test_loader, learning_rate, n_digits)

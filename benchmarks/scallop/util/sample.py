@@ -1,3 +1,5 @@
+from typing import *
+
 import torch
 from torch.distributions.categorical import Categorical
 import torch.nn.functional as F
@@ -34,13 +36,16 @@ class Sample(object):
       I_m_mean = torch.mean(torch.stack(I_m)) if I_m else torch.tensor(0., requires_grad=True)
       return I_p_mean, I_m_mean
     
-    def sample_test(self, input_distrs):
+    def sample_test(self, input_distrs, args: Optional[List] = None):
       batch_size, _ = input_distrs[0].shape
       samples = [torch.t(Categorical(probs=distr).sample((self.n_samples,))) for distr in input_distrs]
       results = torch.zeros(batch_size)
       for i in range(batch_size):
          inputs = [samples[j][i] for j in range(self.n_inputs)]
-         results[i] = torch.mode(self.fn(inputs)).values.item()
+         if args is None:
+            results[i] = torch.mode(self.fn(inputs)).values.item()
+         else:
+            results[i] = torch.mode(self.fn(inputs, args[0])).values.item()
       return results
     
     def sample_train_backward(self, inputs):
