@@ -143,7 +143,7 @@ class Trainer():
                 batch_size = len(target)
                 output = self.network.evaluate(data)
                 for i in range(batch_size):
-                    if output[i].item() == target[i]:
+                    if output[i] == target[i]:
                         correct += 1
                 num_items += batch_size
                 perc = 100. * correct / num_items

@@ -141,10 +141,8 @@ class Sample(object):
 
     def sample_test(self, input_distrs):
         batch_size, _ = input_distrs[0].shape
-        samples = [torch.t(Categorical(probs=distr).sample(
-            (self.n_samples,))) for distr in input_distrs]
-        results = torch.zeros(batch_size)
+        results = [None] * batch_size
         for i in range(batch_size):
-            inputs = [samples[j][i] for j in range(self.n_inputs)]
-            results[i] = torch.mode(self.fn(*inputs)).values.item()
+            inputs = [torch.argmax(distr[i]) for distr in input_distrs]
+            results[i] = self.fn(*inputs)
         return results
