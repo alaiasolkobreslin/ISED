@@ -82,5 +82,4 @@ class StringDataset(StructuredDataset):
             strat = strategy.SingletonStrategy(
                 self.unstructured_dataset, input_mapping)
 
-        (imgs, expr, _) = strat.sample()
-        return (imgs, expr)
+        return strat.sample()

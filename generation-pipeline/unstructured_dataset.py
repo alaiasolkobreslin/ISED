@@ -67,7 +67,8 @@ class HWFDataset(UnstructuredDataset):
         return self.ids_of_expr[expr][random.randrange(0, len(self.ids_of_expr[expr]))]
 
     def get(self, index: int) -> Tuple[torch.Tensor, str]:
-        return self.data[index]
+        (expr, string, _) = self.data[index]
+        return (expr, string)
 
     def net(self):
         return HWF_symbol_net.SymbolNet()
