@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.multiprocessing import Pool
 
 from argparse import ArgumentParser
 from tqdm import tqdm
@@ -73,6 +74,8 @@ class TaskNet(nn.Module):
 
         self.sampling = sample.Sample(n_inputs, args.n_samples, fn)
 
+        self.pool = Pool(processes=args.batch_size_train)
+
     def parameters(self):
         return [net.parameters() for net in self.nets_dict.values()]
 
@@ -82,20 +85,17 @@ class TaskNet(nn.Module):
     def forward(self, x, y):
         n_inputs = len(x)
         distrs = [self.nets[i](x[i]) for i in range(n_inputs)]
-        argss = list(zip(*(tuple(distrs)), y))
-        out_pred = map(self.sampling.sample_train, argss)
+        distrs_detached = [distr.detach() for distr in distrs]
+        argss = list(zip(*(tuple(distrs_detached)), y))
+        out_pred = self.pool.map(
+            self.sampling.sample_train_backward_threaded, argss)
         out_pred = list(zip(*out_pred))
-        I_p, I_m = out_pred[0], out_pred[1]
-        I_p = torch.stack(I_p).view(-1)
-        I_m = torch.stack(I_m).view(-1)
+        grads = [torch.stack(grad) for grad in out_pred]
 
-        I = torch.cat((I_p, I_m))
-        I_truth = torch.cat((torch.ones(size=I_p.shape, requires_grad=True), torch.zeros(
-            size=I_m.shape, requires_grad=True)))
+        for i in range(len(grads)):
+            distrs[i].backward(grads[i])
 
-        l = F.mse_loss(I, I_truth)
-
-        return l
+        return abs(torch.mean(torch.cat(*grads)))
 
     def evaluate(self, x):
         """
@@ -122,7 +122,7 @@ class Trainer():
             for optimizer in self.optimizers:
                 optimizer.zero_grad()
             loss = self.network.forward(data, target)
-            loss.backward()
+            # loss.backward()
             for parameters in self.network.parameters():
                 for param in parameters:
                     param.grad.data.clamp_(-1, 1)
@@ -151,7 +151,7 @@ class Trainer():
                     f"[Test Epoch {epoch}] Accuracy: {correct}/{num_items} ({perc:.2f}%)")
 
     def train(self, n_epochs):
-        self.test_epoch(0)
+        # self.test_epoch(0)
         for epoch in range(1, n_epochs + 1):
             self.train_epoch(epoch)
             self.test_epoch(epoch)
