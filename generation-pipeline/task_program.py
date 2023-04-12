@@ -12,7 +12,10 @@ def sum_4(digit_1, digit_2, digit_3, digit_4):
 
 
 def hwf(expr):
-    return eval(expr)
+    try:
+        return eval(expr)
+    except Exception:
+        return None
 
 # Leetcode problems
 

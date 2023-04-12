@@ -13,10 +13,11 @@ pool = None
 
 
 class Sample(object):
-    def __init__(self, n_inputs, n_samples, fn, n_threads=0):
+    def __init__(self, n_inputs, n_samples, fn, structured_datasets, n_threads=0):
         self.n_inputs = n_inputs
         self.n_samples = n_samples
         self.fn = fn
+        self.structured_datasets = structured_datasets
         self.n_threads = n_threads
         if n_threads > 0:
             global pool
@@ -140,11 +141,14 @@ class Sample(object):
         return gradients
 
     def sample_test(self, input_distrs):
-        batch_size, _ = input_distrs[0].shape
-        samples = [torch.t(Categorical(probs=distr).sample(
-            (self.n_samples,))) for distr in input_distrs]
-        results = torch.zeros(batch_size)
+        flattened = [structured.flatten(input_distrs[i]) for i, structured in enumerate(self.structured_datasets)]
+
+        batch_size, _ = flattened[0][0].shape
+        results = [None] * batch_size
         for i in range(batch_size):
-            inputs = [samples[j][i] for j in range(self.n_inputs)]
-            results[i] = torch.mode(self.fn(*inputs)).values.item()
+            inputs = []
+            for j, structured in enumerate(self.structured_datasets):
+                current_inputs = [torch.argmax(distr[j]) for distr in flattened[j]]
+                inputs += structured.unflatten(current_inputs)
+            results[i] = self.fn(*inputs)
         return results

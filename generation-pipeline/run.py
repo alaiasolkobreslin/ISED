@@ -58,7 +58,7 @@ def train_test_loader(configuration, batch_size_train, batch_size_test):
 
 
 class TaskNet(nn.Module):
-    def __init__(self, unstructured_datasets, fn):
+    def __init__(self, unstructured_datasets, structured_datasets, fn):
         super(TaskNet, self).__init__()
 
         self.nets_dict = {}
@@ -76,7 +76,7 @@ class TaskNet(nn.Module):
 
         n_inputs = len(self.nets)
 
-        self.sampling = sample.Sample(n_inputs, args.n_samples, fn)
+        self.sampling = sample.Sample(n_inputs, args.n_samples, fn, structured_datasets)
 
     def parameters(self):
         return [net.parameters() for net in self.nets_dict.values()]
@@ -110,8 +110,8 @@ class TaskNet(nn.Module):
 
 
 class Trainer():
-    def __init__(self, train_loader, test_loader, learning_rate, unstructured_datasets, fn):
-        self.network = TaskNet(unstructured_datasets, fn)
+    def __init__(self, train_loader, test_loader, learning_rate, unstructured_datasets, structured_datasets, fn):
+        self.network = TaskNet(unstructured_datasets, structured_datasets, fn)
         self.optimizers = [optim.Adam(
             net.parameters(), lr=learning_rate) for net in self.network.nets_dict.values()]
         self.train_loader = train_loader
@@ -146,7 +146,7 @@ class Trainer():
                 batch_size = len(target)
                 output = self.network.evaluate(data)
                 for i in range(batch_size):
-                    if output[i].item() == target[i]:
+                    if output[i] == target[i]:
                         correct += 1
                 num_items += batch_size
                 perc = 100. * correct / num_items
@@ -194,9 +194,10 @@ if __name__ == "__main__":
         py_func = task_config[PY_PROGRAM]
         unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
             input, train=True) for input in task_config[INPUTS]]
+        structured_datasets = [task_dataset.TaskDataset.get_structured_dataset(task_config[INPUTS][i], ud) for i, ud in enumerate(unstructured_datasets)]
         fn = task_program.dispatcher[py_func]
 
         # Create trainer and train
         trainer = Trainer(train_loader, test_loader,
-                          learning_rate, unstructured_datasets, fn)
+                          learning_rate, unstructured_datasets, structured_datasets, fn)
         trainer.train(n_epochs)

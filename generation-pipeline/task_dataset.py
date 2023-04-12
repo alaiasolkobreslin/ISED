@@ -21,9 +21,9 @@ class TaskDataset:
                 input, train=True)
             unstructured_dataset_test = TaskDataset.get_unstructured_dataset(
                 input, train=False)
-            structured_dataset_train = self.get_structured_dataset(
+            structured_dataset_train = TaskDataset.get_structured_dataset(
                 input, unstructured_dataset_train)
-            structured_dataset_test = self.get_structured_dataset(
+            structured_dataset_test = TaskDataset.get_structured_dataset(
                 input, unstructured_dataset_test)
             self.unstructured_datasets[name] = unstructured_dataset_train
             self.structured_dataset_train[name] = structured_dataset_train
@@ -43,7 +43,7 @@ class TaskDataset:
         elif config[DATASET] == HWF_SYMBOL:
             return HWFDataset(train=train)
 
-    def get_structured_dataset(self, config, unstructured_dataset):
+    def get_structured_dataset(config, unstructured_dataset):
         if config[TYPE] == INT_TYPE:
             return SingleIntDataset(config, unstructured_dataset)
         elif config[TYPE] == INT_LIST_TYPE:
