@@ -12,6 +12,12 @@ from unstructured import HWF_symbol_net
 
 class UnstructuredDataset:
 
+    def __len__(self):
+        pass
+
+    def collate_fn(self, batch):
+        pass
+
     def sample_with_y(self, y):
         pass
 
@@ -26,6 +32,13 @@ class MNISTDataset(UnstructuredDataset):
 
     def __init__(self, train):
         self.data, self.ids_of_digit = MNIST_dataset.get_data(train)
+
+    def __len__(self):
+        return len(self.data)
+
+    @staticmethod
+    def collate_fn(batch):
+        return MNIST_dataset.MNISTDataset.collate_fn(batch)
 
     def sample_with_y(self, digit: int) -> int:
         return self.ids_of_digit[digit][random.randrange(0, len(self.ids_of_digit[digit]))]
@@ -45,11 +58,17 @@ class HWFDataset(UnstructuredDataset):
     def __len__(self):
         return len(self.data)
 
-    def sample_with_y(self, expr: str) -> int:
-        return self.ids_of_symbol[expr][random.randrange(0, len(self.ids_of_symbol[expr]))]
+    @staticmethod
+    def collate_fn(batch):
+        return HWF_dataset.HWFDataset.collate_fn(batch)
+
+    def sample_with_y(self, expr_id: int) -> int:
+        expr = self.data.metadata[expr_id]['expr']
+        return self.ids_of_expr[expr][random.randrange(0, len(self.ids_of_expr[expr]))]
 
     def get(self, index: int) -> Tuple[torch.Tensor, str]:
-        return self.data[index]
+        (expr, string, _) = self.data[index]
+        return (expr, string)
 
     def net(self):
         return HWF_symbol_net.SymbolNet()
@@ -57,6 +76,9 @@ class HWFDataset(UnstructuredDataset):
 
 class MNISTVideoDataset(UnstructuredDataset):
     def __init__(self):
+        pass
+
+    def __len__(self):
         pass
 
     def sample_with_y(self):
@@ -71,6 +93,9 @@ class MNISTVideoDataset(UnstructuredDataset):
 
 class MNISTGridDataset(UnstructuredDataset):
     def __init__(self):
+        pass
+
+    def __len__(self):
         pass
 
     def sample_with_y(self):

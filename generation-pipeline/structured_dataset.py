@@ -8,6 +8,12 @@ class StructuredDataset:
     def generate_datapoint(self):
         pass
 
+    def flatten(self, input):
+        pass        
+
+    def unflatten(self, samples):
+        pass
+
 
 class SingleIntDataset(StructuredDataset):
 
@@ -24,6 +30,12 @@ class SingleIntDataset(StructuredDataset):
                 self.unstructured_dataset, input_mapping)
 
         return strat.sample()
+
+    def flatten(self, input):
+        return [input]
+
+    def unflatten(self, samples):
+        return samples
 
 
 class IntDataset(StructuredDataset):
@@ -49,6 +61,15 @@ class IntDataset(StructuredDataset):
             imgs[i] = img
         return (imgs, int(number))
 
+    def flatten(self, input):
+        return input
+
+    def unflatten(self, samples):
+        number = ''
+        for i in samples:
+            number += str(i)
+        return [number]
+
 
 class IntListDataset(StructuredDataset):
 
@@ -73,13 +94,24 @@ class StringDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
+        self.input_mapping = ['0', '1', '2', '3', '4',
+                              '5', '6', '7', '8', '9', '+', '-', '*', '/']
 
     def generate_datapoint(self):
         s = self.config[STRATEGY]
-        input_mapping = [i for i in range(10)]
+        input_mapping = [i for i in range(len(self.unstructured_dataset))]
 
         if s == SINGLETON_STRATEGY:
             strat = strategy.SingletonStrategy(
                 self.unstructured_dataset, input_mapping)
 
         return strat.sample()
+
+    def flatten(self, input):
+        return input
+
+    def unflatten(self, samples):
+        string = ''
+        for i in samples:
+            string += self.input_mapping[i]
+        return [string]

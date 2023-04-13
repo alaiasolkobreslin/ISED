@@ -31,10 +31,11 @@ class Dataset(torch.utils.data.Dataset):
 
     @staticmethod
     def collate_fn(batch):
-        dicts = [item[0] for item in batch]
-        imgs = torch.stack([torch.stack([item[0][k]
-                           for item in batch]) for k in dicts[0].keys()])
-        results = [item[1] for item in batch]
+        data_dicts = [item[0] for item in batch]
+        unstructured_dicts = [item[1] for item in batch]
+        imgs = {key: unstructured_dicts[0][key].collate_fn([data_dict[key] for data_dict in data_dicts])
+                for key in data_dicts[0].keys()}
+        results = [item[2] for item in batch]
         return (imgs, results)
 
 
@@ -57,7 +58,7 @@ def train_test_loader(configuration, batch_size_train, batch_size_test):
 
 
 class TaskNet(nn.Module):
-    def __init__(self, unstructured_datasets, fn):
+    def __init__(self, unstructured_datasets, structured_datasets, fn):
         super(TaskNet, self).__init__()
 
         self.nets_dict = {}
@@ -67,11 +68,15 @@ class TaskNet(nn.Module):
                 if MNIST not in self.nets_dict:
                     self.nets_dict[MNIST] = ud.net()
                 self.nets.append(self.nets_dict[MNIST])
+            elif type(ud) is unstructured_dataset.HWFDataset:
+                if HWF_SYMBOL not in self.nets_dict:
+                    self.nets_dict[HWF_SYMBOL] = ud.net()
+                self.nets.append(self.nets_dict[HWF_SYMBOL])
             # TODO: finish
 
         n_inputs = len(self.nets)
 
-        self.sampling = sample.Sample(n_inputs, args.n_samples, fn)
+        self.sampling = sample.Sample(n_inputs, args.n_samples, fn, structured_datasets)
 
     def parameters(self):
         return [net.parameters() for net in self.nets_dict.values()]
@@ -80,8 +85,7 @@ class TaskNet(nn.Module):
         return self.sampling.sample_test(args)
 
     def forward(self, x, y):
-        n_inputs = len(x)
-        distrs = [self.nets[i](x[i]) for i in range(n_inputs)]
+        distrs = [self.nets[i](x[key]) for (i, key) in enumerate(x)]
         argss = list(zip(*(tuple(distrs)), y))
         out_pred = map(self.sampling.sample_train, argss)
         out_pred = list(zip(*out_pred))
@@ -101,14 +105,13 @@ class TaskNet(nn.Module):
         """
         Invoked during testing
         """
-        n_inputs = len(x)
-        distrs = [self.nets[i](x[i]) for i in range(n_inputs)]
+        distrs = [self.nets[i](x[key]) for (i, key) in enumerate(x)]
         return self.task_test(distrs)
 
 
 class Trainer():
-    def __init__(self, train_loader, test_loader, learning_rate, unstructured_datasets, fn):
-        self.network = TaskNet(unstructured_datasets, fn)
+    def __init__(self, train_loader, test_loader, learning_rate, unstructured_datasets, structured_datasets, fn):
+        self.network = TaskNet(unstructured_datasets, structured_datasets, fn)
         self.optimizers = [optim.Adam(
             net.parameters(), lr=learning_rate) for net in self.network.nets_dict.values()]
         self.train_loader = train_loader
@@ -191,9 +194,10 @@ if __name__ == "__main__":
         py_func = task_config[PY_PROGRAM]
         unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
             input, train=True) for input in task_config[INPUTS]]
+        structured_datasets = [task_dataset.TaskDataset.get_structured_dataset(task_config[INPUTS][i], ud) for i, ud in enumerate(unstructured_datasets)]
         fn = task_program.dispatcher[py_func]
 
         # Create trainer and train
         trainer = Trainer(train_loader, test_loader,
-                          learning_rate, unstructured_datasets, fn)
+                          learning_rate, unstructured_datasets, structured_datasets, fn)
         trainer.train(n_epochs)

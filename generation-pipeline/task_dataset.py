@@ -13,6 +13,7 @@ class TaskDataset:
         self.function = task_program.dispatcher[py_program]
         self.structured_dataset_train = {}
         self.structured_dataset_test = {}
+        self.unstructured_datasets = {}
         inputs = self.config[INPUTS]
         for input in inputs:
             name = input[NAME]
@@ -20,10 +21,11 @@ class TaskDataset:
                 input, train=True)
             unstructured_dataset_test = TaskDataset.get_unstructured_dataset(
                 input, train=False)
-            structured_dataset_train = self.get_structured_dataset(
+            structured_dataset_train = TaskDataset.get_structured_dataset(
                 input, unstructured_dataset_train)
-            structured_dataset_test = self.get_structured_dataset(
+            structured_dataset_test = TaskDataset.get_structured_dataset(
                 input, unstructured_dataset_test)
+            self.unstructured_datasets[name] = unstructured_dataset_train
             self.structured_dataset_train[name] = structured_dataset_train
             self.structured_dataset_test[name] = structured_dataset_test
 
@@ -31,13 +33,17 @@ class TaskDataset:
         # TODO: FIX
         return len(MNISTDataset(train=True).data)
 
+    @staticmethod
+    def collate(batch_dict):
+        pass
+
     def get_unstructured_dataset(config, train):
         if config[DATASET] == MNIST:
             return MNISTDataset(train=train)
         elif config[DATASET] == HWF_SYMBOL:
             return HWFDataset(train=train)
 
-    def get_structured_dataset(self, config, unstructured_dataset):
+    def get_structured_dataset(config, unstructured_dataset):
         if config[TYPE] == INT_TYPE:
             return SingleIntDataset(config, unstructured_dataset)
         elif config[TYPE] == INT_LIST_TYPE:
@@ -62,4 +68,4 @@ class TaskDataset:
             dispatch_args[name] = structured
 
         result = task_program.dispatch(prog, dispatch_args)
-        return (imgs, result)
+        return (imgs, self.unstructured_datasets, result)
