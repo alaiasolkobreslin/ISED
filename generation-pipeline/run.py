@@ -72,7 +72,9 @@ class TaskNet(nn.Module):
 
         n_inputs = len(self.nets)
 
-        self.sampling = sample.Sample(n_inputs, args.n_samples, fn)
+        self.sampling = sample.Sample(
+            n_inputs, args.n_samples, fn, args.threaded)
+        self.sampling_fn = self.sampling.sample_train_backward_threaded if args.threaded else self.sampling.sample_train_backward
 
         self.pool = Pool(processes=args.batch_size_train)
 
@@ -88,14 +90,14 @@ class TaskNet(nn.Module):
         distrs_detached = [distr.detach() for distr in distrs]
         argss = list(zip(*(tuple(distrs_detached)), y))
         out_pred = self.pool.map(
-            self.sampling.sample_train_backward_threaded, argss)
+            self.sampling_fn, argss)
         out_pred = list(zip(*out_pred))
         grads = [torch.stack(grad) for grad in out_pred]
 
         for i in range(len(grads)):
             distrs[i].backward(grads[i])
 
-        return abs(torch.mean(torch.cat(*grads)))
+        return abs(torch.mean(torch.cat(tuple(grads))))
 
     def evaluate(self, x):
         """
@@ -167,6 +169,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--n-samples", type=int, default=100)
     parser.add_argument("--difficulty", type=str, default="easy")
+    parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
 
     # Read json

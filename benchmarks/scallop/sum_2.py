@@ -114,6 +114,7 @@ class MNISTSum2Net(nn.Module):
     # MNIST Digit Recognition Network
     self.mnist_net = MNISTNet()
 
+
     self.sampling = sample.Sample(n_inputs=2, n_samples=args.n_samples, input_mapping=[10, 10], fn=sum_2_forward)
 
 
@@ -146,7 +147,7 @@ class MNISTSum2Net(nn.Module):
     I_truth = torch.cat((torch.ones(size=I_p.shape, requires_grad=True), torch.zeros(size=I_m.shape, requires_grad=True)))
 
     l = F.mse_loss(I, I_truth)
-    
+
     return l
 
   def evaluate(self, x: Tuple[torch.Tensor, torch.Tensor]):
@@ -172,6 +173,8 @@ class Trainer():
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
+
+
 
   def train_epoch(self, epoch):
     self.network.train()
@@ -219,7 +222,7 @@ if __name__ == "__main__":
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--seed", type=int, default=1234)
-  parser.add_argument("--n-samples", type=int, default=100)
+  parser.add_argument("--n-samples", type=int, default=10000)
   args = parser.parse_args()
 
   # Parameters
@@ -229,6 +232,7 @@ if __name__ == "__main__":
   learning_rate = args.learning_rate
   torch.manual_seed(args.seed)
   random.seed(args.seed)
+
 
   # Data
   data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data"))
