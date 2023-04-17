@@ -39,6 +39,10 @@ class MNISTDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         return self.mnist_dataset[self.index_map[idx]]
 
+    @staticmethod
+    def collate_fn(batch):
+        return torch.stack(batch)
+
 
 def get_data(train):
     data_dir = os.path.abspath(os.path.join(

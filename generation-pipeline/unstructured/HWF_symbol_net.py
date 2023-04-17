@@ -12,7 +12,7 @@ class SymbolNet(nn.Module):
         self.fc1 = nn.Linear(30976, 128)
         self.fc2 = nn.Linear(128, 14)
 
-    def forward(self, x):
+    def forward_symbol(self, x):
         x = self.conv1(x)
         x = F.relu(x)
         x = self.conv2(x)
@@ -24,3 +24,7 @@ class SymbolNet(nn.Module):
         x = F.dropout(x, p=0.5, training=self.training)
         x = self.fc2(x)
         return F.softmax(x, dim=1)
+
+    def forward(self, x):
+        symbols = torch.transpose(x, 0, 1)
+        return [self.forward_symbol(symbols[i]) for i in range(symbols.shape[0])]

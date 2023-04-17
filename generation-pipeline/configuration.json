@@ -1,7 +1,6 @@
-
 {
   "sum_2": {
-    "py_func" : "sum_2",
+    "py_func": "sum_2",
     "inputs": [
       {
         "name": "digit_1",
@@ -22,8 +21,343 @@
       "type": "int"
     }
   },
+  "sum_3": {
+    "py_func": "sum_3",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_2",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_3",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "sum_4": {
+    "py_func": "sum_4",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_2",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_3",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_4",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "add_mod_3": {
+    "py_func": "add_mod_3",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_2",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "add_sub": {
+    "py_func": "add_sub",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_2",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_3",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "eq_2": {
+    "py_func": "eq_2",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_2",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "bool"
+    }
+  },
+  "how_many_3_or_4": {
+    "py_func": "how_many_3_or_4",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[int]",
+        "strategy": "list",
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "how_many_3": {
+    "py_func": "how_many_3",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[int]",
+        "strategy": "list",
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "how_many_not_3_and_not_4": {
+    "py_func": "how_many_not_3_and_not_4",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[int]",
+        "strategy": "list",
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "how_many_not_3": {
+    "py_func": "how_many_not_3",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[int]",
+        "strategy": "list",
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "identity": {
+    "py_func": "identity",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "is_3_and_4": {
+    "py_func": "is_3_and_4",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_2",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "bool"
+    }
+  },
+  "not_3_or_4": {
+    "py_func": "not_3_or_4",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_2",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "bool"
+    }
+  },
+  "less_than": {
+    "py_func": "less_than",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_2",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "bool"
+    }
+  },
+  "mod_2": {
+    "py_func": "mod_2",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_2",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "mult_2": {
+    "py_func": "mult_2",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "digit_2",
+        "type": "int",
+        "strategy": "singleton",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "hwf": {
+    "py_func": "hwf",
+    "inputs": [
+      {
+        "name": "expr",
+        "type": "str",
+        "strategy": "singleton",
+        "dataset": "HWF",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ]
+  },
   "add_two_numbers": {
-    "py_func" : "add_two_numbers",
+    "py_func": "add_two_numbers",
     "inputs": [
       {
         "name": "number_1",
@@ -45,17 +379,5 @@
     "output": {
       "type": "int"
     }
-  },
-  "hwf": {
-    "py_func" : "hwf",
-    "inputs": [
-      {
-        "name": "expr",
-        "type": "str",
-        "strategy": "singleton",
-        "dataset": "HWF",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
-      }
-    ]
   }
 }

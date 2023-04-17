@@ -34,27 +34,26 @@ class HWFDataset(torch.utils.data.Dataset):
         img_seq_len = len(img_seq)
 
         # Output is the "res" in the sample of metadata
+        expr = sample["expr"]
         res = sample["res"]
 
         # Return (input, output) pair
-        return (img_seq, img_seq_len, res)
+        return (img_seq, expr, res)
 
     def __len__(self):
         return len(self.metadata)
 
     @staticmethod
     def collate_fn(batch):
-        max_len = max([img_seq_len for (_, img_seq_len, _) in batch])
-        zero_img = torch.zeros_like(batch[0][0][0])
+        # TODO: FIX MAX LEN
+        max_len = 7
+        zero_img = torch.zeros_like(batch[0][0])
 
         def pad_zero(img_seq): return img_seq + \
             [zero_img] * (max_len - len(img_seq))
         img_seqs = torch.stack([torch.stack(pad_zero(img_seq))
-                               for (img_seq, _, _) in batch])
-        img_seq_len = torch.stack(
-            [torch.tensor(img_seq_len).long() for (_, img_seq_len, _) in batch])
-        results = torch.stack([torch.tensor(res) for (_, _, res) in batch])
-        return (img_seqs, img_seq_len, results)
+                               for img_seq in batch])
+        return img_seqs
 
 
 def get_data(train):
@@ -64,9 +63,9 @@ def get_data(train):
         os.path.abspath(__file__), "../../data"))
     data = HWFDataset(data_dir, prefix, split)
     ys = [m['expr'] for m in data.metadata]
-    sorted = sorted(ys)
+    sorted_ys = sorted(ys)
     idxs = sorted(range(len(ys)), key=ys.__getitem__)
     ids_of_expr = defaultdict(lambda: [])
-    for i in range(len(sorted)):
-        ids_of_expr[sorted[i]].append(idxs[i])
-    return (data.metadata, ids_of_expr)
+    for i in range(len(sorted_ys)):
+        ids_of_expr[sorted_ys[i]].append(idxs[i])
+    return (data, ids_of_expr)
