@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.multiprocessing import Pool
 
 from argparse import ArgumentParser
 from tqdm import tqdm
@@ -76,7 +77,11 @@ class TaskNet(nn.Module):
 
         n_inputs = len(self.nets)
 
-        self.sampling = sample.Sample(n_inputs, args.n_samples, fn, structured_datasets)
+        self.sampling = sample.Sample(
+            n_inputs, args.n_samples, fn, args.threaded)
+        self.sampling_fn = self.sampling.sample_train_backward_threaded if args.threaded else self.sampling.sample_train_backward
+
+        self.pool = Pool(processes=args.batch_size_train)
 
     def parameters(self):
         return [net.parameters() for net in self.nets_dict.values()]
@@ -85,21 +90,19 @@ class TaskNet(nn.Module):
         return self.sampling.sample_test(args)
 
     def forward(self, x, y):
-        distrs = [self.nets[i](x[key]) for (i, key) in enumerate(x)]
-        argss = list(zip(*(tuple(distrs)), y))
-        out_pred = map(self.sampling.sample_train, argss)
+        n_inputs = len(x)
+        distrs = [self.nets[i](x[i]) for i in range(n_inputs)]
+        distrs_detached = [distr.detach() for distr in distrs]
+        argss = list(zip(*(tuple(distrs_detached)), y))
+        out_pred = self.pool.map(
+            self.sampling_fn, argss)
         out_pred = list(zip(*out_pred))
-        I_p, I_m = out_pred[0], out_pred[1]
-        I_p = torch.stack(I_p).view(-1)
-        I_m = torch.stack(I_m).view(-1)
+        grads = [torch.stack(grad) for grad in out_pred]
 
-        I = torch.cat((I_p, I_m))
-        I_truth = torch.cat((torch.ones(size=I_p.shape, requires_grad=True), torch.zeros(
-            size=I_m.shape, requires_grad=True)))
+        for i in range(len(grads)):
+            distrs[i].backward(grads[i])
 
-        l = F.mse_loss(I, I_truth)
-
-        return l
+        return abs(torch.mean(torch.cat(tuple(grads))))
 
     def evaluate(self, x):
         """
@@ -107,6 +110,14 @@ class TaskNet(nn.Module):
         """
         distrs = [self.nets[i](x[key]) for (i, key) in enumerate(x)]
         return self.task_test(distrs)
+
+    def eval(self):
+        for net in self.nets_dict.values():
+            net.eval()
+
+    def train(self):
+        for net in self.nets_dict.values():
+            net.train()
 
 
 class Trainer():
@@ -125,7 +136,6 @@ class Trainer():
             for optimizer in self.optimizers:
                 optimizer.zero_grad()
             loss = self.network.forward(data, target)
-            loss.backward()
             for parameters in self.network.parameters():
                 for param in parameters:
                     param.grad.data.clamp_(-1, 1)
@@ -152,6 +162,7 @@ class Trainer():
                 perc = 100. * correct / num_items
                 iter.set_description(
                     f"[Test Epoch {epoch}] Accuracy: {correct}/{num_items} ({perc:.2f}%)")
+        self.network.eval()
 
     def train(self, n_epochs):
         self.test_epoch(0)
@@ -170,6 +181,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--n-samples", type=int, default=100)
     parser.add_argument("--difficulty", type=str, default="easy")
+    parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
 
     # Read json
@@ -187,6 +199,7 @@ if __name__ == "__main__":
 
     # Dataloaders
     for task in configuration:
+        print('Task: {}'.format(task))
         task_config = configuration[task]
         train_loader, test_loader = train_test_loader(
             task_config, batch_size_train, batch_size_test)
