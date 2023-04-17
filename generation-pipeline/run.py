@@ -107,6 +107,14 @@ class TaskNet(nn.Module):
         distrs = [self.nets[i](x[i]) for i in range(n_inputs)]
         return self.task_test(distrs)
 
+    def eval(self):
+        for net in self.nets_dict.values():
+            net.eval()
+
+    def train(self):
+        for net in self.nets_dict.values():
+            net.train()
+
 
 class Trainer():
     def __init__(self, train_loader, test_loader, learning_rate, unstructured_datasets, fn):
@@ -124,7 +132,6 @@ class Trainer():
             for optimizer in self.optimizers:
                 optimizer.zero_grad()
             loss = self.network.forward(data, target)
-            # loss.backward()
             for parameters in self.network.parameters():
                 for param in parameters:
                     param.grad.data.clamp_(-1, 1)
@@ -151,9 +158,10 @@ class Trainer():
                 perc = 100. * correct / num_items
                 iter.set_description(
                     f"[Test Epoch {epoch}] Accuracy: {correct}/{num_items} ({perc:.2f}%)")
+        self.network.eval()
 
     def train(self, n_epochs):
-        # self.test_epoch(0)
+        self.test_epoch(0)
         for epoch in range(1, n_epochs + 1):
             self.train_epoch(epoch)
             self.test_epoch(epoch)
@@ -187,6 +195,7 @@ if __name__ == "__main__":
 
     # Dataloaders
     for task in configuration:
+        print('Task: {}'.format(task))
         task_config = configuration[task]
         train_loader, test_loader = train_test_loader(
             task_config, batch_size_train, batch_size_test)
