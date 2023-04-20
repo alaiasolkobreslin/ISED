@@ -9,7 +9,7 @@ class StructuredDataset:
         pass
 
     def flatten(self, input):
-        pass        
+        pass
 
     def unflatten(self, samples):
         pass
@@ -20,16 +20,31 @@ class SingleIntDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
+        self.strategy = self.get_strategy()
+        self.dataset = self.generate_dataset()
+
+    def __len__(self):
+        return len(self.unstructured_dataset)
+
+    def __getitem__(self, index):
+        return self.dataset[index]
 
     def generate_datapoint(self):
+        return self.strategy.sample()
+
+    def get_strategy(self):
         s = self.config[STRATEGY]
         input_mapping = [i for i in range(10)]
-
         if s == SINGLETON_STRATEGY:
             strat = strategy.SingletonStrategy(
                 self.unstructured_dataset, input_mapping)
+        return strat
 
-        return strat.sample()
+    def generate_dataset(self):
+        length = self.__len__()
+        dataset = [None] * length
+        for i in range(length):
+            dataset[i] = self.generate_datapoint()
 
     def flatten(self, input):
         return [input]

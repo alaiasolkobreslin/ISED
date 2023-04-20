@@ -21,14 +21,13 @@ from constants import *
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(self, config, train):
-        self.dataset = task_dataset.TaskDataset(config)
-        self.train = train
+        self.dataset = task_dataset.TaskDataset(config, train)
 
     def __len__(self):
         return len(self.dataset)
 
-    def __getitem__(self, _):
-        return self.dataset.generate_datapoint(train=self.train)
+    def __getitem__(self, index):
+        return self.dataset.__getitem__(index)
 
     @staticmethod
     def collate_fn(batch):
@@ -85,8 +84,7 @@ class TaskNet(nn.Module):
         return self.sampling.sample_test(args)
 
     def forward(self, x, y):
-        n_inputs = len(x)
-        distrs = [self.nets[i](x[i]) for i in range(n_inputs)]
+        distrs = [self.nets[i](x[i]) for i in range(len(x))]
         distrs_detached = [distr.detach() for distr in distrs]
         argss = list(zip(*(tuple(distrs_detached)), y))
         out_pred = self.pool.map(
@@ -103,8 +101,7 @@ class TaskNet(nn.Module):
         """
         Invoked during testing
         """
-        n_inputs = len(x)
-        distrs = [self.nets[i](x[i]) for i in range(n_inputs)]
+        distrs = [self.nets[i](x[i]) for i in range(len(x))]
         return self.task_test(distrs)
 
     def eval(self):
@@ -158,7 +155,6 @@ class Trainer():
                 perc = 100. * correct / num_items
                 iter.set_description(
                     f"[Test Epoch {epoch}] Accuracy: {correct}/{num_items} ({perc:.2f}%)")
-        self.network.eval()
 
     def train(self, n_epochs):
         self.test_epoch(0)
