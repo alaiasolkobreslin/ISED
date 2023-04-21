@@ -13,10 +13,12 @@ pool = None
 
 
 class Sample(object):
-    def __init__(self, n_inputs, n_samples, fn, n_threads=0):
+    def __init__(self, n_inputs, n_samples, fn, flatten_fns, unflatten_fns, n_threads=0):
         self.n_inputs = n_inputs
         self.n_samples = n_samples
         self.fn = fn
+        self.flatten_fns = flatten_fns
+        self.unflatten_fns = unflatten_fns
         self.n_threads = n_threads
         if n_threads > 0:
             global pool
@@ -140,9 +142,16 @@ class Sample(object):
         return gradients
 
     def sample_test(self, input_distrs):
-        batch_size, _ = input_distrs[0].shape
+        flattened = [flatten(input_distrs[i])
+                     for i, flatten in enumerate(self.flatten_fns)]
+
+        batch_size, _ = flattened[0][0].shape
         results = [None] * batch_size
         for i in range(batch_size):
-            inputs = [torch.argmax(distr[i]) for distr in input_distrs]
+            inputs = []
+            for j, unflatten in enumerate(self.unflatten_fns):
+                current_inputs = [torch.argmax(distr[i])
+                                  for distr in flattened[j]]
+                inputs += unflatten(current_inputs)
             results[i] = self.fn(*inputs)
         return results

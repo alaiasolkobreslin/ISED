@@ -16,7 +16,7 @@ class TaskDataset:
             name = input[NAME]
             unstructured_dataset = TaskDataset.get_unstructured_dataset(
                 input, train=train)
-            structured_dataset = self.get_structured_dataset(
+            structured_dataset = TaskDataset.get_structured_dataset(
                 input, unstructured_dataset)
             self.structured_datasets[name] = structured_dataset
         self.dataset = self.generate_task_dataset()
@@ -28,18 +28,12 @@ class TaskDataset:
         return self.dataset[index]
 
     def get_unstructured_dataset(config, train):
-        if config[DATASET] == MNIST:
-            return MNISTDataset(train=train)
-        elif config[DATASET] == HWF_SYMBOL:
-            return HWFDataset(train=train)
+        dataset = get_unstructured_dataset_static(config)
+        return dataset(train=train)
 
-    def get_structured_dataset(self, config, unstructured_dataset):
-        if config[TYPE] == INT_TYPE:
-            return SingleIntDataset(config, unstructured_dataset)
-        elif config[TYPE] == INT_LIST_TYPE:
-            return IntDataset(config, unstructured_dataset)
-        elif config[TYPE] == STRING_TYPE:
-            return StringDataset(config, unstructured_dataset)
+    def get_structured_dataset(config, unstructured_dataset):
+        dataset = get_structured_dataset_static(config)
+        return dataset(config, unstructured_dataset)
 
     def generate_datapoint(self):
         prog = self.config[PY_PROGRAM]

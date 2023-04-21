@@ -4,6 +4,7 @@ import random
 
 import torch
 
+from constants import *
 from unstructured import MNIST_dataset
 from unstructured import MNIST_net
 from unstructured import HWF_dataset
@@ -15,7 +16,10 @@ class UnstructuredDataset:
     def __len__(self):
         pass
 
-    def collate_fn(self, batch):
+    def collate_fn(batch):
+        pass
+
+    def input_mapping():
         pass
 
     def sample_with_y(self, y):
@@ -40,6 +44,9 @@ class MNISTDataset(UnstructuredDataset):
     def collate_fn(batch):
         return MNIST_dataset.MNISTDataset.collate_fn(batch)
 
+    def input_mapping():
+        return [i for i in range(10)]
+
     def sample_with_y(self, digit: int) -> int:
         return self.ids_of_digit[digit][random.randrange(0, len(self.ids_of_digit[digit]))]
 
@@ -62,6 +69,9 @@ class HWFDataset(UnstructuredDataset):
     def collate_fn(batch):
         return HWF_dataset.HWFDataset.collate_fn(batch)
 
+    def input_mapping():
+        return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/']
+
     def sample_with_y(self, expr_id: int) -> int:
         expr = self.data.metadata[expr_id]['expr']
         return self.ids_of_expr[expr][random.randrange(0, len(self.ids_of_expr[expr]))]
@@ -75,10 +85,18 @@ class HWFDataset(UnstructuredDataset):
 
 
 class MNISTVideoDataset(UnstructuredDataset):
-    def __init__(self):
+
+    def __init__(self, train):
         pass
 
     def __len__(self):
+        pass
+
+    @staticmethod
+    def collate_fn(batch):
+        pass
+
+    def input_mapping():
         pass
 
     def sample_with_y(self):
@@ -92,10 +110,18 @@ class MNISTVideoDataset(UnstructuredDataset):
 
 
 class MNISTGridDataset(UnstructuredDataset):
-    def __init__(self):
+
+    def __init__(self, train):
         pass
 
     def __len__(self):
+        pass
+
+    @staticmethod
+    def collate_fn(batch):
+        pass
+
+    def input_mapping():
         pass
 
     def sample_with_y(self):

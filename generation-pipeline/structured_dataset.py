@@ -2,6 +2,8 @@ from constants import *
 
 import strategy
 
+import unstructured_dataset
+
 
 class StructuredDataset:
 
@@ -17,10 +19,10 @@ class StructuredDataset:
     def generate_dataset(self):
         pass
 
-    def flatten(self, input):
+    def flatten(config, input):
         pass
 
-    def unflatten(self, samples):
+    def unflatten(config, samples):
         pass
 
 
@@ -55,10 +57,10 @@ class SingleIntDataset(StructuredDataset):
         for i in range(length):
             dataset[i] = self.generate_datapoint()
 
-    def flatten(self, input):
+    def flatten(config, input):
         return [input]
 
-    def unflatten(self, samples):
+    def unflatten(config, samples):
         return samples
 
 
@@ -97,10 +99,10 @@ class IntDataset(StructuredDataset):
         for i in range(length):
             dataset[i] = self.generate_datapoint()
 
-    def flatten(self, input):
+    def flatten(config, input):
         return input
 
-    def unflatten(self, samples):
+    def unflatten(config, samples):
         number = ''
         for i in samples:
             number += str(i)
@@ -139,10 +141,10 @@ class SingleIntListDataset(StructuredDataset):
         for i in range(length):
             dataset[i] = self.generate_datapoint()
 
-    def flatten(self, input):
+    def flatten(config, input):
         return input
 
-    def unflatten(self, samples):
+    def unflatten(config, samples):
         return samples
 
 
@@ -186,15 +188,15 @@ class IntListDataset(StructuredDataset):
         for i in range(length):
             dataset[i] = self.generate_datapoint()
 
-    def flatten(self, input):
+    def flatten(config, input):
         return [item for i in input for item in i]
 
-    def unflatten(self, samples):
-        result = [[] * self.config[LENGTH]]
+    def unflatten(config, samples):
+        result = [[] * config[LENGTH]]
         idx = 0
-        for i in range(self.config[LENGTH]):
-            number = [0] * self.config[N_DIGITS]
-            for j in range(self.config[N_DIGITS]):
+        for i in range(config[LENGTH]):
+            number = [0] * config[N_DIGITS]
+            for j in range(config[N_DIGITS]):
                 number[j] = samples[idx]
                 idx += 1
             result[i] = number
@@ -235,11 +237,33 @@ class StringDataset(StructuredDataset):
         for i in range(length):
             dataset[i] = self.generate_datapoint()
 
-    def flatten(self, input):
+    def flatten(config, input):
         return input
 
-    def unflatten(self, samples):
+    def unflatten(config, samples):
+        ud = get_unstructured_dataset_static(config)
+        input_mapping = ud.input_mapping()
         string = ''
         for i in samples:
-            string += self.input_mapping[i]
+            string += input_mapping[0][i]
         return [string]
+
+
+def get_unstructured_dataset_static(config):
+    if config[DATASET] == MNIST:
+        return unstructured_dataset.MNISTDataset
+    elif config[DATASET] == HWF_SYMBOL:
+        return unstructured_dataset.HWFDataset
+    elif config[DATASET] == MNIST_VIDEO:
+        return unstructured_dataset.MNISTVideoDataset
+    elif config[DATASET] == MNIST_GRID:
+        return unstructured_dataset.MNISTGridDataset
+
+
+def get_structured_dataset_static(config):
+    if config[TYPE] == INT_TYPE:
+        return SingleIntDataset
+    elif config[TYPE] == INT_LIST_TYPE:
+        return IntDataset
+    elif config[TYPE] == STRING_TYPE:
+        return StringDataset

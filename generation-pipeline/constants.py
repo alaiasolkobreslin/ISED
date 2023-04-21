@@ -20,6 +20,8 @@ STRING_TYPE = "str"
 DATASET = "dataset"
 MNIST = "MNIST"
 HWF_SYMBOL = "HWF"
+MNIST_VIDEO = "MNIST_VIDEO"
+MNIST_GRID = "MNIST_GRID"
 
 # Strategies
 

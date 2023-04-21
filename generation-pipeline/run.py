@@ -2,6 +2,7 @@ import os
 import json
 import random
 from typing import *
+from functools import partial
 
 import torch
 import torch.nn as nn
@@ -13,6 +14,7 @@ from argparse import ArgumentParser
 from tqdm import tqdm
 
 import unstructured_dataset
+import structured_dataset
 import task_dataset
 import task_program
 import sample
@@ -57,7 +59,7 @@ def train_test_loader(configuration, batch_size_train, batch_size_test):
 
 
 class TaskNet(nn.Module):
-    def __init__(self, unstructured_datasets, fn):
+    def __init__(self, unstructured_datasets, config, fn):
         super(TaskNet, self).__init__()
 
         self.nets_dict = {}
@@ -67,12 +69,22 @@ class TaskNet(nn.Module):
                 if MNIST not in self.nets_dict:
                     self.nets_dict[MNIST] = ud.net()
                 self.nets.append(self.nets_dict[MNIST])
+            elif type(ud) is unstructured_dataset.HWFDataset:
+                if HWF_SYMBOL not in self.nets_dict:
+                    self.nets_dict[HWF_SYMBOL] = ud.net()
+                self.nets.append(self.nets_dict[HWF_SYMBOL])
             # TODO: finish
 
         n_inputs = len(self.nets)
+        structured_datasets = [
+            structured_dataset.get_structured_dataset_static(input) for input in config]
+        flatten_fns = [partial(sd.flatten, config[i])
+                       for i, sd in enumerate(structured_datasets)]
+        unflatten_fns = [partial(sd.unflatten, config[i])
+                         for i, sd in enumerate(structured_datasets)]
 
         self.sampling = sample.Sample(
-            n_inputs, args.n_samples, fn, args.threaded)
+            n_inputs, args.n_samples, fn, flatten_fns, unflatten_fns, args.threaded)
         self.sampling_fn = self.sampling.sample_train_backward_threaded if args.threaded else self.sampling.sample_train_backward
 
         self.pool = Pool(processes=args.batch_size_train)
@@ -114,8 +126,8 @@ class TaskNet(nn.Module):
 
 
 class Trainer():
-    def __init__(self, train_loader, test_loader, learning_rate, unstructured_datasets, fn):
-        self.network = TaskNet(unstructured_datasets, fn)
+    def __init__(self, train_loader, test_loader, learning_rate, unstructured_datasets, config, fn):
+        self.network = TaskNet(unstructured_datasets, config, fn)
         self.optimizers = [optim.Adam(
             net.parameters(), lr=learning_rate) for net in self.network.nets_dict.values()]
         self.train_loader = train_loader
@@ -171,7 +183,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
     parser.add_argument("--seed", type=int, default=1234)
-    parser.add_argument("--n-samples", type=int, default=100)
+    parser.add_argument("--n-samples", type=int, default=1000)
     parser.add_argument("--difficulty", type=str, default="easy")
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
@@ -199,9 +211,11 @@ if __name__ == "__main__":
         py_func = task_config[PY_PROGRAM]
         unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
             input, train=True) for input in task_config[INPUTS]]
+        structured_datasets = [task_dataset.TaskDataset.get_structured_dataset(
+            task_config[INPUTS][i], ud) for i, ud in enumerate(unstructured_datasets)]
         fn = task_program.dispatcher[py_func]
 
         # Create trainer and train
         trainer = Trainer(train_loader, test_loader,
-                          learning_rate, unstructured_datasets, fn)
+                          learning_rate, unstructured_datasets, task_config[INPUTS], fn)
         trainer.train(n_epochs)
