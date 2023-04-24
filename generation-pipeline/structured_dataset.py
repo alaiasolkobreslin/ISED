@@ -1,13 +1,22 @@
+import torch
+
 from constants import *
-
 import strategy
-
 import unstructured_dataset
 
 
 class StructuredDataset:
 
     def __len__(self):
+        pass
+
+    def __getitem__(self, index):
+        pass
+
+    def collate_fn(batch):
+        pass
+
+    def forward(net, x):
         pass
 
     def generate_datapoint(self):
@@ -39,6 +48,13 @@ class SingleIntDataset(StructuredDataset):
 
     def __getitem__(self, index):
         return self.dataset[index]
+
+    @staticmethod
+    def collate_fn(batch):
+        return torch.stack(batch)
+
+    def forward(net, x):
+        return net(x)
 
     def generate_datapoint(self):
         return self.strategy.sample()
@@ -77,6 +93,13 @@ class IntDataset(StructuredDataset):
 
     def __getitem__(self, index):
         return self.dataset[index]
+
+    @staticmethod
+    def collate_fn(batch):
+        return torch.stack(batch)
+
+    def forward(net, x):
+        return [net(item) for item in x]
 
     def get_strategy(self):
         n_digits = self.config[N_DIGITS]
@@ -122,6 +145,15 @@ class SingleIntListDataset(StructuredDataset):
     def __getitem__(self, index):
         return self.dataset[index]
 
+    @staticmethod
+    def collate_fn(batch):
+        imgs = [torch.stack([item[i] for item in batch])
+                for i in range(len(batch[0]))]
+        return imgs
+
+    def forward(net, x):
+        return [net(item) for item in x]
+
     def get_strategy(self):
         length = self.config[LENGTH]
         s = self.config[STRATEGY]
@@ -132,8 +164,9 @@ class SingleIntListDataset(StructuredDataset):
         return strat
 
     def generate_datapoint(self):
-        samples = self.strat.sample()
+        samples = self.strategy.sample()
         return zip(*samples)
+        # return self.strategy.sample()
 
     def generate_dataset(self):
         length = self.__len__()
@@ -145,7 +178,7 @@ class SingleIntListDataset(StructuredDataset):
         return input
 
     def unflatten(config, samples):
-        return samples
+        return [samples]
 
 
 class IntListDataset(StructuredDataset):
@@ -161,6 +194,13 @@ class IntListDataset(StructuredDataset):
 
     def __getitem__(self, index):
         return self.dataset[index]
+
+    @staticmethod
+    def collate_fn(batch):
+        return torch.stack(batch)
+
+    def forward(net, x):
+        return [[net(i) for i in item] for item in x]
 
     def get_strategy(self):
         n_digits = self.config[N_DIGITS]
@@ -208,6 +248,7 @@ class StringDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
+        # TODO: move this to the unstructured dataset
         self.input_mapping = ['0', '1', '2', '3', '4',
                               '5', '6', '7', '8', '9', '+', '-', '*', '/']
         self.strategy = self.get_strategy()
@@ -218,6 +259,13 @@ class StringDataset(StructuredDataset):
 
     def __getitem__(self, index):
         return self.dataset[index]
+
+    @staticmethod
+    def collate_fn(batch):
+        return torch.stack(batch)
+
+    def forward(net, x):
+        return [net(item) for item in x]
 
     def get_strategy(self):
         s = self.config[STRATEGY]
@@ -261,9 +309,13 @@ def get_unstructured_dataset_static(config):
 
 
 def get_structured_dataset_static(config):
-    if config[TYPE] == INT_TYPE:
+    if config[TYPE] == DIGIT_TYPE:
         return SingleIntDataset
-    elif config[TYPE] == INT_LIST_TYPE:
+    if config[TYPE] == INT_TYPE:
         return IntDataset
+    elif config[TYPE] == SINGLE_INT_LIST_TYPE:
+        return SingleIntListDataset
+    elif config[TYPE] == INT_LIST_TYPE:
+        return IntListDataset
     elif config[TYPE] == STRING_TYPE:
         return StringDataset

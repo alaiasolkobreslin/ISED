@@ -11,8 +11,11 @@ N_DIGITS = "num_digits"
 LENGTH = "length"
 
 # Types
+DIGIT_TYPE = "digit"
 INT_TYPE = "int"
+SINGLE_INT_LIST_TYPE = "List[digit]"
 INT_LIST_TYPE = "List[int]"
+SINGLE_INT_LIST_LIST_TYPE = "List[List[digit]]"
 INT_LIST_LIST_TYPE = "List[List[int]]"
 STRING_TYPE = "str"
 

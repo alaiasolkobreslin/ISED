@@ -33,10 +33,13 @@ class Dataset(torch.utils.data.Dataset):
 
     @staticmethod
     def collate_fn(batch):
-        dicts = [item[0] for item in batch]
-        imgs = torch.stack([torch.stack([item[0][k]
-                           for item in batch]) for k in dicts[0].keys()])
-        results = [item[1] for item in batch]
+        data_dicts = [item[0] for item in batch]
+        config = batch[0][1]
+        collate_fns = {input[NAME]: structured_dataset.get_structured_dataset_static(
+            input).collate_fn for input in config}
+        imgs = {key: collate_fns[key](
+            [data_dict[key] for data_dict in data_dicts]) for key in data_dicts[0].keys()}
+        results = [item[2] for item in batch]
         return (imgs, results)
 
 
@@ -82,6 +85,8 @@ class TaskNet(nn.Module):
                        for i, sd in enumerate(structured_datasets)]
         unflatten_fns = [partial(sd.unflatten, config[i])
                          for i, sd in enumerate(structured_datasets)]
+        self.forward_fns = [partial(sd.forward, self.nets[i])
+                            for i, sd in enumerate(structured_datasets)]
 
         self.sampling = sample.Sample(
             n_inputs, args.n_samples, fn, flatten_fns, unflatten_fns, args.threaded)
@@ -96,7 +101,9 @@ class TaskNet(nn.Module):
         return self.sampling.sample_test(args)
 
     def forward(self, x, y):
-        distrs = [self.nets[i](x[i]) for i in range(len(x))]
+        distrs = [self.forward_fns[i](x[key]) for i, key in enumerate(x)]
+        if type(distrs[0]) is list:
+            distrs = [d for distr in distrs for d in distr]
         distrs_detached = [distr.detach() for distr in distrs]
         argss = list(zip(*(tuple(distrs_detached)), y))
         out_pred = self.pool.map(
@@ -113,7 +120,7 @@ class TaskNet(nn.Module):
         """
         Invoked during testing
         """
-        distrs = [self.nets[i](x[i]) for i in range(len(x))]
+        distrs = [self.forward_fns[i](x[key]) for i, key in enumerate(x)]
         return self.task_test(distrs)
 
     def eval(self):

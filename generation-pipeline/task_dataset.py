@@ -48,7 +48,7 @@ class TaskDataset:
             dispatch_args[name] = structured
 
         result = task_program.dispatch(prog, dispatch_args)
-        return (imgs, result)
+        return (imgs, self.config[INPUTS], result)
 
     def generate_task_dataset(self):
         length = self.__len__()
@@ -56,6 +56,3 @@ class TaskDataset:
         for i in range(length):
             dataset[i] = self.generate_datapoint()
         return dataset
-
-    def __getitem__(self, index):
-        return self.dataset[index]
