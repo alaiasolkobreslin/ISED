@@ -45,8 +45,9 @@ class Sample(object):
         return I_p_mean, I_m_mean
 
     def sample_train_backward(self, inputs):
-        ground_truth = inputs[self.n_inputs]
-        input_distrs = inputs[:self.n_inputs]
+        length = len(inputs) - 1
+        ground_truth = inputs[length]
+        input_distrs = inputs[:length]
         input_sampler = [Categorical(i) for i in input_distrs]
 
         # ensure gradients are kept
@@ -60,7 +61,15 @@ class Sample(object):
             idxs_probs = torch.stack([input_distrs[i][idx]
                                      for i, idx in enumerate(idxs)])
             output_prob = torch.prod(idxs_probs, dim=0)
-            if self.fn(*idxs) == ground_truth:
+
+            inputs_ = []
+            last_idx = 0
+            for unflatten, n in self.unflatten_fns:
+                current_inputs = idxs[last_idx:(n+last_idx)]
+                inputs_ += unflatten(current_inputs)
+                last_idx += n
+
+            if self.fn(*inputs_) == ground_truth:
                 I_p.append(output_prob)
             else:
                 I_m.append(output_prob)
@@ -90,6 +99,16 @@ class Sample(object):
         idxs_probs = torch.stack([input_distrs[i][idx]
                                  for i, idx in enumerate(idxs)])
         output_prob = torch.prod(idxs_probs, dim=0)
+
+        # flattened = [flatten(input_distrs[i])
+        #         for i, flatten in enumerate(self.flatten_fns)]
+        # inputs_ = []
+        # for j, unflatten in enumerate(self.unflatten_fns):
+        #     current_inputs = [torch.argmax(distr[i])
+        #                         for distr in flattened[j]]
+        #     inputs += unflatten(current_inputs)
+        # results[i] = self.fn(*inputs)
+
         if self.fn(*idxs) == ground_truth:
             l = F.mse_loss(output_prob, torch.ones(
                 size=output_prob.shape, requires_grad=True))
@@ -149,7 +168,7 @@ class Sample(object):
         results = [None] * batch_size
         for i in range(batch_size):
             inputs = []
-            for j, unflatten in enumerate(self.unflatten_fns):
+            for j, (unflatten, _) in enumerate(self.unflatten_fns):
                 current_inputs = [torch.argmax(distr[i])
                                   for distr in flattened[j]]
                 inputs += unflatten(current_inputs)

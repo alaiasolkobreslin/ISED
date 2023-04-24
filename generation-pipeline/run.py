@@ -83,7 +83,7 @@ class TaskNet(nn.Module):
             structured_dataset.get_structured_dataset_static(input) for input in config]
         flatten_fns = [partial(sd.flatten, config[i])
                        for i, sd in enumerate(structured_datasets)]
-        unflatten_fns = [partial(sd.unflatten, config[i])
+        unflatten_fns = [(partial(sd.unflatten, config[i]), sd.n_unflatten(config[i]))
                          for i, sd in enumerate(structured_datasets)]
         self.forward_fns = [partial(sd.forward, self.nets[i])
                             for i, sd in enumerate(structured_datasets)]

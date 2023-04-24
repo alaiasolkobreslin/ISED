@@ -34,6 +34,9 @@ class StructuredDataset:
     def unflatten(config, samples):
         pass
 
+    def n_unflatten(config):
+        pass
+
 
 class SingleIntDataset(StructuredDataset):
 
@@ -79,6 +82,9 @@ class SingleIntDataset(StructuredDataset):
     def unflatten(config, samples):
         return samples
 
+    def n_unflatten(config):
+        return 1
+
 
 class IntDataset(StructuredDataset):
 
@@ -96,7 +102,9 @@ class IntDataset(StructuredDataset):
 
     @staticmethod
     def collate_fn(batch):
-        return torch.stack(batch)
+        imgs = [torch.stack([item[i] for item in batch])
+                for i in range(len(batch[0]))]
+        return imgs
 
     def forward(net, x):
         return [net(item) for item in x]
@@ -111,7 +119,7 @@ class IntDataset(StructuredDataset):
         return strat
 
     def generate_datapoint(self):
-        samples = self.strat.sample()
+        samples = self.strategy.sample()
         imgs, number_lst = zip(*samples)
         number = ''.join(str(n) for n in number_lst)
         return (imgs, int(number))
@@ -128,8 +136,11 @@ class IntDataset(StructuredDataset):
     def unflatten(config, samples):
         number = ''
         for i in samples:
-            number += str(i)
-        return [number]
+            number += str(i.item())
+        return [torch.tensor(int(number))]
+
+    def n_unflatten(config):
+        return config[N_DIGITS]
 
 
 class SingleIntListDataset(StructuredDataset):
@@ -179,6 +190,9 @@ class SingleIntListDataset(StructuredDataset):
 
     def unflatten(config, samples):
         return [samples]
+
+    def n_unflatten(config):
+        return config[LENGTH]
 
 
 class IntListDataset(StructuredDataset):
@@ -242,6 +256,9 @@ class IntListDataset(StructuredDataset):
             result[i] = number
         return result
 
+    def n_unflatten(config):
+        return config[LENGTH] * config[N_DIGITS]
+
 
 class StringDataset(StructuredDataset):
 
@@ -295,6 +312,9 @@ class StringDataset(StructuredDataset):
         for i in samples:
             string += input_mapping[0][i]
         return [string]
+
+    def n_unflatten(config):
+        return config[LENGTH]
 
 
 def get_unstructured_dataset_static(config):
