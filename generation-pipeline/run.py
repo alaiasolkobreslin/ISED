@@ -81,15 +81,15 @@ class TaskNet(nn.Module):
         n_inputs = len(self.nets)
         structured_datasets = [
             structured_dataset.get_structured_dataset_static(input) for input in config]
-        flatten_fns = [partial(sd.flatten, config[i])
-                       for i, sd in enumerate(structured_datasets)]
+        self.flatten_fns = [partial(sd.flatten, config[i])
+                            for i, sd in enumerate(structured_datasets)]
         unflatten_fns = [(partial(sd.unflatten, config[i]), sd.n_unflatten(config[i]))
                          for i, sd in enumerate(structured_datasets)]
         self.forward_fns = [partial(sd.forward, self.nets[i])
                             for i, sd in enumerate(structured_datasets)]
 
         self.sampling = sample.Sample(
-            n_inputs, args.n_samples, fn, flatten_fns, unflatten_fns, args.threaded)
+            n_inputs, args.n_samples, fn, self.flatten_fns, unflatten_fns, args.threaded)
         self.sampling_fn = self.sampling.sample_train_backward_threaded if args.threaded else self.sampling.sample_train_backward
 
         self.pool = Pool(processes=args.batch_size_train)
@@ -102,6 +102,8 @@ class TaskNet(nn.Module):
 
     def forward(self, x, y):
         distrs = [self.forward_fns[i](x[key]) for i, key in enumerate(x)]
+        # distrs = [self.flatten_fns[i](distrs[i]) for i in range(len(distrs))]
+        # distrs = [item for distr in distrs for item in distr]
         if type(distrs[0]) is list:
             distrs = [d for distr in distrs for d in distr]
         distrs_detached = [distr.detach() for distr in distrs]
@@ -211,6 +213,9 @@ if __name__ == "__main__":
     # Dataloaders
     for task in configuration:
         print('Task: {}'.format(task))
+        if task != 'sum_2':
+            # if task != 'sum_2':
+            continue
         task_config = configuration[task]
         train_loader, test_loader = train_test_loader(
             task_config, batch_size_train, batch_size_test)

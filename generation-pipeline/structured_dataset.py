@@ -4,6 +4,8 @@ from constants import *
 import strategy
 import unstructured_dataset
 
+from unstructured import HWF_dataset
+
 
 class StructuredDataset:
 
@@ -279,10 +281,11 @@ class StringDataset(StructuredDataset):
 
     @staticmethod
     def collate_fn(batch):
-        return torch.stack(batch)
+        # TODO: fix this. should depend on unstructured dataset
+        return unstructured_dataset.HWFDataset.collate_fn(batch)
 
     def forward(net, x):
-        return [net(item) for item in x]
+        return net(x)
 
     def get_strategy(self):
         s = self.config[STRATEGY]
@@ -303,14 +306,14 @@ class StringDataset(StructuredDataset):
             dataset[i] = self.generate_datapoint()
 
     def flatten(config, input):
-        return input
+        return [item for item in torch.transpose(input, 0, 1)]
 
     def unflatten(config, samples):
         ud = get_unstructured_dataset_static(config)
         input_mapping = ud.input_mapping()
         string = ''
         for i in samples:
-            string += input_mapping[0][i]
+            string += input_mapping[i]
         return [string]
 
     def n_unflatten(config):

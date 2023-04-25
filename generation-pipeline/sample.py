@@ -100,15 +100,6 @@ class Sample(object):
                                  for i, idx in enumerate(idxs)])
         output_prob = torch.prod(idxs_probs, dim=0)
 
-        # flattened = [flatten(input_distrs[i])
-        #         for i, flatten in enumerate(self.flatten_fns)]
-        # inputs_ = []
-        # for j, unflatten in enumerate(self.unflatten_fns):
-        #     current_inputs = [torch.argmax(distr[i])
-        #                         for distr in flattened[j]]
-        #     inputs += unflatten(current_inputs)
-        # results[i] = self.fn(*inputs)
-
         if self.fn(*idxs) == ground_truth:
             l = F.mse_loss(output_prob, torch.ones(
                 size=output_prob.shape, requires_grad=True))

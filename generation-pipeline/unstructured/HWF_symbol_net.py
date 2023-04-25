@@ -26,5 +26,7 @@ class SymbolNet(nn.Module):
         return F.softmax(x, dim=1)
 
     def forward(self, x):
-        symbols = torch.transpose(x, 0, 1)
-        return [self.forward_symbol(symbols[i]) for i in range(symbols.shape[0])]
+        batch_size, length, _, _, _ = x.shape
+        symbol = self.forward_symbol(
+            x.flatten(start_dim=0, end_dim=1)).view(batch_size, length, -1)
+        return symbol

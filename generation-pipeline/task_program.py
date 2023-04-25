@@ -1,4 +1,6 @@
 # Scallop programs
+import torch
+
 
 def sum_2(digit_1, digit_2):
     return digit_1 + digit_2
@@ -66,7 +68,7 @@ def mult_2(digit_1, digit_2):
 
 def hwf(expr):
     try:
-        return eval(expr)
+        return torch.tensor(eval(expr))
     except Exception:
         return None
 
