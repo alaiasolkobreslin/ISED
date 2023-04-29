@@ -14,6 +14,7 @@ from util import sample
 
 from torch.multiprocessing import Pool
 
+DEVICE = torch.device('cuda:0')
 
 mnist_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -61,7 +62,7 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     a_imgs = torch.stack([item[0] for item in batch])
     b_imgs = torch.stack([item[1] for item in batch])
     digits = [item[2] for item in batch]
-    return ((a_imgs, b_imgs), digits)
+    return ((a_imgs.to(DEVICE), b_imgs.to(DEVICE)), digits)
 
 
 def mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test):
@@ -116,8 +117,13 @@ class MNISTSum2Net(nn.Module):
 
     # MNIST Digit Recognition Network
     self.mnist_net = MNISTNet()
+    self.mnist_net.to(DEVICE)
+    
+    
+
     self.sampling = sample.Sample(n_inputs=2, n_samples=args.n_samples, input_mapping=[10, 10], fn=sum_2_forward)
-    self.pool = Pool(processes=args.n_processes)
+
+    self.pool = Pool(processes=args.batch_size_train)
 
 
   def sum_2_test(self, digit_1, digit_2):
@@ -139,6 +145,8 @@ class MNISTSum2Net(nn.Module):
 
 
     argss = list(zip(a_distrs.clone().detach(), b_distrs.clone().detach(), y))
+    for argsss in argss:
+      self.sampling.sample_train_backward(argsss)
     out_pred = self.pool.map(self.sampling.sample_train_backward, argss)
     out_pred = list(zip(*out_pred))
     a_grad, b_grad = out_pred[0], out_pred[1]
@@ -208,7 +216,6 @@ class Trainer():
         num_items += batch_size
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Accuracy: {correct}/{num_items} ({perc:.2f}%)")
-    self.confusion_matrix()
 
   def train(self, n_epochs):
     self.test_epoch(0)
@@ -216,46 +223,20 @@ class Trainer():
       self.train_epoch(epoch)
       self.test_epoch(epoch)
 
-  def confusion_matrix(self):
-    from sklearn.metrics import confusion_matrix
-    import numpy
-
-    # Load mnist dataset
-    mnist_dataset = torchvision.datasets.MNIST(data_dir, train=False, download=True, transform=mnist_img_transform)
-    mnist_loader = torch.utils.data.DataLoader(mnist_dataset, batch_size=64)
-
-    # Load model
-    mnist_net: MNISTNet = self.network.mnist_net
-    mnist_net.eval()
-
-    # Get prediction result
-    y_true, y_pred = [], []
-    with torch.no_grad():
-      for (imgs, digits) in mnist_loader:
-        pred_digits = numpy.argmax(mnist_net(imgs), axis=1)
-        y_true += [d.item() for d in digits]
-        y_pred += [d.item() for d in pred_digits]
-
-    # Compute confusion matrix
-    cm = confusion_matrix(y_true, y_pred)
-
-    # Plot image or print
-    print(cm)
-
 
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("mnist_sum_2_sampling")
   parser.add_argument("--n-epochs", type=int, default=10)
-  parser.add_argument("--batch-size-train", type=int, default=64)
+  parser.add_argument("--batch-size-train", type=int, default=16)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--n-samples", type=int, default=100)
-  parser.add_argument("--n-processes", type=int, default=80)
   args = parser.parse_args()
 
-
+  #environment init
+  torch.multiprocessing.set_start_method('spawn')
 
   # Parameters
   n_epochs = args.n_epochs
