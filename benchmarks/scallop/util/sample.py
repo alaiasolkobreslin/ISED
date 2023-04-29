@@ -6,6 +6,8 @@ import torch.nn.functional as F
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor as Pool
 
+DEVICE = torch.device('cpu')
+
 pool = None
 
 class Sample(object):
@@ -67,11 +69,14 @@ class Sample(object):
             I_p.append(output_prob)
          else:
             I_m.append(output_prob)
-      I_p_mean = torch.mean(torch.stack(I_p)) if I_p else torch.tensor(0., requires_grad=True)
-      I_m_mean = torch.mean(torch.stack(I_m)) if I_m else torch.tensor(0., requires_grad=True)
+      I_p_sum = torch.sum(torch.stack(I_p) if I_p else torch.tensor(1., requires_grad=True, device=DEVICE))
+      I_m_sum = torch.sum(torch.stack(I_m) if I_m else torch.tensor(0., requires_grad=True, device=DEVICE))
 
-      I = torch.stack((I_p_mean, I_m_mean))
-      I_truth = torch.stack((torch.ones(size=I_p_mean.shape, requires_grad=True), torch.zeros(size=I_m_mean.shape, requires_grad=True)))
+      truthy = I_p_sum/(I_p_sum+I_m_sum)
+      falsey = I_m_sum/(I_p_sum+I_m_sum)
+
+      I = torch.stack((truthy, falsey))
+      I_truth = torch.stack((torch.ones(size=truthy.shape, requires_grad=True, device=DEVICE), torch.zeros(size=falsey.shape, requires_grad=True, device=DEVICE)))
       l = F.mse_loss(I, I_truth)
       l.backward()
       gradients = torch.stack([i.grad for i in input_distrs])
@@ -98,41 +103,45 @@ class Sample(object):
       return gradients
     
     def sample_train_backward_threaded(self, inputs):
-      assert self.n_threads > 0
+        assert self.n_threads > 0
 
-      ground_truth = inputs[self.n_inputs]
-      input_distrs = inputs[:self.n_inputs]
-      input_sampler = [Categorical(i) for i in input_distrs]
-      
-      #ensure gradients are kept
-      for distr in input_distrs:
-         distr.requires_grad = True
-         distr.retain_grad()
+        ground_truth = inputs[self.n_inputs]
+        input_distrs = inputs[:self.n_inputs]
+        input_sampler = [Categorical(i) for i in input_distrs]
 
+        # ensure gradients are kept
+        for distr in input_distrs:
+            distr.requires_grad = True
+            distr.retain_grad()
 
-      I_p, I_m = [], []
+        I_p, I_m = [], []
 
-      def _proofer():
-         idxs = [i.sample() for i in input_sampler]
-         idxs_probs = torch.stack([input_distrs[i][idx] for i, idx in enumerate(idxs)])
-         output_prob = torch.prod(idxs_probs, dim=0)
-         if self.fn(idxs) == ground_truth:
-            I_p.append(output_prob)
-         else:
-            I_m.append(output_prob)
+        def _proofer():
+            idxs = [i.sample() for i in input_sampler]
+            idxs_probs = torch.stack([input_distrs[i][idx]
+                                     for i, idx in enumerate(idxs)])
+            output_prob = torch.prod(idxs_probs, dim=0)
+            if self.fn(*idxs) == ground_truth:
+                I_p.append(output_prob)
+            else:
+                I_m.append(output_prob)
 
-      semaphores = [pool.submit(_proofer) for _ in range(self.n_samples)]
-      concurrent.futures.wait(semaphores, return_when=concurrent.futures.ALL_COMPLETED)
+        semaphores = [pool.submit(_proofer) for _ in range(self.n_samples)]
+        concurrent.futures.wait(
+            semaphores, return_when=concurrent.futures.ALL_COMPLETED)
 
-      I_p_mean = torch.mean(torch.stack(I_p)) if I_p else torch.tensor(0., requires_grad=True)
-      I_m_mean = torch.mean(torch.stack(I_m)) if I_m else torch.tensor(0., requires_grad=True)
+        I_p_sum = torch.sum(torch.stack(I_p) if I_p else torch.tensor(1., requires_grad=True, device=DEVICE))
+        I_m_sum = torch.sum(torch.stack(I_m) if I_m else torch.tensor(0., requires_grad=True, device=DEVICE))
 
-      I = torch.stack((I_p_mean, I_m_mean))
-      I_truth = torch.stack((torch.ones(size=I_p_mean.shape, requires_grad=True), torch.zeros(size=I_m_mean.shape, requires_grad=True)))
-      l = F.mse_loss(I, I_truth)
-      l.backward()
-      gradients = torch.stack([i.grad for i in input_distrs])
-      return gradients
+        truthy = I_p_sum/(I_p_sum+I_m_sum)
+        falsey = I_m_sum/(I_p_sum+I_m_sum)
+
+        I = torch.stack((truthy, falsey))
+        I_truth = torch.stack((torch.ones(size=truthy.shape, requires_grad=True, device=DEVICE), torch.zeros(size=falsey.shape, requires_grad=True, device=DEVICE)))
+        l = F.mse_loss(I, I_truth)
+        l.backward()
+        gradients = torch.stack([i.grad for i in input_distrs])
+        return gradients
     
     def sample_test(self, input_distrs):
       batch_size, _ = input_distrs[0].shape
