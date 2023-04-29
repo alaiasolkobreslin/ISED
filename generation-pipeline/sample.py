@@ -74,7 +74,7 @@ class Sample(object):
                 I_p.append(output_prob)
             else:
                 I_m.append(output_prob)
-        I_p_sum = torch.sum(torch.stack(I_p) if I_p else torch.tensor(1., requires_grad=True, device=DEVICE))
+        I_p_sum = torch.sum(torch.stack(I_p) if I_p else torch.tensor(0., requires_grad=True, device=DEVICE))
         I_m_sum = torch.sum(torch.stack(I_m) if I_m else torch.tensor(0., requires_grad=True, device=DEVICE))
 
         truthy = I_p_sum/(I_p_sum+I_m_sum)
@@ -139,7 +139,7 @@ class Sample(object):
         concurrent.futures.wait(
             semaphores, return_when=concurrent.futures.ALL_COMPLETED)
 
-        I_p_sum = torch.sum(torch.stack(I_p) if I_p else torch.tensor(1., requires_grad=True, device=DEVICE))
+        I_p_sum = torch.sum(torch.stack(I_p) if I_p else torch.tensor(0., requires_grad=True, device=DEVICE))
         I_m_sum = torch.sum(torch.stack(I_m) if I_m else torch.tensor(0., requires_grad=True, device=DEVICE))
 
         truthy = I_p_sum/(I_p_sum+I_m_sum)
