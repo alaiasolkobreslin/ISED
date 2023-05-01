@@ -102,10 +102,10 @@ class TaskNet(nn.Module):
 
     def forward(self, x, y):
         distrs = [self.forward_fns[i](x[key]) for i, key in enumerate(x)]
-        # distrs = [self.flatten_fns[i](distrs[i]) for i in range(len(distrs))]
-        # distrs = [item for distr in distrs for item in distr]
-        if type(distrs[0]) is list:
-            distrs = [d for distr in distrs for d in distr]
+        flattened = []
+        for i, distr in enumerate(distrs):
+            flattened += self.flatten_fns[i](distr)
+        distrs = flattened
         distrs_detached = [distr.detach() for distr in distrs]
         argss = list(zip(*(tuple(distrs_detached)), y))
         out_pred = self.pool.map(
@@ -114,7 +114,7 @@ class TaskNet(nn.Module):
         grads = [torch.stack(grad) for grad in out_pred]
 
         for i in range(len(grads)):
-            distrs[i].backward(grads[i])
+            distrs[i].backward(grads[i], retain_graph=True)
 
         return abs(torch.mean(torch.cat(tuple(grads))))
 
@@ -213,9 +213,6 @@ if __name__ == "__main__":
     # Dataloaders
     for task in configuration:
         print('Task: {}'.format(task))
-        if task != 'sum_2':
-            # if task != 'sum_2':
-            continue
         task_config = configuration[task]
         train_loader, test_loader = train_test_loader(
             task_config, batch_size_train, batch_size_test)

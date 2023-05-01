@@ -45,7 +45,6 @@ class HWFDataset(torch.utils.data.Dataset):
 
     @staticmethod
     def collate_fn(batch):
-        # TODO: FIX MAX LEN
         max_len = 7
         zero_img = torch.zeros_like(batch[0][0])
 
