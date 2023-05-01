@@ -70,7 +70,7 @@ def hwf(expr):
     try:
         return torch.tensor(eval(expr))
     except Exception:
-        return None
+        return 0.0
 
 # Leetcode problems
 
