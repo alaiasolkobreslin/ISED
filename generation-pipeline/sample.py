@@ -82,7 +82,7 @@ class Sample(object):
 
         I = torch.stack((truthy, falsey))
         I_truth = torch.stack((torch.ones(size=truthy.shape, requires_grad=True, device=DEVICE), torch.zeros(size=falsey.shape, requires_grad=True, device=DEVICE)))
-        l = F.mse_loss(I, I_truth)
+        l = F.binary_cross_entropy(I, I_truth)
         l.backward()
         gradients = torch.stack([i.grad for i in input_distrs])
         return gradients

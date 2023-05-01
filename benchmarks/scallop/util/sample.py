@@ -21,22 +21,22 @@ class Sample(object):
            global pool
            pool = Pool(self.n_threads)
 
-    def sample_train(self, inputs):
-      ground_truth = inputs[self.n_inputs]
-      input_distrs = inputs[:self.n_inputs]
-      input_sampler = [Categorical(i) for i in input_distrs]
-      I_p, I_m = [], []
-      for _ in range(self.n_samples):
-         idxs = [i.sample() for i in input_sampler]
-         idxs_probs = torch.stack([input_distrs[i][idx] for i, idx in enumerate(idxs)])
-         output_prob = torch.prod(idxs_probs, dim=0)
-         if self.fn(idxs) == ground_truth:
-            I_p.append(output_prob)
-         else:
-            I_m.append(output_prob)
-      I_p_mean = torch.mean(torch.stack(I_p)) if I_p else torch.tensor(0., requires_grad=True)
-      I_m_mean = torch.mean(torch.stack(I_m)) if I_m else torch.tensor(0., requires_grad=True)
-      return I_p_mean, I_m_mean
+   #  def sample_train(self, inputs):
+   #    ground_truth = inputs[self.n_inputs]
+   #    input_distrs = inputs[:self.n_inputs]
+   #    input_sampler = [Categorical(i) for i in input_distrs]
+   #    I_p, I_m = [], []
+   #    for _ in range(self.n_samples):
+   #       idxs = [i.sample() for i in input_sampler]
+   #       idxs_probs = torch.stack([input_distrs[i][idx] for i, idx in enumerate(idxs)])
+   #       output_prob = torch.prod(idxs_probs, dim=0)
+   #       if self.fn(idxs) == ground_truth:
+   #          I_p.append(output_prob)
+   #       else:
+   #          I_m.append(output_prob)
+   #    I_p_mean = torch.mean(torch.stack(I_p)) if I_p else torch.tensor(0., requires_grad=True)
+   #    I_m_mean = torch.mean(torch.stack(I_m)) if I_m else torch.tensor(0., requires_grad=True)
+   #    return I_p_mean, I_m_mean
     
     def sample_test(self, input_distrs, args: Optional[List] = None):
       batch_size, _ = input_distrs[0].shape
@@ -77,30 +77,31 @@ class Sample(object):
 
       I = torch.stack((truthy, falsey))
       I_truth = torch.stack((torch.ones(size=truthy.shape, requires_grad=True, device=DEVICE), torch.zeros(size=falsey.shape, requires_grad=True, device=DEVICE)))
-      l = F.mse_loss(I, I_truth)
+      l = F.binary_cross_entropy(I, I_truth)
       l.backward()
       gradients = torch.stack([i.grad for i in input_distrs])
       return gradients
     
-    def sample_train_backward_non_batch(self, inputs):
-      ground_truth = inputs[self.n_inputs]
-      input_distrs = inputs[:self.n_inputs]
-      input_sampler = [Categorical(i) for i in input_distrs]
+   #  def sample_train_backward_non_batch(self, inputs):
+   #    ground_truth = inputs[self.n_inputs]
+   #    input_distrs = inputs[:self.n_inputs]
+   #    input_sampler = [Categorical(i) for i in input_distrs]
       
-      #ensure gradients are kept
-      for distr in input_distrs:
-         distr.requires_grad = True
-         distr.retain_grad()
-      idxs = [i.sample() for i in input_sampler]
-      idxs_probs = torch.stack([input_distrs[i][idx] for i, idx in enumerate(idxs)])
-      output_prob = torch.prod(idxs_probs, dim=0)
-      if self.fn(idxs) == ground_truth:
-         l = F.mse_loss(output_prob, torch.ones(size=output_prob.shape, requires_grad=True))
-      else:
-         l = F.mse_loss(output_prob, torch.zeros(size=output_prob.shape, requires_grad=True))
-      l.backward()
-      gradients = torch.stack([i.grad for i in input_distrs])
-      return gradients
+   #    #ensure gradients are kept
+   #    for distr in input_distrs:
+   #       distr.requires_grad = True
+   #       distr.retain_grad()
+
+   #    idxs = [i.sample() for i in input_sampler]
+   #    idxs_probs = torch.stack([input_distrs[i][idx] for i, idx in enumerate(idxs)])
+   #    output_prob = torch.prod(idxs_probs, dim=0)
+   #    if self.fn(idxs) == ground_truth:
+   #       l = F.mse_loss(output_prob, torch.ones(size=output_prob.shape, requires_grad=True))
+   #    else:
+   #       l = F.mse_loss(output_prob, torch.zeros(size=output_prob.shape, requires_grad=True))
+   #    l.backward()
+   #    gradients = torch.stack([i.grad for i in input_distrs])
+   #    return gradients
     
     def sample_train_backward_threaded(self, inputs):
         assert self.n_threads > 0
