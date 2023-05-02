@@ -33,7 +33,7 @@ class StructuredDataset:
     def flatten(config, input):
         pass
 
-    def unflatten(config, samples):
+    def unflatten(config, samples, data, batch_item):
         pass
 
     def n_unflatten(config):
@@ -81,7 +81,7 @@ class SingleIntDataset(StructuredDataset):
     def flatten(config, input):
         return [input]
 
-    def unflatten(config, samples):
+    def unflatten(config, samples, data, batch_item):
         return samples
 
     def n_unflatten(config):
@@ -135,7 +135,7 @@ class IntDataset(StructuredDataset):
     def flatten(config, input):
         return input
 
-    def unflatten(config, samples):
+    def unflatten(config, samples, data, batch_item):
         number = ''
         for i in samples:
             number += str(i.item())
@@ -179,7 +179,6 @@ class SingleIntListDataset(StructuredDataset):
     def generate_datapoint(self):
         samples = self.strategy.sample()
         return zip(*samples)
-        # return self.strategy.sample()
 
     def generate_dataset(self):
         length = self.__len__()
@@ -190,7 +189,7 @@ class SingleIntListDataset(StructuredDataset):
     def flatten(config, input):
         return input
 
-    def unflatten(config, samples):
+    def unflatten(config, samples, data, batch_item):
         return [samples]
 
     def n_unflatten(config):
@@ -247,7 +246,7 @@ class IntListDataset(StructuredDataset):
     def flatten(config, input):
         return [item for i in input for item in i]
 
-    def unflatten(config, samples):
+    def unflatten(config, samples, data, batch_item):
         result = [[] * config[LENGTH]]
         idx = 0
         for i in range(config[LENGTH]):
@@ -267,9 +266,6 @@ class StringDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
-        # TODO: move this to the unstructured dataset
-        self.input_mapping = ['0', '1', '2', '3', '4',
-                              '5', '6', '7', '8', '9', '+', '-', '*', '/']
         self.strategy = self.get_strategy()
         self.dataset = self.generate_dataset()
 
@@ -285,7 +281,8 @@ class StringDataset(StructuredDataset):
         return unstructured_dataset.HWFDataset.collate_fn(batch)
 
     def forward(net, x):
-        return net(x)
+        (distrs, _) = x
+        return net(distrs)
 
     def get_strategy(self):
         s = self.config[STRATEGY]
@@ -303,12 +300,16 @@ class StringDataset(StructuredDataset):
         length = self.__len__()
         dataset = [None] * length
         for i in range(length):
-            dataset[i] = self.generate_datapoint()
+            imgs, string = self.generate_datapoint()
+            dataset[i] = ((imgs, len(string)), string)
+        return dataset
 
     def flatten(config, input):
         return [item for item in torch.transpose(input, 0, 1)]
 
-    def unflatten(config, samples):
+    def unflatten(config, samples, data, batch_item):
+        length = data[1][batch_item].item()
+        samples = samples[:length]
         ud = get_unstructured_dataset_static(config)
         input_mapping = ud.input_mapping()
         string = ''

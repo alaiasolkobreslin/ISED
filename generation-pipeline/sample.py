@@ -45,10 +45,11 @@ class Sample(object):
             0., requires_grad=True)
         return I_p_mean, I_m_mean
 
-    def sample_train_backward(self, inputs):
-        length = len(inputs) - 1
-        ground_truth = inputs[length]
-        input_distrs = inputs[:length]
+    def sample_train_backward(self, data, inputs):
+        length = len(inputs)
+        batch_num = inputs[length-1]
+        ground_truth = inputs[length-2]
+        input_distrs = inputs[:(length-2)]
         input_sampler = [Categorical(i) for i in input_distrs]
 
         # ensure gradients are kept
@@ -65,23 +66,26 @@ class Sample(object):
 
             inputs_ = []
             last_idx = 0
-            for unflatten, n in self.unflatten_fns:
+            for i, (unflatten, n) in enumerate(self.unflatten_fns):
                 current_inputs = idxs[last_idx:(n+last_idx)]
-                inputs_ += unflatten(current_inputs)
+                inputs_ += unflatten(current_inputs, data[i], batch_num)
                 last_idx += n
 
             if self.fn(*inputs_) == ground_truth:
                 I_p.append(output_prob)
             else:
                 I_m.append(output_prob)
-        I_p_sum = torch.sum(torch.stack(I_p) if I_p else torch.tensor(0., requires_grad=True, device=DEVICE))
-        I_m_sum = torch.sum(torch.stack(I_m) if I_m else torch.tensor(0., requires_grad=True, device=DEVICE))
+        I_p_sum = torch.sum(torch.stack(I_p) if I_p else torch.tensor(
+            0., requires_grad=True, device=DEVICE))
+        I_m_sum = torch.sum(torch.stack(I_m) if I_m else torch.tensor(
+            0., requires_grad=True, device=DEVICE))
 
         truthy = I_p_sum/(I_p_sum+I_m_sum)
         falsey = I_m_sum/(I_p_sum+I_m_sum)
 
         I = torch.stack((truthy, falsey))
-        I_truth = torch.stack((torch.ones(size=truthy.shape, requires_grad=True, device=DEVICE), torch.zeros(size=falsey.shape, requires_grad=True, device=DEVICE)))
+        I_truth = torch.stack((torch.ones(size=truthy.shape, requires_grad=True, device=DEVICE), torch.zeros(
+            size=falsey.shape, requires_grad=True, device=DEVICE)))
         l = F.binary_cross_entropy(I, I_truth)
         l.backward()
         gradients = torch.stack([i.grad for i in input_distrs])
@@ -139,20 +143,23 @@ class Sample(object):
         concurrent.futures.wait(
             semaphores, return_when=concurrent.futures.ALL_COMPLETED)
 
-        I_p_sum = torch.sum(torch.stack(I_p) if I_p else torch.tensor(0., requires_grad=True, device=DEVICE))
-        I_m_sum = torch.sum(torch.stack(I_m) if I_m else torch.tensor(0., requires_grad=True, device=DEVICE))
+        I_p_sum = torch.sum(torch.stack(I_p) if I_p else torch.tensor(
+            0., requires_grad=True, device=DEVICE))
+        I_m_sum = torch.sum(torch.stack(I_m) if I_m else torch.tensor(
+            0., requires_grad=True, device=DEVICE))
 
         truthy = I_p_sum/(I_p_sum+I_m_sum)
         falsey = I_m_sum/(I_p_sum+I_m_sum)
 
         I = torch.stack((truthy, falsey))
-        I_truth = torch.stack((torch.ones(size=truthy.shape, requires_grad=True, device=DEVICE), torch.zeros(size=falsey.shape, requires_grad=True, device=DEVICE)))
+        I_truth = torch.stack((torch.ones(size=truthy.shape, requires_grad=True, device=DEVICE), torch.zeros(
+            size=falsey.shape, requires_grad=True, device=DEVICE)))
         l = F.mse_loss(I, I_truth)
         l.backward()
         gradients = torch.stack([i.grad for i in input_distrs])
         return gradients
 
-    def sample_test(self, input_distrs):
+    def sample_test(self, input_distrs, data):
         flattened = [flatten(input_distrs[i])
                      for i, flatten in enumerate(self.flatten_fns)]
 
@@ -163,6 +170,6 @@ class Sample(object):
             for j, (unflatten, _) in enumerate(self.unflatten_fns):
                 current_inputs = [torch.argmax(distr[i])
                                   for distr in flattened[j]]
-                inputs += unflatten(current_inputs)
+                inputs += unflatten(current_inputs, data[j], i)
             results[i] = self.fn(*inputs)
         return results

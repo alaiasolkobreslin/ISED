@@ -46,13 +46,15 @@ class HWFDataset(torch.utils.data.Dataset):
     @staticmethod
     def collate_fn(batch):
         max_len = 7
-        zero_img = torch.zeros_like(batch[0][0])
+        zero_img = torch.zeros_like(batch[0][0][0])
 
         def pad_zero(img_seq): return img_seq + \
             [zero_img] * (max_len - len(img_seq))
         img_seqs = torch.stack([torch.stack(pad_zero(img_seq))
-                               for img_seq in batch])
-        return img_seqs
+                               for (img_seq, _) in batch])
+        img_seq_len = torch.stack(
+            [torch.tensor(img_seq_len).long() for (_, img_seq_len) in batch])
+        return (img_seqs, img_seq_len)
 
 
 def get_data(train):

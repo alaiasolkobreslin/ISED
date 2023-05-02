@@ -97,8 +97,8 @@ class TaskNet(nn.Module):
     def parameters(self):
         return [net.parameters() for net in self.nets_dict.values()]
 
-    def task_test(self, args):
-        return self.sampling.sample_test(args)
+    def task_test(self, args, x):
+        return self.sampling.sample_test(args, data=x)
 
     def forward(self, x, y):
         distrs = [self.forward_fns[i](x[key]) for i, key in enumerate(x)]
@@ -107,9 +107,10 @@ class TaskNet(nn.Module):
             flattened += self.flatten_fns[i](distr)
         distrs = flattened
         distrs_detached = [distr.detach() for distr in distrs]
-        argss = list(zip(*(tuple(distrs_detached)), y))
+        batch_nums = [i for i in range(len(y))]
+        argss = list(zip(*(tuple(distrs_detached)), y, batch_nums))
         out_pred = self.pool.map(
-            self.sampling_fn, argss)
+            partial(self.sampling_fn, [val for val in x.values()]), argss)
         out_pred = list(zip(*out_pred))
         grads = [torch.stack(grad) for grad in out_pred]
 
@@ -123,7 +124,7 @@ class TaskNet(nn.Module):
         Invoked during testing
         """
         distrs = [self.forward_fns[i](x[key]) for i, key in enumerate(x)]
-        return self.task_test(distrs)
+        return self.task_test(distrs, [val for val in x.values()])
 
     def eval(self):
         for net in self.nets_dict.values():
@@ -170,7 +171,7 @@ class Trainer():
                 batch_size = len(target)
                 output = self.network.evaluate(data)
                 for i in range(batch_size):
-                    if output[i].item() == target[i]:
+                    if output[i] == target[i]:
                         correct += 1
                 num_items += batch_size
                 perc = 100. * correct / num_items
@@ -187,7 +188,7 @@ class Trainer():
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("mnist_add_two_numbers_sampling")
-    parser.add_argument("--n-epochs", type=int, default=10)
+    parser.add_argument("--n-epochs", type=int, default=5)
     parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
