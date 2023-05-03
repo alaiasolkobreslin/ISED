@@ -21,9 +21,9 @@ class Sample(object):
         self.flatten_fns = flatten_fns
         self.unflatten_fns = unflatten_fns
         self.n_threads = n_threads
-        if n_threads > 0:
-            global pool
-            pool = Pool(self.n_threads)
+        # if n_threads > 0:
+            # global pool
+            # pool = Pool(self.n_threads)
 
     def sample_train(self, inputs):
         ground_truth = inputs[self.n_inputs]

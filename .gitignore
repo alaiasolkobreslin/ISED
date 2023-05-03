@@ -16,3 +16,6 @@ __pycache__
 
 benchmarks/data
 generation-pipeline/data
+
+model
+data
