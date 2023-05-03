@@ -214,7 +214,7 @@ if __name__ == "__main__":
   parser = ArgumentParser("hwf")
   parser.add_argument("--model-name", type=str, default="hwf.pkl")
   parser.add_argument("--n-epochs", type=int, default=100)
-  parser.add_argument("--sample-count", action="store_true")
+  parser.add_argument("--sample-count", type=int, default=1000)
   parser.add_argument("--dataset-prefix", type=str, default="expr")
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
