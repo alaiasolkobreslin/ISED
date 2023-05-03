@@ -89,14 +89,14 @@ def hwf_eval(symbols: List[str]):
   else: return result
 
 class HWFNet(nn.Module):
-  def __init__(self, no_sample_k, sample_k, provenance, k):
+  def __init__(self, sample_count):
     super(HWFNet, self).__init__()
     self.symbol_cnn = SymbolNet()
     self.eval_formula = blackbox.BlackBoxFunction(
       hwf_eval,
       (blackbox.ListInputMapping(7, blackbox.DiscreteInputMapping([str(i) for i in range(10)] + ["+", "-", "*", "/"])),),
       blackbox.UnknownDiscreteOutputMapping(),
-      sample_count=100)
+      sample_count=sample_count)
 
   def forward(self, img_seq, img_seq_len):
     batch_size, formula_length, _, _, _ = img_seq.shape
@@ -106,8 +106,8 @@ class HWFNet(nn.Module):
 
 
 class Trainer():
-  def __init__(self, train_loader, test_loader, device, model_root, model_name, learning_rate, no_sample_k, sample_k, provenance, k):
-    self.network = HWFNet(no_sample_k, sample_k, provenance, k).to(device)
+  def __init__(self, train_loader, test_loader, device, model_root, model_name, learning_rate, sample_count):
+    self.network = HWFNet(sample_count).to(device)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -214,16 +214,13 @@ if __name__ == "__main__":
   parser = ArgumentParser("hwf")
   parser.add_argument("--model-name", type=str, default="hwf.pkl")
   parser.add_argument("--n-epochs", type=int, default=100)
-  parser.add_argument("--no-sample-k", action="store_true")
-  parser.add_argument("--sample-k", type=int, default=3)
+  parser.add_argument("--sample-count", action="store_true")
   parser.add_argument("--dataset-prefix", type=str, default="expr")
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--loss-fn", type=str, default="bce")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--do-not-use-hash", action="store_true")
-  parser.add_argument("--provenance", type=str, default="difftopkproofs")
-  parser.add_argument("--top-k", type=int, default=3)
   parser.add_argument("--cuda", action="store_true")
   parser.add_argument("--gpu", type=int, default=0)
   parser.add_argument("--jit", action="store_true")
@@ -245,5 +242,5 @@ if __name__ == "__main__":
   train_loader, test_loader = hwf_loader(data_dir, batch_size=args.batch_size, prefix=args.dataset_prefix)
 
   # Training
-  trainer = Trainer(train_loader, test_loader, device, model_dir, args.model_name, args.learning_rate, args.no_sample_k, args.sample_k, args.provenance, args.top_k)
+  trainer = Trainer(train_loader, test_loader, device, model_dir, args.model_name, args.learning_rate, args.sample_count)
   trainer.train(args.n_epochs)
