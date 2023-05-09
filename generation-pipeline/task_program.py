@@ -1,4 +1,8 @@
+import torch
+from heapq import merge
+
 # Scallop programs
+
 
 def sum_2(digit_1, digit_2):
     return digit_1 + digit_2
@@ -82,6 +86,8 @@ def add_two_numbers(number_1, number_2):
 
 
 def reverse_integer(x):
+    if type(x) is torch.Tensor:
+        x = x.item()
     y = str(x)
     y = y.strip()
     y = y[::-1]
@@ -94,6 +100,7 @@ def reverse_integer(x):
 # https://leetcode.com/problems/palindrome-number/
 
 def palindrome_number(x):
+    x = list(str(x))
     x_cmp = x[:]
     x_cmp.reverse()
     return x == x_cmp
@@ -102,6 +109,8 @@ def palindrome_number(x):
 
 
 def integer_to_roman(x):
+    if type(x) is torch.Tensor:
+        x = x.item()
     rmap = {
         1: "I",
         4: "IV",
@@ -125,7 +134,114 @@ def integer_to_roman(x):
             x -= seq[idx]
         else:
             idx += 1
-        return "".join(so_far)
+    return "".join(so_far)
+
+# https://leetcode.com/problems/merge-two-sorted-lists/
+
+
+def merge_two_sorted_lists(list1, list2):
+    return list(merge(list1, list2))
+
+# https://leetcode.com/problems/letter-combinations-of-a-phone-number/
+
+
+def letter_combinations_of_a_phone_number(number):
+    L = {'2': "abc", '3': "def", '4': "ghi", '5': "jkl",
+         '6': "mno", '7': "pqrs", '8': "tuv", '9': "wxyz"}
+    lenD, ans = len(number), []
+    if number == "":
+        return []
+
+    def bfs(pos: int, st: str):
+        if pos == lenD:
+            ans.append(st)
+        else:
+            letters = L[number[pos]]
+            for letter in letters:
+                bfs(pos+1, st+letter)
+    bfs(0, "")
+    return ans
+
+# https://leetcode.com/problems/valid-sudoku/
+
+
+def valid_sudoku(board):
+    """
+    :type board: List[List[str]]
+    :rtype: bool
+    """
+    # Check rows
+    for i in range(9):
+        d = {}
+        for j in range(9):
+            if board[i][j] == '.':
+                pass
+            elif board[i][j] in d:
+                return False
+            else:
+                d[board[i][j]] = True
+    # Check columns
+    for j in range(9):
+        d = {}
+        for i in range(9):
+            if board[i][j] == '.':
+                pass
+            elif board[i][j] in d:
+                return False
+            else:
+                d[board[i][j]] = True
+    # Check sub-boxes
+    for m in range(0, 9, 3):
+        for n in range(0, 9, 3):
+            d = {}
+            for i in range(n, n + 3):
+                for j in range(m, m + 3):
+                    if board[i][j] == '.':
+                        pass
+                    elif board[i][j] in d:
+                        return False
+                    else:
+                        d[board[i][j]] = True
+    return True
+
+# https://leetcode.com/problems/sudoku-solver/
+
+
+def sudoku_solver(board):
+    def isValid(row: int, col: int, c: chr) -> bool:
+        for i in range(9):
+            if board[i][col] == c or \
+               board[row][i] == c or \
+               board[3 * (row // 3) + i // 3][3 * (col // 3) + i % 3] == c:
+                return False
+        return True
+
+    def solve(s: int) -> bool:
+        if s == 81:
+            return True
+
+        i = s // 9
+        j = s % 9
+
+        if board[i][j] != '.':
+            return solve(s + 1)
+
+        for c in '123456789':
+            if isValid(i, j, c):
+                board[i][j] = c
+                if solve(s + 1):
+                    return True
+                board[i][j] = '.'
+
+        return False
+
+    solve(0)
+
+# Other programs
+
+
+def sort_list(x):
+    return sorted(x)
 
 
 dispatcher = {
@@ -151,6 +267,10 @@ dispatcher = {
     'reverse_integer': reverse_integer,
     'palindrome_number': palindrome_number,
     'integer_to_roman': integer_to_roman,
+    'merge_two_sorted_lists': merge_two_sorted_lists,
+    'letter_combinations_of_a_phone_number': letter_combinations_of_a_phone_number,
+
+    'sort_list': sort_list,
 }
 
 

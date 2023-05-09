@@ -384,5 +384,93 @@
     "output": {
       "type": "int"
     }
+  },
+  "reverse_integer": {
+    "py_func": "reverse_integer",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "int",
+        "num_digits": 2,
+        "strategy": "list",
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "bool"
+    }
+  },
+  "palindrome_number": {
+    "py_func": "palindrome_number",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "int",
+        "num_digits": 2,
+        "strategy": "list",
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "bool"
+    }
+  },
+  "integer_to_roman": {
+    "py_func": "integer_to_roman",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "int",
+        "num_digits": 1,
+        "strategy": "list",
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "str"
+    }
+  },
+  "merge_two_sorted_lists": {
+    "py_func": "merge_two_sorted_lists",
+    "inputs": [
+      {
+        "name": "list1",
+        "type": "sorted(List[digit])",
+        "strategy": "list",
+        "length": 2,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      },
+      {
+        "name": "list2",
+        "type": "sorted(List[digit])",
+        "strategy": "list",
+        "length": 2,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "List[int]"
+    }
+  },
+  "sort_list": {
+    "py_func": "sort_list",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[digit]",
+        "strategy": "list",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "List[int]"
+    }
   }
 }
