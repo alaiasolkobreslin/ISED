@@ -6,6 +6,9 @@ import random
 class Strategy:
 
     def sample(self):
+        """
+        Returns a datapoint sampled according to the given strategy
+        """
         pass
 
 

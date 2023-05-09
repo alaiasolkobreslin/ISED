@@ -28,14 +28,28 @@ class TaskDataset:
         return self.dataset[index]
 
     def get_unstructured_dataset(config, train):
+        """
+        Returns the unstructured dataset for `config` with training mode set to
+        `train`
+        """
         dataset = get_unstructured_dataset_static(config)
         return dataset(train=train)
 
     def get_structured_dataset(config, unstructured_dataset):
+        """
+        Returns the structured dataset for `config` and `unstructured_dataset`
+        """
         dataset = get_structured_dataset_static(config)
         return dataset(config, unstructured_dataset)
 
     def generate_datapoint(self):
+        """
+        Generates datapoints for each input to the task program and executes the
+        given program on these inputs to compute the ground truth result.
+
+        Returns a datapoint consisting of the unstructured images, the input configurations,
+        and the ground truth result.
+        """
         prog = self.config[PY_PROGRAM]
         inputs = self.config[INPUTS]
         imgs = {}
@@ -51,6 +65,11 @@ class TaskDataset:
         return (imgs, self.config[INPUTS], result)
 
     def generate_task_dataset(self):
+        """
+        Returns a complete dataset for this task program by repeatedly making
+        calls to `generate_datapoint` and storing the resulting datapoints in
+        `dataset` before returning it
+        """
         length = self.__len__()
         dataset = [None] * length
         for i in range(length):

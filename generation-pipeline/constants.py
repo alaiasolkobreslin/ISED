@@ -5,6 +5,7 @@ PY_PROGRAM = "py_func"
 # Inputs
 INPUTS = "inputs"
 
+# Input parameters
 TYPE = "type"
 NAME = "name"
 N_DIGITS = "num_digits"
@@ -26,8 +27,7 @@ HWF_SYMBOL = "HWF"
 MNIST_VIDEO = "MNIST_VIDEO"
 MNIST_GRID = "MNIST_GRID"
 
-# Strategies
-
+# Dataset generation strategies
 STRATEGY = "strategy"
 SINGLETON_STRATEGY = "singleton"
 SIMPLE_LIST_STRATEGY = "list"

@@ -275,6 +275,9 @@ dispatcher = {
 
 
 def dispatch(name, dispatch_args):
+    """
+    Returns the result of calling function `name` with arguments `dispatch_args`
+    """
     args = '('
     for i, k in enumerate(dispatch_args):
         arg = dispatch_args[k]

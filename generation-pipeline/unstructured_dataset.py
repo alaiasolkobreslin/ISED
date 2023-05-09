@@ -23,12 +23,21 @@ class UnstructuredDataset:
         pass
 
     def sample_with_y(self, y):
+        """
+        Returns a random datapoint from the unstructured dataset in which the ground truth is `y`
+        """
         pass
 
     def get(self, id):
+        """
+        Returns the datapoint at index `id` for this unstructured dataset
+        """
         pass
 
     def net(self):
+        """
+        Returns a neural network for this unstructured dataset
+        """
         pass
 
 
