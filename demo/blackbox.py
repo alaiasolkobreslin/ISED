@@ -1,9 +1,34 @@
 from typing import *
-import random
 import torch
+import errno
+import os
+import signal
+import functools
 
 
 RESERVED_FAILURE = "__RESERVED_FAILURE__"
+
+
+class TimeoutError(Exception):
+    pass
+
+
+def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
+    def decorator(func):
+        def _handle_timeout(signum, frame):
+            raise TimeoutError(error_message)
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.alarm(seconds)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return result
+        return wrapper
+    return decorator
 
 
 class ListInput:
@@ -123,13 +148,15 @@ class BlackBoxFunction(torch.nn.Module):
             function: Callable,
             input_mappings: Tuple[InputMapping],
             output_mapping: OutputMapping,
-            sample_count: int = 100):
+            sample_count: int = 100,
+            timeout_seconds: int = 1):
         super(BlackBoxFunction, self).__init__()
         assert type(input_mappings) == tuple, "input_mappings must be a tuple"
         self.function = function
         self.input_mappings = input_mappings
         self.output_mapping = output_mapping
         self.sample_count = sample_count
+        self.timeout_decorator = timeout(seconds=timeout_seconds)
 
     def forward(self, *inputs):
         num_inputs = len(inputs)
@@ -177,7 +204,7 @@ class BlackBoxFunction(torch.nn.Module):
         """
         for r in inputs:
             try:
-                y = self.function(*r)
+                y = self.timeout_decorator(self.function)(*r)
                 yield y
             except:
                 yield RESERVED_FAILURE
