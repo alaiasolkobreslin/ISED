@@ -136,7 +136,7 @@ class UnknownDiscreteOutputMapping(OutputMapping):
             return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True))
 
         # Vectorize the results
-        result_tensor = torch.zeros((batch_size, len(elements)), requires_grad=True)
+        result_tensor = torch.zeros((batch_size, len(elements)))
         for i in range(batch_size):
             for j in range(sample_count):
                 if results[i][j] != RESERVED_FAILURE:
