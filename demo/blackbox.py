@@ -68,7 +68,6 @@ class DiscreteInputMapping(InputMapping):
         return (sampled_indices, sampled_elements)
 
 
-
 class OutputMapping:
     def __init__(self): pass
 
@@ -89,9 +88,10 @@ class DiscreteOutputMapping(OutputMapping):
         result_tensor = torch.zeros((batch_size, len(self.elements)))
         for i in range(batch_size):
             for j in range(sample_count):
+                # print(results[i][j])
                 if results[i][j] != RESERVED_FAILURE:
                     result_tensor[i, self.element_indices[results[i][j]]] += result_probs[i, j]
-        return result_tensor.softmax(dim=1)
+        return torch.nn.functional.normalize(result_tensor, dim=1)
 
 
 class UnknownDiscreteOutputMapping(OutputMapping):
@@ -111,7 +111,7 @@ class UnknownDiscreteOutputMapping(OutputMapping):
             for j in range(sample_count):
                 if results[i][j] != RESERVED_FAILURE:
                     result_tensor[i, element_indices[results[i][j]]] += result_probs[i, j]
-        result_tensor = result_tensor.softmax(dim=1)
+        result_tensor = torch.nn.functional.normalize(result_tensor, dim=1)
 
         # Return the elements mapping and also the result probability tensor
         return (elements, result_tensor)
@@ -184,66 +184,3 @@ class BlackBoxFunction(torch.nn.Module):
 
     def invoke_function_on_batched_inputs(self, batched_inputs):
         return [list(self.invoke_function_on_inputs(batch)) for batch in batched_inputs]
-
-
-def test_sum_2():
-    sum_2 = BlackBoxFunction(
-        lambda x, y: x + y,
-        (DiscreteInputMapping(list(range(10))), DiscreteInputMapping(list(range(10)))),
-        DiscreteOutputMapping(list(range(19))),
-        sample_count=1)
-
-    digit_1_distrs = torch.nn.functional.softmax(torch.randn(64, 10), dim=1)
-    digit_2_distrs = torch.nn.functional.softmax(torch.randn(64, 10), dim=1)
-
-    result = sum_2(digit_1_distrs, digit_2_distrs)
-
-    print(result)
-    print(result.shape)
-
-
-def test_failable_sum_2():
-    def f(x, y):
-        if x == 0 and y == 0:
-            raise Exception("BAD")
-        else:
-            return x + y
-
-    sum_2 = BlackBoxFunction(
-        f,
-        (DiscreteInputMapping(list(range(10))), DiscreteInputMapping(list(range(10)))),
-        DiscreteOutputMapping(list(range(19))),
-        sample_count=1)
-
-    digit_1_distrs = torch.nn.functional.softmax(torch.randn(64, 10), dim=1)
-    digit_2_distrs = torch.nn.functional.softmax(torch.randn(64, 10), dim=1)
-
-    result = sum_2(digit_1_distrs, digit_2_distrs)
-
-    print(result)
-    print(result.shape)
-
-
-def test_hwf():
-    def fn(symbols: List[str]):
-        result = eval("".join(symbols))
-        if abs(result) > 10000: raise Exception("BAD")
-        else: return result
-
-    hwf = BlackBoxFunction(
-        fn,
-        (ListInputMapping(7, DiscreteInputMapping([str(i) for i in range(10)] + ["+", "-", "*", "/"])),),
-        UnknownDiscreteOutputMapping(),
-        sample_count=100)
-
-    symbols = torch.nn.functional.softmax(torch.randn(64, 7, 14), dim=2)
-    lengths = [random.choice([1, 3, 5, 7]) for _ in range(64)]
-    results, result_probs = hwf(ListInput(symbols, lengths))
-
-    print(results, result_probs)
-
-
-if __name__ == "__main__":
-    # test_sum_2()
-    # test_failable_sum_2()
-    test_hwf()

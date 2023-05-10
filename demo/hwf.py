@@ -12,7 +12,7 @@ import torch.nn.functional as F
 import torchvision
 from PIL import Image
 
-import lib as blackbox
+import blackbox
 
 class HWFDataset(torch.utils.data.Dataset):
   def __init__(self, root: str, prefix: str, split: str):
@@ -196,11 +196,6 @@ class Trainer():
 
         # Prints
         iter.set_description(f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
-
-    # Save model
-    if test_loss < self.min_test_loss:
-      self.min_test_loss = test_loss
-      torch.save(self.network, os.path.join(self.model_root, self.model_name))
 
   def train(self, n_epochs):
     # self.test_epoch(0)
