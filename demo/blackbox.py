@@ -110,7 +110,7 @@ class DiscreteOutputMapping(OutputMapping):
 
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
-        result_tensor = torch.zeros((batch_size, len(self.elements)))
+        result_tensor = torch.zeros((batch_size, len(self.elements)), requires_grad=True)
         for i in range(batch_size):
             for j in range(sample_count):
                 # print(results[i][j])
@@ -120,8 +120,8 @@ class DiscreteOutputMapping(OutputMapping):
 
 
 class UnknownDiscreteOutputMapping(OutputMapping):
-    def __init__(self):
-        pass
+    def __init__(self, fallback):
+        self.fallback = fallback
 
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
@@ -130,8 +130,13 @@ class UnknownDiscreteOutputMapping(OutputMapping):
         elements = list(set([elem for batch in results for elem in batch if elem != RESERVED_FAILURE]))
         element_indices = {e: i for (i, e) in enumerate(elements)}
 
+        # If there is no element being derived...
+        if len(elements) == 0:
+            # We return a single fallback value, while the probability of result being fallback are all 0
+            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True))
+
         # Vectorize the results
-        result_tensor = torch.zeros((batch_size, len(elements)))
+        result_tensor = torch.zeros((batch_size, len(elements)), requires_grad=True)
         for i in range(batch_size):
             for j in range(sample_count):
                 if results[i][j] != RESERVED_FAILURE:

@@ -83,10 +83,18 @@ class SymbolNet(nn.Module):
     x = self.fc2(x)
     return F.softmax(x, dim=1)
 
+
 def hwf_eval(symbols: List[str]):
+  # Sanitize the input
+  for i, s in enumerate(symbols):
+    if i % 2 == 0 and not s.isdigit(): raise Exception("BAD")
+    if i % 2 == 1 and s not in ["+", "-", "*", "/"]: raise Exception("BAD")
+
+  # Evaluate the result
   result = eval("".join(symbols))
-  if abs(result) > 10000: raise Exception("BAD")
-  else: return result
+
+  return result
+
 
 class HWFNet(nn.Module):
   def __init__(self, sample_count):
@@ -95,7 +103,7 @@ class HWFNet(nn.Module):
     self.eval_formula = blackbox.BlackBoxFunction(
       hwf_eval,
       (blackbox.ListInputMapping(7, blackbox.DiscreteInputMapping([str(i) for i in range(10)] + ["+", "-", "*", "/"])),),
-      blackbox.UnknownDiscreteOutputMapping(),
+      blackbox.UnknownDiscreteOutputMapping(fallback=0),
       sample_count=sample_count)
 
   def forward(self, img_seq, img_seq_len):
