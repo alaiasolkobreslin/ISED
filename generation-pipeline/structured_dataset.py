@@ -24,7 +24,7 @@ class StructuredDataset:
     def generate_datapoint(self):
         pass
 
-    def get_strategy(self):
+    def get_sample_strategy(self):
         pass
 
     def generate_dataset(self):
@@ -40,12 +40,12 @@ class StructuredDataset:
         pass
 
 
-class SingleIntDataset(StructuredDataset):
+class SingleDataset(StructuredDataset):
 
     def __init__(self, config, unstructured_dataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_strategy()
+        self.strategy = self.get_sample_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
@@ -64,9 +64,9 @@ class SingleIntDataset(StructuredDataset):
     def generate_datapoint(self):
         return self.strategy.sample()
 
-    def get_strategy(self):
+    def get_sample_strategy(self):
         s = self.config[STRATEGY]
-        input_mapping = [i for i in range(10)]
+        input_mapping = self.unstructured_dataset.input_mapping()
         if s == SINGLETON_STRATEGY:
             strat = strategy.SingletonStrategy(
                 self.unstructured_dataset, input_mapping)
@@ -93,7 +93,7 @@ class IntDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_strategy()
+        self.strategy = self.get_sample_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
@@ -111,7 +111,7 @@ class IntDataset(StructuredDataset):
     def forward(net, x):
         return [net(item) for item in x]
 
-    def get_strategy(self):
+    def get_sample_strategy(self):
         n_digits = self.config[N_DIGITS]
         s = self.config[STRATEGY]
         input_mapping = [i for i in range(10)]
@@ -149,7 +149,7 @@ class SingleIntListDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_strategy()
+        self.strategy = self.get_sample_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
@@ -167,7 +167,7 @@ class SingleIntListDataset(StructuredDataset):
     def forward(net, x):
         return [net(item) for item in x]
 
-    def get_strategy(self):
+    def get_sample_strategy(self):
         length = self.config[LENGTH]
         s = self.config[STRATEGY]
         input_mapping = [i for i in range(10)]
@@ -201,7 +201,7 @@ class IntListDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_strategy()
+        self.strategy = self.get_sample_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
@@ -217,7 +217,7 @@ class IntListDataset(StructuredDataset):
     def forward(net, x):
         return [[net(i) for i in item] for item in x]
 
-    def get_strategy(self):
+    def get_sample_strategy(self):
         n_digits = self.config[N_DIGITS]
         s = self.config[STRATEGY]
         input_mapping = [i for i in range(10)]
@@ -266,7 +266,7 @@ class StringDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_strategy()
+        self.strategy = self.get_sample_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
@@ -284,7 +284,7 @@ class StringDataset(StructuredDataset):
         (distrs, _) = x
         return net(distrs)
 
-    def get_strategy(self):
+    def get_sample_strategy(self):
         s = self.config[STRATEGY]
         input_mapping = [i for i in range(len(self.unstructured_dataset))]
 
@@ -311,7 +311,7 @@ class StringDataset(StructuredDataset):
         length = data[1][batch_item].item()
         samples = samples[:length]
         ud = get_unstructured_dataset_static(config)
-        input_mapping = ud.input_mapping()
+        input_mapping = ud.input_mapping(ud)
         string = ''
         for i in samples:
             string += input_mapping[i]
@@ -324,6 +324,8 @@ class StringDataset(StructuredDataset):
 def get_unstructured_dataset_static(config):
     if config[DATASET] == MNIST:
         return unstructured_dataset.MNISTDataset
+    elif config[DATASET] == EMNIST:
+        return unstructured_dataset.EMNISTDataset
     elif config[DATASET] == HWF_SYMBOL:
         return unstructured_dataset.HWFDataset
     elif config[DATASET] == MNIST_VIDEO:
@@ -334,7 +336,9 @@ def get_unstructured_dataset_static(config):
 
 def get_structured_dataset_static(config):
     if config[TYPE] == DIGIT_TYPE:
-        return SingleIntDataset
+        return SingleDataset
+    if config[TYPE] == CHAR_TYPE:
+        return SingleDataset
     if config[TYPE] == INT_TYPE:
         return IntDataset
     elif config[TYPE] == SINGLE_INT_LIST_TYPE:

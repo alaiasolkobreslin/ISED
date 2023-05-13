@@ -100,6 +100,8 @@ def reverse_integer(x):
 # https://leetcode.com/problems/palindrome-number/
 
 def palindrome_number(x):
+    if type(x) is torch.Tensor:
+        x = x.item()
     x = list(str(x))
     x_cmp = x[:]
     x_cmp.reverse()
@@ -140,7 +142,8 @@ def integer_to_roman(x):
 
 
 def merge_two_sorted_lists(list1, list2):
-    return list(merge(list1, list2))
+    # first sort the lists, then merge them
+    return list(merge(sorted(list1), sorted(list2)))
 
 # https://leetcode.com/problems/letter-combinations-of-a-phone-number/
 
@@ -244,6 +247,10 @@ def sort_list(x):
     return sorted(x)
 
 
+def char_identity(x):
+    return x
+
+
 dispatcher = {
     'sum_2': sum_2,
     'sum_3': sum_3,
@@ -271,6 +278,7 @@ dispatcher = {
     'letter_combinations_of_a_phone_number': letter_combinations_of_a_phone_number,
 
     'sort_list': sort_list,
+    'char_identity': char_identity,
 }
 
 

@@ -7,6 +7,8 @@ import torch
 from constants import *
 from unstructured import MNIST_dataset
 from unstructured import MNIST_net
+from unstructured import EMNIST_dataset
+from unstructured import EMNIST_net
 from unstructured import HWF_dataset
 from unstructured import HWF_symbol_net
 
@@ -19,7 +21,7 @@ class UnstructuredDataset:
     def collate_fn(batch):
         pass
 
-    def input_mapping():
+    def input_mapping(self):
         pass
 
     def sample_with_y(self, y):
@@ -53,7 +55,7 @@ class MNISTDataset(UnstructuredDataset):
     def collate_fn(batch):
         return MNIST_dataset.MNISTDataset.collate_fn(batch)
 
-    def input_mapping():
+    def input_mapping(self):
         return [i for i in range(10)]
 
     def sample_with_y(self, digit: int) -> int:
@@ -64,6 +66,30 @@ class MNISTDataset(UnstructuredDataset):
 
     def net(self):
         return MNIST_net.MNISTNet()
+
+
+class EMNISTDataset(UnstructuredDataset):
+    def __init__(self, train):
+        self.data, self.ids_of_character = EMNIST_dataset.get_data(train)
+
+    def __len__(self):
+        return len(self.data)
+
+    @staticmethod
+    def collate_fn(batch):
+        return EMNIST_dataset.EMNISTDataset.collate_fn(batch)
+
+    def input_mapping(self):
+        return [i for i in range(47)]
+
+    def sample_with_y(self, character: int) -> int:
+        return self.ids_of_character[character][random.randrange(0, len(self.ids_of_character[character]))]
+
+    def get(self, index: int) -> Tuple[torch.Tensor, chr]:
+        return self.data[index]
+
+    def net(self):
+        return EMNIST_net.EMNISTNet()
 
 
 class HWFDataset(UnstructuredDataset):
@@ -78,7 +104,7 @@ class HWFDataset(UnstructuredDataset):
     def collate_fn(batch):
         return HWF_dataset.HWFDataset.collate_fn(batch)
 
-    def input_mapping():
+    def input_mapping(self):
         return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/']
 
     def sample_with_y(self, expr_id: int) -> int:
@@ -105,7 +131,7 @@ class MNISTVideoDataset(UnstructuredDataset):
     def collate_fn(batch):
         pass
 
-    def input_mapping():
+    def input_mapping(self):
         pass
 
     def sample_with_y(self):
@@ -130,7 +156,7 @@ class MNISTGridDataset(UnstructuredDataset):
     def collate_fn(batch):
         pass
 
-    def input_mapping():
+    def input_mapping(self):
         pass
 
     def sample_with_y(self):

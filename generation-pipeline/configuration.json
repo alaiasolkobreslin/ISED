@@ -391,7 +391,7 @@
       {
         "name": "x",
         "type": "int",
-        "num_digits": 2,
+        "num_digits": 3,
         "strategy": "list",
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
@@ -407,7 +407,7 @@
       {
         "name": "x",
         "type": "int",
-        "num_digits": 2,
+        "num_digits": 3,
         "strategy": "list",
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
@@ -423,7 +423,7 @@
       {
         "name": "x",
         "type": "int",
-        "num_digits": 1,
+        "num_digits": 2,
         "strategy": "list",
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
@@ -438,7 +438,7 @@
     "inputs": [
       {
         "name": "list1",
-        "type": "sorted(List[digit])",
+        "type": "List[digit]",
         "strategy": "list",
         "length": 2,
         "dataset": "MNIST",
@@ -446,7 +446,7 @@
       },
       {
         "name": "list2",
-        "type": "sorted(List[digit])",
+        "type": "List[digit]",
         "strategy": "list",
         "length": 2,
         "dataset": "MNIST",
@@ -471,6 +471,21 @@
     ],
     "output": {
       "type": "List[int]"
+    }
+  },
+  "char_identity": {
+    "py_func": "char_identity",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "char",
+        "strategy": "singleton",
+        "dataset": "EMNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "char"
     }
   }
 }

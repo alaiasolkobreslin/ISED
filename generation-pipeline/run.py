@@ -66,17 +66,7 @@ class TaskNet(nn.Module):
         super(TaskNet, self).__init__()
 
         self.nets_dict = {}
-        self.nets = []
-        for ud in unstructured_datasets:
-            if type(ud) is unstructured_dataset.MNISTDataset:
-                if MNIST not in self.nets_dict:
-                    self.nets_dict[MNIST] = ud.net()
-                self.nets.append(self.nets_dict[MNIST])
-            elif type(ud) is unstructured_dataset.HWFDataset:
-                if HWF_SYMBOL not in self.nets_dict:
-                    self.nets_dict[HWF_SYMBOL] = ud.net()
-                self.nets.append(self.nets_dict[HWF_SYMBOL])
-            # TODO: finish
+        self.set_nets_list()
 
         n_inputs = len(self.nets)
         structured_datasets = [
@@ -88,11 +78,27 @@ class TaskNet(nn.Module):
         self.forward_fns = [partial(sd.forward, self.nets[i])
                             for i, sd in enumerate(structured_datasets)]
 
-        self.sampling = sample.Sample(
+        self.sampling = sample.StandardSample(
             n_inputs, args.n_samples, fn, self.flatten_fns, unflatten_fns, args.threaded)
         self.sampling_fn = self.sampling.sample_train_backward_threaded if args.threaded else self.sampling.sample_train_backward
 
         self.pool = Pool(processes=args.batch_size_train)
+
+    def set_nets_list(self):
+        self.nets = []
+        for ud in unstructured_datasets:
+            if type(ud) is unstructured_dataset.MNISTDataset:
+                if MNIST not in self.nets_dict:
+                    self.nets_dict[MNIST] = ud.net()
+                self.nets.append(self.nets_dict[MNIST])
+            elif type(ud) is unstructured_dataset.EMNISTDataset:
+                if EMNIST not in self.nets_dict:
+                    self.nets_dict[EMNIST] = ud.net()
+                self.nets.append(self.nets_dict[EMNIST])
+            elif type(ud) is unstructured_dataset.HWFDataset:
+                if HWF_SYMBOL not in self.nets_dict:
+                    self.nets_dict[HWF_SYMBOL] = ud.net()
+                self.nets.append(self.nets_dict[HWF_SYMBOL])
 
     def parameters(self):
         return [net.parameters() for net in self.nets_dict.values()]
