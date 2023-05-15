@@ -330,7 +330,7 @@ class StringDataset(StructuredDataset):
                 self.unstructured_dataset, input_mapping)
         elif s == SIMPLE_LIST_STRATEGY:
             strat = strategy.SimpleListStrategy(
-                self.unstructured_dataset, input_mapping
+                self.unstructured_dataset, input_mapping, self.config[MAX_LENGTH]
             )
         return strat
 
