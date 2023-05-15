@@ -15,28 +15,57 @@ class StructuredDataset:
     def __getitem__(self, index):
         pass
 
-    def collate_fn(batch):
+    def collate_fn(batch, config):
         pass
 
     def forward(net, x):
+        """
+        Forwards the input `x` using the network `net`
+        """
         pass
 
     def generate_datapoint(self):
+        """
+        Returns a sampled datapoint
+        """
         pass
 
     def get_sample_strategy(self):
+        """
+        Returns a strategy object according to the sampling strategy specified 
+        in the configuration
+        """
         pass
 
     def generate_dataset(self):
+        """
+        Returns a dataset of sampled datapoints
+        """
         pass
 
     def flatten(config, input):
+        """
+        Returns a flattened list of input distributions.
+        This is the format that is needed for the sampling algorithm to sample 
+        inputs
+        """
         pass
 
     def unflatten(config, samples, data, batch_item):
+        """
+        Returns an unflattened list of inputs.
+        This is the format that is needed to pass the sampled inputs to a 
+        black-box function
+        """
         pass
 
     def n_unflatten(config):
+        """
+        Returns the length of each sublist of inputs to unflatten.
+        This number is used to split the list of sampled inputs into lists of a 
+        certain length. These lists are then unflattened to get a list of list
+        of inputs to pass to the black-box function.
+        """
         pass
 
 
@@ -55,7 +84,7 @@ class SingleDataset(StructuredDataset):
         return self.dataset[index]
 
     @staticmethod
-    def collate_fn(batch):
+    def collate_fn(batch, config):
         return torch.stack(batch)
 
     def forward(net, x):
@@ -103,7 +132,7 @@ class IntDataset(StructuredDataset):
         return self.dataset[index]
 
     @staticmethod
-    def collate_fn(batch):
+    def collate_fn(batch, config):
         imgs = [torch.stack([item[i] for item in batch])
                 for i in range(len(batch[0]))]
         return imgs
@@ -159,7 +188,7 @@ class SingleIntListDataset(StructuredDataset):
         return self.dataset[index]
 
     @staticmethod
-    def collate_fn(batch):
+    def collate_fn(batch, config):
         imgs = [torch.stack([item[i] for item in batch])
                 for i in range(len(batch[0]))]
         return imgs
@@ -211,7 +240,7 @@ class IntListDataset(StructuredDataset):
         return self.dataset[index]
 
     @staticmethod
-    def collate_fn(batch):
+    def collate_fn(batch, config):
         return torch.stack(batch)
 
     def forward(net, x):
@@ -276,9 +305,17 @@ class StringDataset(StructuredDataset):
         return self.dataset[index]
 
     @staticmethod
-    def collate_fn(batch):
-        # TODO: fix this. should depend on unstructured dataset
-        return unstructured_dataset.HWFDataset.collate_fn(batch)
+    def collate_fn(batch, config):
+        max_len = config[MAX_LENGTH]
+        zero_img = torch.zeros_like(batch[0][0][0])
+
+        def pad_zero(img_seq): return img_seq + \
+            [zero_img] * (max_len - len(img_seq))
+        img_seqs = torch.stack([torch.stack(pad_zero(img_seq))
+                               for (img_seq, _) in batch])
+        img_seq_len = torch.stack(
+            [torch.tensor(img_seq_len).long() for (_, img_seq_len) in batch])
+        return (img_seqs, img_seq_len)
 
     def forward(net, x):
         (distrs, _) = x
@@ -291,6 +328,10 @@ class StringDataset(StructuredDataset):
         if s == SINGLETON_STRATEGY:
             strat = strategy.SingletonStrategy(
                 self.unstructured_dataset, input_mapping)
+        elif s == SIMPLE_LIST_STRATEGY:
+            strat = strategy.SimpleListStrategy(
+                self.unstructured_dataset, input_mapping
+            )
         return strat
 
     def generate_datapoint(self):
@@ -318,7 +359,7 @@ class StringDataset(StructuredDataset):
         return [string]
 
     def n_unflatten(config):
-        return config[LENGTH]
+        return config[MAX_LENGTH]
 
 
 def get_unstructured_dataset_static(config):

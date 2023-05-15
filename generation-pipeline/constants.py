@@ -10,6 +10,7 @@ TYPE = "type"
 NAME = "name"
 N_DIGITS = "num_digits"
 LENGTH = "length"
+MAX_LENGTH = "max_length"
 
 # Types
 DIGIT_TYPE = "digit"
@@ -33,3 +34,9 @@ MNIST_GRID = "MNIST_GRID"
 STRATEGY = "strategy"
 SINGLETON_STRATEGY = "singleton"
 SIMPLE_LIST_STRATEGY = "list"
+
+# Preprocessing
+PREPROCESS = "preprocess"
+PREPROCESS_IDENTITY = "id"
+PREPROCESS_SORT = "sort"
+PREPROCESS_SUDOKU_BOARD = 'make_board'

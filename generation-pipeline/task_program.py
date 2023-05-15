@@ -142,8 +142,7 @@ def integer_to_roman(x):
 
 
 def merge_two_sorted_lists(list1, list2):
-    # first sort the lists, then merge them
-    return list(merge(sorted(list1), sorted(list2)))
+    return list(merge(list1, list2))
 
 # https://leetcode.com/problems/letter-combinations-of-a-phone-number/
 

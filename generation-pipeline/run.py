@@ -37,8 +37,8 @@ class Dataset(torch.utils.data.Dataset):
         config = batch[0][1]
         collate_fns = {input[NAME]: structured_dataset.get_structured_dataset_static(
             input).collate_fn for input in config}
-        imgs = {key: collate_fns[key](
-            [data_dict[key] for data_dict in data_dicts]) for key in data_dicts[0].keys()}
+        imgs = {input[NAME]: collate_fns[input[NAME]](
+            [data_dict[input[NAME]] for data_dict in data_dicts], input) for input in config}
         results = [item[2] for item in batch]
         return (imgs, results)
 
