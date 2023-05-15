@@ -457,6 +457,70 @@
       "type": "List[int]"
     }
   },
+  "letter_combinations_of_a_phone_number": {
+    "py_func": "letter_combinations_of_a_phone_number",
+    "inputs": [
+      {
+        "name": "number",
+        "type": "str",
+        "strategy": "list",
+        "length": 2,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "List[str]"
+    }
+  },
+  "valid_sudoku": {
+    "py_func": "valid_sudoku",
+    "inputs": [
+      {
+        "name": "board",
+        "type": "List[List[str]]",
+        "strategy": "list",
+        "length": 30,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+      }
+    ],
+    "output": {
+      "type": "bool"
+    }
+  },
+  "sudoku_solver": {
+    "py_func": "sudoku_solver",
+    "inputs": [
+      {
+        "name": "board",
+        "type": "List[List[str]]",
+        "strategy": "list",
+        "length": 30,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+      }
+    ],
+    "output": {
+      "type": "List[List[str]]"
+    }
+  },
+  "longest_palindromic_substring": {
+    "py_func": "longest_palindromic_substring",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "str",
+        "strategy": "list",
+        "length": 5,
+        "dataset": "EMNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "str"
+    }
+  },
   "sort_list": {
     "py_func": "sort_list",
     "inputs": [

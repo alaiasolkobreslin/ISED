@@ -240,6 +240,21 @@ def sudoku_solver(board):
 
     solve(0)
 
+# https://leetcode.com/problems/longest-palindromic-substring/
+
+
+def longest_palindromic_substring(s: str) -> str:
+    def expand(string, a, b):
+        while a >= 0 and b < len(string) and string[a] == string[b]:
+            a -= 1
+            b += 1
+        return string[a+1:b]
+
+    ans = ''
+    for i in range(len(s)):
+        ans = max(ans, expand(s, i, i), expand(s, i, i+1), key=len)
+    return ans
+
 # Other programs
 
 
@@ -276,6 +291,9 @@ dispatcher = {
     'integer_to_roman': integer_to_roman,
     'merge_two_sorted_lists': merge_two_sorted_lists,
     'letter_combinations_of_a_phone_number': letter_combinations_of_a_phone_number,
+    'valid_sudoku': valid_sudoku,
+    'sudoku_solver': sudoku_solver,
+    'longest_palindromic_substring': longest_palindromic_substring,
 
     'sort_list': sort_list,
     'char_identity': char_identity,
