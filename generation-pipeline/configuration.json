@@ -419,6 +419,66 @@
       "type": "int"
     }
   },
+  "longest_substring_without_repeating_character": {
+    "py_func": "longest_substring_without_repeating_character",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "str",
+        "strategy": "list",
+        "preprocess": "id",
+        "max_length": 7,
+        "dataset": "EMNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "str"
+    }
+  },
+  "median_of_two_sorted_arrays": {
+    "py_func": "median_of_two_sorted_arrays",
+    "inputs": [
+      {
+        "name": "nums1",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "sort",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      },
+      {
+        "name": "nums2",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "sort",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "longest_palindromic_substring": {
+    "py_func": "longest_palindromic_substring",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "str",
+        "strategy": "list",
+        "preprocess": "id",
+        "max_length": 5,
+        "dataset": "EMNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "str"
+    }
+  },
   "reverse_integer": {
     "py_func": "reverse_integer",
     "inputs": [
@@ -459,7 +519,7 @@
       {
         "name": "x",
         "type": "int",
-        "num_digits": 2,
+        "num_digits": 3,
         "strategy": "list",
         "preprocess": "id",
         "dataset": "MNIST",
@@ -468,6 +528,40 @@
     ],
     "output": {
       "type": "str"
+    }
+  },
+  "longest_common_prefix": {
+    "py_func": "longest_common_prefix",
+    "inputs": [
+      {
+        "name": "strs",
+        "type": "List[str]",
+        "strategy": "list",
+        "preprocess": "id",
+        "max_length": 7,
+        "dataset": "EMNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "str"
+    }
+  },
+  "letter_combinations_of_a_phone_number": {
+    "py_func": "letter_combinations_of_a_phone_number",
+    "inputs": [
+      {
+        "name": "number",
+        "type": "str",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 2,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "List[str]"
     }
   },
   "merge_two_sorted_lists": {
@@ -496,21 +590,21 @@
       "type": "List[int]"
     }
   },
-  "letter_combinations_of_a_phone_number": {
-    "py_func": "letter_combinations_of_a_phone_number",
+  "remove_duplicates_from_sorted_array": {
+    "py_func": "remove_duplicates_from_sorted_array",
     "inputs": [
       {
-        "name": "number",
-        "type": "str",
+        "name": "nums",
+        "type": "List[digit]",
         "strategy": "list",
-        "preprocess": "id",
+        "preprocess": "sort",
         "length": 2,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
       }
     ],
     "output": {
-      "type": "List[str]"
+      "type": "List[int]"
     }
   },
   "valid_sudoku": {
@@ -547,28 +641,188 @@
       "type": "List[List[str]]"
     }
   },
-  "longest_palindromic_substring": {
-    "py_func": "longest_palindromic_substring",
+  "permutations_ii": {
+    "py_func": "permutations_ii",
     "inputs": [
       {
-        "name": "s",
-        "type": "str",
+        "name": "nums",
+        "type": "List[digit]",
         "strategy": "list",
         "preprocess": "id",
-        "max_length": 5,
+        "length": 4,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "List[int]"
+    }
+  },
+  "rotate_image": {
+    "py_func": "rotate_image",
+    "inputs": [
+      {
+        "name": "nums",
+        "type": "List[List[digit]]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+      }
+    ],
+    "output": {
+      "type": "List[List[int]]"
+    }
+  },
+  "group_anagrams": {
+    "py_func": "group_anagrams",
+    "inputs": [
+      {
+        "name": "strs",
+        "type": "List[str]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 6,
         "dataset": "EMNIST",
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
       }
     ],
     "output": {
-      "type": "str"
+      "type": "List[List[str]]"
     }
   },
-  "longest_substring_without_repeating_character": {
-    "py_func": "longest_substring_without_repeating_character",
+  "maximum_subarray": {
+    "py_func": "maximum_subarray",
     "inputs": [
       {
-        "name": "s",
+        "name": "nums",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 8,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "spiral_matrix": {
+    "py_func": "spiral_matrix",
+    "inputs": [
+      {
+        "name": "matrix",
+        "type": "List[List[digit]]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+      }
+    ],
+    "output": {
+      "type": "List[int]"
+    }
+  },
+  "jump_game": {
+    "py_func": "jump_game",
+    "inputs": [
+      {
+        "name": "nums",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 5,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "bool"
+    }
+  },
+  "spiral_matrix_ii": {
+    "py_func": "spiral_matrix_ii",
+    "inputs": [
+      {
+        "name": "n",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "List[List[int]]"
+    }
+  },
+  "minimum_path_sum": {
+    "py_func": "minimum_path_sum",
+    "inputs": [
+      {
+        "name": "grid",
+        "type": "List[List[digit]]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "plus_one": {
+    "py_func": "plus_one",
+    "inputs": [
+      {
+        "name": "digits",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "List[int]"
+    }
+  },
+  "climbing_stairs": {
+    "py_func": "climbing_stairs",
+    "inputs": [
+      {
+        "name": "n",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "edit_distance": {
+    "py_func": "edit_distance",
+    "inputs": [
+      {
+        "name": "word1",
+        "type": "str",
+        "strategy": "list",
+        "preprocess": "id",
+        "max_length": 7,
+        "dataset": "EMNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      },
+      {
+        "name": "word2",
         "type": "str",
         "strategy": "list",
         "preprocess": "id",
@@ -578,7 +832,82 @@
       }
     ],
     "output": {
-      "type": "str"
+      "type": "int"
+    }
+  },
+  "combinations": {
+    "py_func": "combinations",
+    "inputs": [
+      {
+        "name": "n",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      },
+      {
+        "name": "k",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "List[List[int]]"
+    }
+  },
+  "largest_rectangle_in_histogram": {
+    "py_func": "largest_rectangle_in_histogram",
+    "inputs": [
+      {
+        "name": "heights",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 6,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    }
+  },
+  "subsets_ii": {
+    "py_func": "subsets_ii",
+    "inputs": [
+      {
+        "name": "nums",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "List[List[int]]"
+    }
+  },
+  "decode_ways": {
+    "py_func": "decode_ways",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "int"
     }
   },
   "sort_list": {
@@ -589,7 +918,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 3,
+        "length": 4,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
       }
