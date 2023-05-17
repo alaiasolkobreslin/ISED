@@ -54,6 +54,7 @@ class MNISTVideoDataset(torch.utils.data.Dataset):
                           != dp["frames_sg"][i - 1]["image_id"] else 0)
         label3 = torch.tensor(label3)
 
+        # Return the video and all the labels
         return (video_tensor, (label1, label2, label3))
 
     def collate_fn(batch):
@@ -77,3 +78,11 @@ class MNISTVideoDataset(torch.utils.data.Dataset):
             shuffle=True,
             collate_fn=MNISTVideoDataset.collate_fn)
         return train_loader, test_loader
+
+
+def get_data(train):
+    data_dir = os.path.abspath(os.path.join(
+        os.path.abspath(__file__), "../../data"))
+    data = MNISTVideoDataset(
+        data_dir, "MNIST_video_train_1000.json", train=train)
+    return data.metadata

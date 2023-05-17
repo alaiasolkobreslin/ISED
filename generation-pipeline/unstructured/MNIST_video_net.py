@@ -10,7 +10,7 @@ class View(torch.nn.Module):
         return input.view(*self.shape)
 
 
-class MNISTVideoLSTM(torch.nn.Module):
+class MNISTVideoCNN(torch.nn.Module):
     def __init__(self, embedding_size=32):
         super().__init__()
         self.embedding_size = embedding_size
@@ -22,25 +22,39 @@ class MNISTVideoLSTM(torch.nn.Module):
             View(-1, 10816),
             torch.nn.Linear(10816, 1024),
             torch.nn.ReLU(),
-            torch.nn.Linear(1024, self.embedding_size))
-        self.lstm = torch.nn.LSTM(
-            self.embedding_size, self.embedding_size, batch_first=True)
+            torch.nn.Linear(1024, self.embedding_size),
+            torch.nn.ReLU())
         self.digit_decoder = torch.nn.Sequential(
             torch.nn.Linear(self.embedding_size, 10),
             torch.nn.Softmax(dim=1))
         self.changes_decoder = torch.nn.Sequential(
-            torch.nn.Linear(self.embedding_size, 1),
+            torch.nn.Linear(self.embedding_size * 2, 1),
             torch.nn.Sigmoid())
 
     def forward(self, video_batch):
         (batch_size, num_frames, a, b, c) = video_batch.shape
+
+        # First encode the video frames
         frame_encodings_batch = self.encoder(
             video_batch.view(batch_size * num_frames, a, b, c))
-        frame_embeddings_batch_raw, _ = self.lstm(frame_encodings_batch)
-        frame_embeddings_batch = frame_embeddings_batch_raw.view(
-            batch_size * num_frames, -1)
+
+        # Predict the digits for each frame
         digits_batch = self.digit_decoder(
-            frame_embeddings_batch).view(batch_size, num_frames, -1)
-        changes_batch = self.changes_decoder(frame_embeddings_batch).view(
-            batch_size, num_frames, -1).view(batch_size, num_frames)
+            frame_encodings_batch).view(batch_size, num_frames, -1)
+
+        # Predict the changes for each consecutive pair of frames
+        frame_encodings = frame_encodings_batch.view(
+            batch_size, num_frames, self.embedding_size)
+        frame_encodings_with_prepended_zero = torch.cat(
+            [torch.zeros(batch_size, 1, self.embedding_size),
+             frame_encodings[:, 0:num_frames - 1, :]],
+            dim=1)
+        consecutive_frame_encodings = torch.cat(
+            [frame_encodings_with_prepended_zero, frame_encodings], dim=2)
+        consecutive_frame_encodings_batch = consecutive_frame_encodings.view(
+            batch_size * num_frames, -1)
+        changes_batch = self.changes_decoder(
+            consecutive_frame_encodings_batch).view(batch_size, num_frames)
+
+        # Return
         return digits_batch, changes_batch

@@ -24,7 +24,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "sum_3": {
     "py_func": "sum_3",
@@ -59,7 +61,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "sum_4": {
     "py_func": "sum_4",
@@ -102,7 +106,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "add_mod_3": {
     "py_func": "add_mod_3",
@@ -129,7 +135,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "add_sub": {
     "py_func": "add_sub",
@@ -164,7 +172,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "eq_2": {
     "py_func": "eq_2",
@@ -191,7 +201,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "how_many_3_or_4": {
     "py_func": "how_many_3_or_4",
@@ -211,7 +223,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "how_many_3": {
     "py_func": "how_many_3",
@@ -231,7 +245,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "how_many_not_3_and_not_4": {
     "py_func": "how_many_not_3_and_not_4",
@@ -251,7 +267,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "how_many_not_3": {
     "py_func": "how_many_not_3",
@@ -271,7 +289,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "identity": {
     "py_func": "identity",
@@ -290,7 +310,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "is_3_and_4": {
     "py_func": "is_3_and_4",
@@ -317,7 +339,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "not_3_or_4": {
     "py_func": "not_3_or_4",
@@ -344,7 +368,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "less_than": {
     "py_func": "less_than",
@@ -371,7 +397,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "mod_2": {
     "py_func": "mod_2",
@@ -398,7 +426,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "mult_2": {
     "py_func": "mult_2",
@@ -425,7 +455,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "hwf": {
     "py_func": "hwf",
@@ -445,7 +477,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
-    "batch_size_test": 16
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "add_two_numbers": {
     "py_func": "add_two_numbers",
@@ -474,7 +508,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "longest_substring_without_repeating_character": {
     "py_func": "longest_substring_without_repeating_character",
@@ -494,7 +530,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "median_of_two_sorted_arrays": {
     "py_func": "median_of_two_sorted_arrays",
@@ -523,7 +561,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "longest_palindromic_substring": {
     "py_func": "longest_palindromic_substring",
@@ -543,7 +583,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "reverse_integer": {
     "py_func": "reverse_integer",
@@ -563,7 +605,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "palindrome_number": {
     "py_func": "palindrome_number",
@@ -583,7 +627,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "integer_to_roman": {
     "py_func": "integer_to_roman",
@@ -603,7 +649,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "longest_common_prefix": {
     "py_func": "longest_common_prefix",
@@ -623,7 +671,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "letter_combinations_of_a_phone_number": {
     "py_func": "letter_combinations_of_a_phone_number",
@@ -643,7 +693,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "merge_two_sorted_lists": {
     "py_func": "merge_two_sorted_lists",
@@ -672,7 +724,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "remove_duplicates_from_sorted_array": {
     "py_func": "remove_duplicates_from_sorted_array",
@@ -692,7 +746,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "valid_sudoku": {
     "py_func": "valid_sudoku",
@@ -712,7 +768,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "sudoku_solver": {
     "py_func": "sudoku_solver",
@@ -732,7 +790,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "permutations_ii": {
     "py_func": "permutations_ii",
@@ -752,7 +812,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "rotate_image": {
     "py_func": "rotate_image",
@@ -772,7 +834,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "group_anagrams": {
     "py_func": "group_anagrams",
@@ -792,7 +856,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "maximum_subarray": {
     "py_func": "maximum_subarray",
@@ -812,7 +878,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "spiral_matrix": {
     "py_func": "spiral_matrix",
@@ -832,7 +900,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "jump_game": {
     "py_func": "jump_game",
@@ -852,7 +922,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "spiral_matrix_ii": {
     "py_func": "spiral_matrix_ii",
@@ -871,7 +943,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "minimum_path_sum": {
     "py_func": "minimum_path_sum",
@@ -891,7 +965,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "plus_one": {
     "py_func": "plus_one",
@@ -911,7 +987,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "climbing_stairs": {
     "py_func": "climbing_stairs",
@@ -930,7 +1008,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "edit_distance": {
     "py_func": "edit_distance",
@@ -959,7 +1039,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "combinations": {
     "py_func": "combinations",
@@ -986,7 +1068,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "largest_rectangle_in_histogram": {
     "py_func": "largest_rectangle_in_histogram",
@@ -1006,7 +1090,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "subsets_ii": {
     "py_func": "subsets_ii",
@@ -1026,7 +1112,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "decode_ways": {
     "py_func": "decode_ways",
@@ -1046,7 +1134,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "sort_list": {
     "py_func": "sort_list",
@@ -1066,7 +1156,9 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   },
   "char_identity": {
     "py_func": "char_identity",
@@ -1085,6 +1177,8 @@
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
-    "batch_size_test": 64
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   }
 }

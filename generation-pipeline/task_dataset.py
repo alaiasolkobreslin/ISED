@@ -9,6 +9,7 @@ class TaskDataset:
     def __init__(self, config, train):
         self.config = config
         py_program = config[PY_PROGRAM]
+        self.dataset_size = config[DATASET_SIZE_TRAIN] if train else config[DATASET_SIZE_TEST]
         self.function = task_program.dispatcher[py_program]
         self.structured_datasets = {}
         inputs = self.config[INPUTS]
@@ -22,7 +23,7 @@ class TaskDataset:
         self.dataset = self.generate_task_dataset()
 
     def __len__(self):
-        return min(sd.__len__() for sd in self.structured_datasets.values())
+        return self.dataset_size
 
     def __getitem__(self, index):
         return self.dataset[index]
