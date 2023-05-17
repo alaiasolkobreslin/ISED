@@ -5,7 +5,14 @@ import random
 import torch
 
 from constants import *
-import unstructured
+from unstructured import MNIST_dataset
+from unstructured import MNIST_net
+from unstructured import EMNIST_dataset
+from unstructured import EMNIST_net
+from unstructured import HWF_dataset
+from unstructured import HWF_symbol_net
+from unstructured import MNIST_video_dataset
+from unstructured import MNIST_video_net
 
 
 class UnstructuredDataset:
@@ -41,7 +48,7 @@ class UnstructuredDataset:
 class MNISTDataset(UnstructuredDataset):
 
     def __init__(self, train):
-        self.data, self.ids_of_digit = unstructured.MNIST_dataset.get_data(
+        self.data, self.ids_of_digit = MNIST_dataset.get_data(
             train)
 
     def __len__(self):
@@ -49,7 +56,7 @@ class MNISTDataset(UnstructuredDataset):
 
     @staticmethod
     def collate_fn(batch):
-        return unstructured.MNIST_dataset.MNISTDataset.collate_fn(batch)
+        return MNIST_dataset.MNISTDataset.collate_fn(batch)
 
     def input_mapping(self):
         return [i for i in range(10)]
@@ -61,12 +68,12 @@ class MNISTDataset(UnstructuredDataset):
         return self.data[index]
 
     def net(self):
-        return unstructured.MNIST_net.MNISTNet()
+        return MNIST_net.MNISTNet()
 
 
 class EMNISTDataset(UnstructuredDataset):
     def __init__(self, train):
-        self.data, self.ids_of_character = unstructured.EMNIST_dataset.get_data(
+        self.data, self.ids_of_character = EMNIST_dataset.get_data(
             train)
 
     def __len__(self):
@@ -74,7 +81,7 @@ class EMNISTDataset(UnstructuredDataset):
 
     @staticmethod
     def collate_fn(batch):
-        return unstructured.EMNIST_dataset.EMNISTDataset.collate_fn(batch)
+        return EMNIST_dataset.EMNISTDataset.collate_fn(batch)
 
     def input_mapping(self):
         return [i for i in range(47)]
@@ -86,20 +93,20 @@ class EMNISTDataset(UnstructuredDataset):
         return self.data[index]
 
     def net(self):
-        return unstructured.EMNIST_net.EMNISTNet()
+        return EMNIST_net.EMNISTNet()
 
 
 class HWFDataset(UnstructuredDataset):
 
     def __init__(self, train):
-        self.data, self.ids_of_expr = unstructured.HWF_dataset.get_data(train)
+        self.data, self.ids_of_expr = HWF_dataset.get_data(train)
 
     def __len__(self):
         return len(self.data)
 
     @staticmethod
     def collate_fn(batch):
-        return unstructured.HWF_dataset.HWFDataset.collate_fn(batch)
+        return HWF_dataset.HWFDataset.collate_fn(batch)
 
     def input_mapping(self):
         return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/']
@@ -113,7 +120,7 @@ class HWFDataset(UnstructuredDataset):
         return ((expr, len(string)), string)
 
     def net(self):
-        return unstructured.HWF_symbol_net.SymbolNet()
+        return HWF_symbol_net.SymbolNet()
 
 
 class MNISTVideoDataset(UnstructuredDataset):
