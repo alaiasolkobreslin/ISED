@@ -62,7 +62,7 @@ def train_test_loader(configuration, batch_size_train, batch_size_test):
 
 
 class TaskNet(nn.Module):
-    def __init__(self, unstructured_datasets, config, fn):
+    def __init__(self, unstructured_datasets, config, fn, batch_size_train):
         super(TaskNet, self).__init__()
 
         self.nets_dict = {}
@@ -82,7 +82,7 @@ class TaskNet(nn.Module):
             n_inputs, args.n_samples, fn, self.flatten_fns, unflatten_fns, args.threaded)
         self.sampling_fn = self.sampling.sample_train_backward_threaded if args.threaded else self.sampling.sample_train_backward
 
-        self.pool = Pool(processes=args.batch_size_train)
+        self.pool = Pool(processes=batch_size_train)
 
     def set_nets_list(self):
         self.nets = []
@@ -143,10 +143,14 @@ class TaskNet(nn.Module):
         for net in self.nets_dict.values():
             net.train()
 
+    def close(self):
+        self.pool.close()
+
 
 class Trainer():
-    def __init__(self, train_loader, test_loader, learning_rate, unstructured_datasets, config, fn):
-        self.network = TaskNet(unstructured_datasets, config, fn)
+    def __init__(self, train_loader, test_loader, learning_rate, unstructured_datasets, config, fn, batch_size_train):
+        self.network = TaskNet(unstructured_datasets,
+                               config, fn, batch_size_train)
         self.optimizers = [optim.Adam(
             net.parameters(), lr=learning_rate) for net in self.network.nets_dict.values()]
         self.train_loader = train_loader
@@ -192,14 +196,13 @@ class Trainer():
         for epoch in range(1, n_epochs + 1):
             self.train_epoch(epoch)
             self.test_epoch(epoch)
+        self.network.close()
 
 
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("mnist_add_two_numbers_sampling")
     parser.add_argument("--n-epochs", type=int, default=5)
-    parser.add_argument("--batch-size-train", type=int, default=64)
-    parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--n-samples", type=int, default=1000)
     parser.add_argument("--difficulty", type=str, default="easy")
@@ -213,8 +216,6 @@ if __name__ == "__main__":
 
     # Parameters
     n_epochs = args.n_epochs
-    batch_size_train = args.batch_size_train
-    batch_size_test = args.batch_size_test
     torch.manual_seed(args.seed)
     random.seed(args.seed)
 
@@ -222,6 +223,8 @@ if __name__ == "__main__":
     for task in configuration:
         print('Task: {}'.format(task))
         task_config = configuration[task]
+        batch_size_train = task_config[BATCH_SIZE_TRAIN]
+        batch_size_test = task_config[BATCH_SIZE_TEST]
         train_loader, test_loader = train_test_loader(
             task_config, batch_size_train, batch_size_test)
 
@@ -235,5 +238,5 @@ if __name__ == "__main__":
 
         # Create trainer and train
         trainer = Trainer(train_loader, test_loader,
-                          learning_rate, unstructured_datasets, task_config[INPUTS], fn)
+                          learning_rate, unstructured_datasets, task_config[INPUTS], fn, batch_size_train)
         trainer.train(n_epochs)

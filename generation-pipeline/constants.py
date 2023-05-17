@@ -4,6 +4,8 @@ PY_PROGRAM = "py_func"
 
 # Hyperparameters
 LEARNING_RATE = "learning_rate"
+BATCH_SIZE_TRAIN = "batch_size_train"
+BATCH_SIZE_TEST = "batch_size_test"
 
 # Inputs
 INPUTS = "inputs"

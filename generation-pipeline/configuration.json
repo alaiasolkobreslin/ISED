@@ -22,7 +22,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "sum_3": {
     "py_func": "sum_3",
@@ -55,7 +57,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "sum_4": {
     "py_func": "sum_4",
@@ -96,7 +100,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "add_mod_3": {
     "py_func": "add_mod_3",
@@ -121,7 +127,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "add_sub": {
     "py_func": "add_sub",
@@ -154,7 +162,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "eq_2": {
     "py_func": "eq_2",
@@ -179,7 +189,9 @@
     "output": {
       "type": "bool"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "how_many_3_or_4": {
     "py_func": "how_many_3_or_4",
@@ -197,7 +209,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "how_many_3": {
     "py_func": "how_many_3",
@@ -215,7 +229,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "how_many_not_3_and_not_4": {
     "py_func": "how_many_not_3_and_not_4",
@@ -233,7 +249,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "how_many_not_3": {
     "py_func": "how_many_not_3",
@@ -251,7 +269,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "identity": {
     "py_func": "identity",
@@ -268,7 +288,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "is_3_and_4": {
     "py_func": "is_3_and_4",
@@ -293,7 +315,9 @@
     "output": {
       "type": "bool"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "not_3_or_4": {
     "py_func": "not_3_or_4",
@@ -318,7 +342,9 @@
     "output": {
       "type": "bool"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "less_than": {
     "py_func": "less_than",
@@ -343,7 +369,9 @@
     "output": {
       "type": "bool"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "mod_2": {
     "py_func": "mod_2",
@@ -368,7 +396,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "mult_2": {
     "py_func": "mult_2",
@@ -393,7 +423,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "hwf": {
     "py_func": "hwf",
@@ -411,7 +443,9 @@
     "output": {
       "type": "float"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16
   },
   "add_two_numbers": {
     "py_func": "add_two_numbers",
@@ -438,7 +472,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "longest_substring_without_repeating_character": {
     "py_func": "longest_substring_without_repeating_character",
@@ -456,7 +492,9 @@
     "output": {
       "type": "str"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "median_of_two_sorted_arrays": {
     "py_func": "median_of_two_sorted_arrays",
@@ -483,7 +521,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "longest_palindromic_substring": {
     "py_func": "longest_palindromic_substring",
@@ -501,7 +541,9 @@
     "output": {
       "type": "str"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "reverse_integer": {
     "py_func": "reverse_integer",
@@ -519,7 +561,9 @@
     "output": {
       "type": "bool"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "palindrome_number": {
     "py_func": "palindrome_number",
@@ -537,7 +581,9 @@
     "output": {
       "type": "bool"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "integer_to_roman": {
     "py_func": "integer_to_roman",
@@ -555,7 +601,9 @@
     "output": {
       "type": "str"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "longest_common_prefix": {
     "py_func": "longest_common_prefix",
@@ -573,7 +621,9 @@
     "output": {
       "type": "str"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "letter_combinations_of_a_phone_number": {
     "py_func": "letter_combinations_of_a_phone_number",
@@ -591,7 +641,9 @@
     "output": {
       "type": "List[str]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "merge_two_sorted_lists": {
     "py_func": "merge_two_sorted_lists",
@@ -618,7 +670,9 @@
     "output": {
       "type": "List[int]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "remove_duplicates_from_sorted_array": {
     "py_func": "remove_duplicates_from_sorted_array",
@@ -636,7 +690,9 @@
     "output": {
       "type": "List[int]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "valid_sudoku": {
     "py_func": "valid_sudoku",
@@ -654,7 +710,9 @@
     "output": {
       "type": "bool"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "sudoku_solver": {
     "py_func": "sudoku_solver",
@@ -672,7 +730,9 @@
     "output": {
       "type": "List[List[str]]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "permutations_ii": {
     "py_func": "permutations_ii",
@@ -690,7 +750,9 @@
     "output": {
       "type": "List[int]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "rotate_image": {
     "py_func": "rotate_image",
@@ -708,7 +770,9 @@
     "output": {
       "type": "List[List[int]]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "group_anagrams": {
     "py_func": "group_anagrams",
@@ -726,7 +790,9 @@
     "output": {
       "type": "List[List[str]]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "maximum_subarray": {
     "py_func": "maximum_subarray",
@@ -744,7 +810,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "spiral_matrix": {
     "py_func": "spiral_matrix",
@@ -762,7 +830,9 @@
     "output": {
       "type": "List[int]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "jump_game": {
     "py_func": "jump_game",
@@ -780,7 +850,9 @@
     "output": {
       "type": "bool"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "spiral_matrix_ii": {
     "py_func": "spiral_matrix_ii",
@@ -797,7 +869,9 @@
     "output": {
       "type": "List[List[int]]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "minimum_path_sum": {
     "py_func": "minimum_path_sum",
@@ -815,7 +889,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "plus_one": {
     "py_func": "plus_one",
@@ -833,7 +909,9 @@
     "output": {
       "type": "List[int]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "climbing_stairs": {
     "py_func": "climbing_stairs",
@@ -850,7 +928,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "edit_distance": {
     "py_func": "edit_distance",
@@ -877,7 +957,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "combinations": {
     "py_func": "combinations",
@@ -902,7 +984,9 @@
     "output": {
       "type": "List[List[int]]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "largest_rectangle_in_histogram": {
     "py_func": "largest_rectangle_in_histogram",
@@ -920,7 +1004,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "subsets_ii": {
     "py_func": "subsets_ii",
@@ -938,7 +1024,9 @@
     "output": {
       "type": "List[List[int]]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "decode_ways": {
     "py_func": "decode_ways",
@@ -956,7 +1044,9 @@
     "output": {
       "type": "int"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "sort_list": {
     "py_func": "sort_list",
@@ -974,7 +1064,9 @@
     "output": {
       "type": "List[int]"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   },
   "char_identity": {
     "py_func": "char_identity",
@@ -991,6 +1083,8 @@
     "output": {
       "type": "char"
     },
-    "learning_rate": 0.0001
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64
   }
 }
