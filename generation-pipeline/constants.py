@@ -2,6 +2,9 @@
 # Function
 PY_PROGRAM = "py_func"
 
+# Hyperparameters
+LEARNING_RATE = "learning_rate"
+
 # Inputs
 INPUTS = "inputs"
 

@@ -200,7 +200,6 @@ if __name__ == "__main__":
     parser.add_argument("--n-epochs", type=int, default=5)
     parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
-    parser.add_argument("--learning-rate", type=float, default=0.0001)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--n-samples", type=int, default=1000)
     parser.add_argument("--difficulty", type=str, default="easy")
@@ -216,7 +215,6 @@ if __name__ == "__main__":
     n_epochs = args.n_epochs
     batch_size_train = args.batch_size_train
     batch_size_test = args.batch_size_test
-    learning_rate = args.learning_rate
     torch.manual_seed(args.seed)
     random.seed(args.seed)
 
@@ -228,6 +226,7 @@ if __name__ == "__main__":
             task_config, batch_size_train, batch_size_test)
 
         py_func = task_config[PY_PROGRAM]
+        learning_rate = task_config[LEARNING_RATE]
         unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
             input, train=True) for input in task_config[INPUTS]]
         structured_datasets = [task_dataset.TaskDataset.get_structured_dataset(

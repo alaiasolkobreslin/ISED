@@ -21,7 +21,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "sum_3": {
     "py_func": "sum_3",
@@ -53,7 +54,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "sum_4": {
     "py_func": "sum_4",
@@ -93,7 +95,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "add_mod_3": {
     "py_func": "add_mod_3",
@@ -117,7 +120,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "add_sub": {
     "py_func": "add_sub",
@@ -149,7 +153,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "eq_2": {
     "py_func": "eq_2",
@@ -173,7 +178,8 @@
     ],
     "output": {
       "type": "bool"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "how_many_3_or_4": {
     "py_func": "how_many_3_or_4",
@@ -190,7 +196,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "how_many_3": {
     "py_func": "how_many_3",
@@ -207,7 +214,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "how_many_not_3_and_not_4": {
     "py_func": "how_many_not_3_and_not_4",
@@ -224,7 +232,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "how_many_not_3": {
     "py_func": "how_many_not_3",
@@ -241,7 +250,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "identity": {
     "py_func": "identity",
@@ -257,7 +267,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "is_3_and_4": {
     "py_func": "is_3_and_4",
@@ -281,7 +292,8 @@
     ],
     "output": {
       "type": "bool"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "not_3_or_4": {
     "py_func": "not_3_or_4",
@@ -305,7 +317,8 @@
     ],
     "output": {
       "type": "bool"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "less_than": {
     "py_func": "less_than",
@@ -329,7 +342,8 @@
     ],
     "output": {
       "type": "bool"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "mod_2": {
     "py_func": "mod_2",
@@ -353,7 +367,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "mult_2": {
     "py_func": "mult_2",
@@ -377,7 +392,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "hwf": {
     "py_func": "hwf",
@@ -391,7 +407,11 @@
         "dataset": "HWF",
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
       }
-    ]
+    ],
+    "output": {
+      "type": "float"
+    },
+    "learning_rate": 0.0001
   },
   "add_two_numbers": {
     "py_func": "add_two_numbers",
@@ -417,7 +437,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "longest_substring_without_repeating_character": {
     "py_func": "longest_substring_without_repeating_character",
@@ -434,7 +455,8 @@
     ],
     "output": {
       "type": "str"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "median_of_two_sorted_arrays": {
     "py_func": "median_of_two_sorted_arrays",
@@ -460,7 +482,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "longest_palindromic_substring": {
     "py_func": "longest_palindromic_substring",
@@ -477,7 +500,8 @@
     ],
     "output": {
       "type": "str"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "reverse_integer": {
     "py_func": "reverse_integer",
@@ -494,7 +518,8 @@
     ],
     "output": {
       "type": "bool"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "palindrome_number": {
     "py_func": "palindrome_number",
@@ -511,7 +536,8 @@
     ],
     "output": {
       "type": "bool"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "integer_to_roman": {
     "py_func": "integer_to_roman",
@@ -528,7 +554,8 @@
     ],
     "output": {
       "type": "str"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "longest_common_prefix": {
     "py_func": "longest_common_prefix",
@@ -545,7 +572,8 @@
     ],
     "output": {
       "type": "str"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "letter_combinations_of_a_phone_number": {
     "py_func": "letter_combinations_of_a_phone_number",
@@ -562,7 +590,8 @@
     ],
     "output": {
       "type": "List[str]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "merge_two_sorted_lists": {
     "py_func": "merge_two_sorted_lists",
@@ -588,7 +617,8 @@
     ],
     "output": {
       "type": "List[int]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "remove_duplicates_from_sorted_array": {
     "py_func": "remove_duplicates_from_sorted_array",
@@ -605,7 +635,8 @@
     ],
     "output": {
       "type": "List[int]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "valid_sudoku": {
     "py_func": "valid_sudoku",
@@ -622,7 +653,8 @@
     ],
     "output": {
       "type": "bool"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "sudoku_solver": {
     "py_func": "sudoku_solver",
@@ -639,7 +671,8 @@
     ],
     "output": {
       "type": "List[List[str]]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "permutations_ii": {
     "py_func": "permutations_ii",
@@ -656,7 +689,8 @@
     ],
     "output": {
       "type": "List[int]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "rotate_image": {
     "py_func": "rotate_image",
@@ -673,7 +707,8 @@
     ],
     "output": {
       "type": "List[List[int]]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "group_anagrams": {
     "py_func": "group_anagrams",
@@ -690,7 +725,8 @@
     ],
     "output": {
       "type": "List[List[str]]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "maximum_subarray": {
     "py_func": "maximum_subarray",
@@ -707,7 +743,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "spiral_matrix": {
     "py_func": "spiral_matrix",
@@ -724,7 +761,8 @@
     ],
     "output": {
       "type": "List[int]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "jump_game": {
     "py_func": "jump_game",
@@ -741,7 +779,8 @@
     ],
     "output": {
       "type": "bool"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "spiral_matrix_ii": {
     "py_func": "spiral_matrix_ii",
@@ -757,7 +796,8 @@
     ],
     "output": {
       "type": "List[List[int]]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "minimum_path_sum": {
     "py_func": "minimum_path_sum",
@@ -774,7 +814,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "plus_one": {
     "py_func": "plus_one",
@@ -791,7 +832,8 @@
     ],
     "output": {
       "type": "List[int]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "climbing_stairs": {
     "py_func": "climbing_stairs",
@@ -807,7 +849,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "edit_distance": {
     "py_func": "edit_distance",
@@ -833,7 +876,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "combinations": {
     "py_func": "combinations",
@@ -857,7 +901,8 @@
     ],
     "output": {
       "type": "List[List[int]]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "largest_rectangle_in_histogram": {
     "py_func": "largest_rectangle_in_histogram",
@@ -874,7 +919,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "subsets_ii": {
     "py_func": "subsets_ii",
@@ -891,7 +937,8 @@
     ],
     "output": {
       "type": "List[List[int]]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "decode_ways": {
     "py_func": "decode_ways",
@@ -908,7 +955,8 @@
     ],
     "output": {
       "type": "int"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "sort_list": {
     "py_func": "sort_list",
@@ -925,7 +973,8 @@
     ],
     "output": {
       "type": "List[int]"
-    }
+    },
+    "learning_rate": 0.0001
   },
   "char_identity": {
     "py_func": "char_identity",
@@ -941,6 +990,7 @@
     ],
     "output": {
       "type": "char"
-    }
+    },
+    "learning_rate": 0.0001
   }
 }
