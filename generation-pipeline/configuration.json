@@ -28,6 +28,35 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
+  "sum_2_svhn": {
+    "py_func": "sum_2",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "SVHN",
+        "unstructured_input_type": "Tensor[3 x 32 x 32]"
+      },
+      {
+        "name": "digit_2",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "SVHN",
+        "unstructured_input_type": "Tensor[3 x 32 x 32]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
   "sum_3": {
     "py_func": "sum_3",
     "inputs": [
@@ -54,6 +83,43 @@
         "preprocess": "id",
         "dataset": "MNIST",
         "unstructured_input_type": "Tensor[1 x 27 x 27]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "sum_3_svhn": {
+    "py_func": "sum_3_svhn",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "SVHN",
+        "unstructured_input_type": "Tensor[3 x 32 x 32]"
+      },
+      {
+        "name": "digit_2",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "SVHN",
+        "unstructured_input_type": "Tensor[3 x 32 x 32]"
+      },
+      {
+        "name": "digit_3",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "SVHN",
+        "unstructured_input_type": "Tensor[3 x 32 x 32]"
       }
     ],
     "output": {

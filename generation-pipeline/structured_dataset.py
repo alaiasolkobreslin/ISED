@@ -440,6 +440,8 @@ def get_unstructured_dataset_static(config):
         return unstructured_dataset.MNISTDataset
     elif ud == EMNIST:
         return unstructured_dataset.EMNISTDataset
+    elif ud == SVHN:
+        return unstructured_dataset.SVHNDataset
     elif ud == HWF_SYMBOL:
         return unstructured_dataset.HWFDataset
     elif ud == MNIST_VIDEO:

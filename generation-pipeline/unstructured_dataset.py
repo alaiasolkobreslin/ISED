@@ -9,6 +9,8 @@ from unstructured import MNIST_dataset
 from unstructured import MNIST_net
 from unstructured import EMNIST_dataset
 from unstructured import EMNIST_net
+from unstructured import SVHN_dataset
+from unstructured import SVHN_net
 from unstructured import HWF_dataset
 from unstructured import HWF_symbol_net
 from unstructured import MNIST_video_dataset
@@ -96,6 +98,31 @@ class EMNISTDataset(UnstructuredDataset):
         return EMNIST_net.EMNISTNet()
 
 
+class SVHNDataset(UnstructuredDataset):
+    def __init__(self, train):
+        self.data, self.ids_of_digit = SVHN_dataset.get_data(
+            train)
+
+    def __len__(self):
+        return len(self.data)
+
+    @staticmethod
+    def collate_fn(batch):
+        return MNIST_dataset.MNISTDataset.collate_fn(batch)
+
+    def input_mapping(self):
+        return [i for i in range(10)]
+
+    def sample_with_y(self, digit: int) -> int:
+        return self.ids_of_digit[digit][random.randrange(0, len(self.ids_of_digit[digit]))]
+
+    def get(self, index: int) -> Tuple[torch.Tensor, int]:
+        return self.data[index]
+
+    def net(self):
+        return SVHN_net.SVHNNet()
+
+
 class HWFDataset(UnstructuredDataset):
 
     def __init__(self, train):
@@ -126,10 +153,10 @@ class HWFDataset(UnstructuredDataset):
 class MNISTVideoDataset(UnstructuredDataset):
 
     def __init__(self, train):
-        pass
+        self.data = MNIST_video_dataset.get_data(train)
 
     def __len__(self):
-        pass
+        return len(self.data)
 
     @staticmethod
     def collate_fn(batch):
@@ -141,11 +168,15 @@ class MNISTVideoDataset(UnstructuredDataset):
     def sample_with_y(self):
         pass
 
-    def get(self):
-        pass
+    def get(self, index: int) -> Tuple[List[torch.Tensor], List[int]]:
+        video = self.data[index]
+        frames = video['frames_sg']
+        digits = [frame['digit'] for frame in frames]
+        # TODO: finish
+        return None
 
     def net(self):
-        pass
+        return MNIST_video_net.MNISTVideoCNN()
 
 
 class MNISTGridDataset(UnstructuredDataset):
