@@ -3,8 +3,23 @@ import torch
 from constants import *
 import strategy
 import unstructured_dataset
+import preprocess
 
-from unstructured import HWF_dataset
+
+class UnknownUnstructuredDataset(Exception):
+    pass
+
+
+class UnknownStructuredDataset(Exception):
+    pass
+
+
+class InvalidPreprocessStrategy(Exception):
+    pass
+
+
+class InvalidSampleStrategy(Exception):
+    pass
 
 
 class StructuredDataset:
@@ -36,6 +51,28 @@ class StructuredDataset:
         in the configuration
         """
         pass
+
+    def preprocess_from_allowed_strategies(self, allowed):
+        """
+        Returns a preprocessing strategy object according to the strategy
+        specified in the configuration. If the strategy is not in the `allowed`
+        list, then raise `InvalidPreprocessStrategy`
+        """
+        s = self.config[PREPROCESS]
+        if s not in allowed:
+            raise InvalidPreprocessStrategy(
+                "Preprocess strategy {s} is invalid")
+        elif s == PREPROCESS_IDENTITY:
+            strat = preprocess.PreprocessIdentity()
+        elif s == PREPROCESS_SORT:
+            strat = preprocess.PreprocessSort()
+        return strat
+
+    def get_preprocess_strategy(self):
+        """
+        Returns a preprocessing strategy object according to the strategy 
+        specified in the configuration
+        """
 
     def generate_dataset(self):
         """
@@ -75,6 +112,7 @@ class SingleDataset(StructuredDataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
+        self.preprocess = self.get_preprocess_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
@@ -91,7 +129,7 @@ class SingleDataset(StructuredDataset):
         return net(x)
 
     def generate_datapoint(self):
-        return self.strategy.sample()
+        return self.preprocess.preprocess(self.strategy.sample())
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
@@ -99,7 +137,13 @@ class SingleDataset(StructuredDataset):
         if s == SINGLETON_STRATEGY:
             strat = strategy.SingletonStrategy(
                 self.unstructured_dataset, input_mapping)
+        else:
+            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
         return strat
+
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_IDENTITY]
+        return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_dataset(self):
         length = self.__len__()
@@ -123,6 +167,7 @@ class IntDataset(StructuredDataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
+        self.preprocess = self.get_preprocess_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
@@ -147,10 +192,16 @@ class IntDataset(StructuredDataset):
         if s == SIMPLE_LIST_STRATEGY:
             strat = strategy.SimpleListStrategy(
                 self.unstructured_dataset, input_mapping, n_digits)
+        else:
+            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
         return strat
 
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_IDENTITY]
+        return self.preprocess_from_allowed_strategies(allowed)
+
     def generate_datapoint(self):
-        samples = self.strategy.sample()
+        samples = self.preprocess.preprocess(self.strategy.sample())
         imgs, number_lst = zip(*samples)
         number = ''.join(str(n) for n in number_lst)
         return (imgs, int(number))
@@ -179,6 +230,7 @@ class SingleIntListDataset(StructuredDataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
+        self.preprocess = self.get_preprocess_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
@@ -203,10 +255,16 @@ class SingleIntListDataset(StructuredDataset):
         if s == SIMPLE_LIST_STRATEGY:
             strat = strategy.SimpleListStrategy(
                 self.unstructured_dataset, input_mapping, length)
+        else:
+            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
         return strat
 
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT]
+        return self.preprocess_from_allowed_strategies(allowed)
+
     def generate_datapoint(self):
-        samples = self.strategy.sample()
+        samples = self.preprocess.preprocess(self.strategy.sample())
         return zip(*samples)
 
     def generate_dataset(self):
@@ -231,6 +289,7 @@ class IntListDataset(StructuredDataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
+        self.preprocess = self.get_preprocess_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
@@ -241,7 +300,8 @@ class IntListDataset(StructuredDataset):
 
     @staticmethod
     def collate_fn(batch, config):
-        return torch.stack(batch)
+        return [[torch.stack([item[i][j] for item in batch]) for j in range(
+            len(batch[0][0]))] for i in range(len(batch[0]))]
 
     def forward(net, x):
         return [[net(i) for i in item] for item in x]
@@ -253,18 +313,23 @@ class IntListDataset(StructuredDataset):
         if s == SIMPLE_LIST_STRATEGY:
             strat = strategy.SimpleListStrategy(
                 self.unstructured_dataset, input_mapping, n_digits)
+        else:
+            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
         return strat
 
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT]
+        return self.preprocess_from_allowed_strategies(allowed)
+
     def generate_datapoint(self):
-        imgs_lst = [None] * self.config[LENGTH]
-        int_lst = [None] * self.config[LENGTH]
+        lst = [None] * self.config[LENGTH]
         for i in range(self.config[LENGTH]):
-            samples = self.strat.sample()
+            samples = self.strategy.sample()
             imgs, number_lst = zip(*samples)
             number = ''.join(str(n) for n in number_lst)
-            imgs_lst[i] = imgs
-            int_lst[i] = int(number)
-        return (imgs_lst, int_lst)
+            lst[i] = (imgs, int(number))
+        lst = self.preprocess.preprocess(lst)
+        return zip(*lst)
 
     def generate_dataset(self):
         length = self.__len__()
@@ -276,15 +341,15 @@ class IntListDataset(StructuredDataset):
         return [item for i in input for item in i]
 
     def unflatten(config, samples, data, batch_item):
-        result = [[] * config[LENGTH]]
+        result = [0] * config[LENGTH]
         idx = 0
         for i in range(config[LENGTH]):
-            number = [0] * config[N_DIGITS]
-            for j in range(config[N_DIGITS]):
-                number[j] = samples[idx]
+            number = ''
+            for _ in range(config[N_DIGITS]):
+                number += str(samples[idx].item())
                 idx += 1
-            result[i] = number
-        return result
+            result[i] = int(number)
+        return [result]
 
     def n_unflatten(config):
         return config[LENGTH] * config[N_DIGITS]
@@ -296,6 +361,7 @@ class StringDataset(StructuredDataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
+        self.preprocess = self.get_preprocess_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
@@ -332,10 +398,16 @@ class StringDataset(StructuredDataset):
             strat = strategy.SimpleListStrategy(
                 self.unstructured_dataset, input_mapping, self.config[MAX_LENGTH]
             )
+        else:
+            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
         return strat
 
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_IDENTITY]
+        return self.preprocess_from_allowed_strategies(allowed)
+
     def generate_datapoint(self):
-        return self.strategy.sample()
+        return self.preprocess.preprocess(self.strategy.sample())
 
     def generate_dataset(self):
         length = self.__len__()
@@ -363,28 +435,34 @@ class StringDataset(StructuredDataset):
 
 
 def get_unstructured_dataset_static(config):
-    if config[DATASET] == MNIST:
+    ud = config[DATASET]
+    if ud == MNIST:
         return unstructured_dataset.MNISTDataset
-    elif config[DATASET] == EMNIST:
+    elif ud == EMNIST:
         return unstructured_dataset.EMNISTDataset
-    elif config[DATASET] == HWF_SYMBOL:
+    elif ud == HWF_SYMBOL:
         return unstructured_dataset.HWFDataset
-    elif config[DATASET] == MNIST_VIDEO:
+    elif ud == MNIST_VIDEO:
         return unstructured_dataset.MNISTVideoDataset
-    elif config[DATASET] == MNIST_GRID:
+    elif ud == MNIST_GRID:
         return unstructured_dataset.MNISTGridDataset
+    else:
+        raise UnknownUnstructuredDataset(f"Unknown dataset: {ud}")
 
 
 def get_structured_dataset_static(config):
-    if config[TYPE] == DIGIT_TYPE:
+    sd = config[TYPE]
+    if sd == DIGIT_TYPE:
         return SingleDataset
-    if config[TYPE] == CHAR_TYPE:
+    elif sd == CHAR_TYPE:
         return SingleDataset
-    if config[TYPE] == INT_TYPE:
+    elif sd == INT_TYPE:
         return IntDataset
-    elif config[TYPE] == SINGLE_INT_LIST_TYPE:
+    elif sd == SINGLE_INT_LIST_TYPE:
         return SingleIntListDataset
-    elif config[TYPE] == INT_LIST_TYPE:
+    elif sd == INT_LIST_TYPE:
         return IntListDataset
-    elif config[TYPE] == STRING_TYPE:
+    elif sd == STRING_TYPE:
         return StringDataset
+    else:
+        raise UnknownStructuredDataset(f"Unknown dataset: {sd}")

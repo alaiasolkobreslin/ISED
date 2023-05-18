@@ -1160,6 +1160,29 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
+  "sort_integer_list": {
+    "py_func": "sort_integer_list",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[int]",
+        "strategy": "list",
+        "preprocess": "id",
+        "num_digits": 2,
+        "length": 4,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+      }
+    ],
+    "output": {
+      "type": "List[int]"
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
   "char_identity": {
     "py_func": "char_identity",
     "inputs": [

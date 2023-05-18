@@ -419,10 +419,12 @@ def jump_game(nums):
 
 def spiral_matrix_ii(n):
     # problem 59: https://leetcode.com/problems/spiral-matrix-ii/
+    if type(n) is torch.Tensor:
+        n = n.item()
     A, lo = [], n*n+1
     while lo > 1:
         lo, hi = lo - len(A), lo
-        A = [range(lo, hi)] + zip(*A[::-1])
+        A = [range(lo, hi)] + list(zip(*A[::-1]))
     return A
 
 
@@ -557,6 +559,10 @@ def sort_list(x):
     return sorted(x)
 
 
+def sort_integer_list(x):
+    return sorted(x)
+
+
 def char_identity(x):
     return x
 
@@ -610,6 +616,7 @@ dispatcher = {
     'decode_ways': decode_ways,
 
     'sort_list': sort_list,
+    'sort_integer_list': sort_integer_list,
     'char_identity': char_identity,
 }
 
