@@ -16,7 +16,8 @@ class MNISTVideoDataset(torch.utils.data.Dataset):
         # Load the metadata
         self.root = root
         self.label = "train" if train else "test"
-        self.metadata = json.load(open(os.path.join(root, "data", filename)))
+        self.metadata = json.load(
+            open(os.path.join(root, "data", filename)))
 
     def __len__(self):
         return len(self.metadata)
@@ -82,7 +83,7 @@ class MNISTVideoDataset(torch.utils.data.Dataset):
 
 def get_data(train):
     data_dir = os.path.abspath(os.path.join(
-        os.path.abspath(__file__), "../../data"))
+        os.path.abspath(__file__), "../../data/MNIST_video"))
     data = MNISTVideoDataset(
         data_dir, "MNIST_video_train_1000.json", train=train)
-    return data.metadata
+    return data
