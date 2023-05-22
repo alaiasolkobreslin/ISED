@@ -355,6 +355,77 @@ class IntListDataset(StructuredDataset):
         return config[LENGTH] * config[N_DIGITS]
 
 
+class SingleIntGridDataset(StructuredDataset):
+    def __init__(self, config, unstructured_dataset):
+        self.config = config
+        self.unstructured_dataset = unstructured_dataset
+        self.strategy = self.get_sample_strategy()
+        self.preprocess = self.get_preprocess_strategy()
+        self.dataset = self.generate_dataset()
+
+    def __len__(self):
+        return len(self.unstructured_dataset)
+
+    def __getitem__(self, index):
+        return self.dataset[index]
+
+    @staticmethod
+    def collate_fn(batch, config):
+        return [[torch.stack([item[i][j] for item in batch]) for j in range(
+            len(batch[0][0]))] for i in range(len(batch[0]))]
+
+    def forward(net, x):
+        return [[net(i) for i in item] for item in x]
+
+    def get_sample_strategy(self):
+        length = self.config[LENGTH]
+        s = self.config[STRATEGY]
+        input_mapping = [i for i in range(10)]
+        if s == SIMPLE_LIST_STRATEGY:
+            strat = strategy.SimpleListStrategy(
+                self.unstructured_dataset, input_mapping, length)
+        else:
+            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+        return strat
+
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT]
+        return self.preprocess_from_allowed_strategies(allowed)
+
+    def generate_datapoint(self):
+        lst = [None] * self.config[LENGTH]
+        for i in range(self.config[LENGTH]):
+            samples = self.strategy.sample()
+            imgs, row = zip(*samples)
+            lst[i] = (imgs, list(row))
+        lst = self.preprocess.preprocess(lst)
+        return zip(*lst)
+
+    def generate_dataset(self):
+        length = self.__len__()
+        dataset = [None] * length
+        for i in range(length):
+            dataset[i] = self.generate_datapoint()
+
+    def flatten(config, input):
+        return [item for i in input for item in i]
+
+    def unflatten(config, samples, data, batch_item):
+        n = config[LENGTH]
+        result = [0] * n
+        idx = 0
+        for i in range(n):
+            row = [0] * n
+            for j in range(n):
+                row[j] = samples[idx]
+                idx += 1
+            result[i] = row
+        return [result]
+
+    def n_unflatten(config):
+        return config[LENGTH] ** 2
+
+
 class StringDataset(StructuredDataset):
 
     def __init__(self, config, unstructured_dataset):
@@ -462,6 +533,8 @@ def get_structured_dataset_static(config):
         return IntDataset
     elif sd == SINGLE_INT_LIST_TYPE:
         return SingleIntListDataset
+    elif sd == SINGLE_INT_LIST_LIST_TYPE:
+        return SingleIntGridDataset
     elif sd == INT_LIST_TYPE:
         return IntListDataset
     elif sd == STRING_TYPE:
