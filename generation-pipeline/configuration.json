@@ -658,8 +658,8 @@
     "inputs": [
       {
         "name": "x",
-        "type": "int",
-        "num_digits": 3,
+        "type": "List[digit]",
+        "length": 3,
         "strategy": "list",
         "preprocess": "id",
         "dataset": "MNIST",
@@ -1263,6 +1263,27 @@
     ],
     "output": {
       "type": "char"
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 64,
+    "batch_size_test": 64,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "mnist_video": {
+    "py_func": "mnist_video",
+    "inputs": [
+      {
+        "name": "video",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "dataset": "MNIST_VIDEO",
+        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+      }
+    ],
+    "output": {
+      "type": "List[int]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,

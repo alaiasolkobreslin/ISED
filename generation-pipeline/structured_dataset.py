@@ -219,7 +219,7 @@ class IntDataset(StructuredDataset):
         number = ''
         for i in samples:
             number += str(i.item())
-        return [torch.tensor(int(number))]
+        return [int(number)]
 
     def n_unflatten(config):
         return config[N_DIGITS]

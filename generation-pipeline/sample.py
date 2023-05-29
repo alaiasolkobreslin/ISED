@@ -1,12 +1,12 @@
 from typing import *
 
-from typing import *
-
 import torch
 from torch.distributions.categorical import Categorical
 import torch.nn.functional as F
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor as Pool
+
+import permute
 
 DEVICE = torch.device('cpu')
 
@@ -32,12 +32,13 @@ class Sample:
 
 
 class StandardSample(Sample):
-    def __init__(self, n_inputs, n_samples, fn, flatten_fns, unflatten_fns, n_threads=0):
+    def __init__(self, n_inputs, n_samples, fn, flatten_fns, unflatten_fns, config, n_threads=0):
         self.n_inputs = n_inputs
         self.n_samples = n_samples
         self.fn = fn
         self.flatten_fns = flatten_fns
         self.unflatten_fns = unflatten_fns
+        # self.permutations = permute.get_permutations(config)
         self.n_threads = n_threads
         # if n_threads > 0:
         # global pool
@@ -77,7 +78,7 @@ class StandardSample(Sample):
 
         I_p, I_m = [], []
         for _ in range(self.n_samples):
-            idxs = [i.sample() for i in input_sampler]
+            idxs = [i.sample().item() for i in input_sampler]
             idxs_probs = torch.stack([input_distrs[i][idx]
                                      for i, idx in enumerate(idxs)])
             output_prob = torch.prod(idxs_probs, dim=0)
@@ -186,7 +187,7 @@ class StandardSample(Sample):
         for i in range(batch_size):
             inputs = []
             for j, (unflatten, _) in enumerate(self.unflatten_fns):
-                current_inputs = [torch.argmax(distr[i])
+                current_inputs = [torch.argmax(distr[i]).item()
                                   for distr in flattened[j]]
                 inputs += unflatten(current_inputs, data[j], i)
             results[i] = self.fn(*inputs)

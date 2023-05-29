@@ -148,21 +148,14 @@ def longest_palindromic_substring(s: str) -> str:
 
 def reverse_integer(x):
     # problem 7: https://leetcode.com/problems/reverse-integer/
-    if type(x) is torch.Tensor:
-        x = x.item()
-    y = str(x)
-    y = y.strip()
-    y = y[::-1]
-    output = int(y)
-    if output >= 2 ** 31 - 1 or output <= -2 ** 31:
-        return 0
+    reversed = x[::-1]
+    string = ''.join(str(d) for d in reversed)
+    output = int(string)
     return output
 
 
 def palindrome_number(x):
     # problem 9: https://leetcode.com/problems/palindrome-number/
-    if type(x) is torch.Tensor:
-        x = x.item()
     x = list(str(x))
     x_cmp = x[:]
     x_cmp.reverse()
@@ -171,8 +164,6 @@ def palindrome_number(x):
 
 def integer_to_roman(x):
     # problem 12: https://leetcode.com/problems/integer-to-roman/
-    if type(x) is torch.Tensor:
-        x = x.item()
     rmap = {
         1: "I",
         4: "IV",
@@ -419,8 +410,8 @@ def jump_game(nums):
 
 def spiral_matrix_ii(n):
     # problem 59: https://leetcode.com/problems/spiral-matrix-ii/
-    if type(n) is torch.Tensor:
-        n = n.item()
+    # if type(n) is torch.Tensor:
+    #     n = n.item()
     A, lo = [], n*n+1
     while lo > 1:
         lo, hi = lo - len(A), lo

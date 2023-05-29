@@ -79,7 +79,7 @@ class TaskNet(nn.Module):
                             for i, sd in enumerate(structured_datasets)]
 
         self.sampling = sample.StandardSample(
-            n_inputs, args.n_samples, fn, self.flatten_fns, unflatten_fns, args.threaded)
+            n_inputs, args.n_samples, fn, self.flatten_fns, unflatten_fns, config, args.threaded)
         self.sampling_fn = self.sampling.sample_train_backward_threaded if args.threaded else self.sampling.sample_train_backward
 
         self.pool = Pool(processes=batch_size_train)
@@ -96,12 +96,17 @@ class TaskNet(nn.Module):
                 add_net(MNIST, ud)
             elif type(ud) is unstructured_dataset.EMNISTDataset:
                 add_net(EMNIST, ud)
+            elif type(ud) is unstructured_dataset.SVHNDataset:
+                add_net(SVHN, ud)
             elif type(ud) is unstructured_dataset.HWFDataset:
                 add_net(HWF_SYMBOL, ud)
             elif type(ud) is unstructured_dataset.MNISTVideoDataset:
                 add_net(MNIST_VIDEO, ud)
             elif type(ud) is unstructured_dataset.MNISTGridDataset:
                 add_net(MNIST_GRID, ud)
+            else:
+                raise structured_dataset.UnknownUnstructuredDataset(
+                    f"Unknown dataset: {ud}")
 
     def parameters(self):
         return [net.parameters() for net in self.nets_dict.values()]
@@ -202,7 +207,7 @@ class Trainer():
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("mnist_add_two_numbers_sampling")
-    parser.add_argument("--n-epochs", type=int, default=5)
+    parser.add_argument("--n-epochs", type=int, default=20)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--n-samples", type=int, default=1000)
     parser.add_argument("--difficulty", type=str, default="easy")
