@@ -887,7 +887,7 @@
     "inputs": [
       {
         "name": "nums",
-        "type": "List[List[digit]]",
+        "type": "Grid[digit]",
         "strategy": "list",
         "preprocess": "id",
         "length": 3,
@@ -896,7 +896,7 @@
       }
     ],
     "output": {
-      "type": "List[List[int]]"
+      "type": "Grid[int]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
@@ -1005,7 +1005,7 @@
       }
     ],
     "output": {
-      "type": "List[List[int]]"
+      "type": "Grid[int]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
@@ -1235,7 +1235,7 @@
         "strategy": "list",
         "preprocess": "id",
         "num_digits": 2,
-        "length": 4,
+        "length": 2,
         "dataset": "MNIST",
         "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
       }

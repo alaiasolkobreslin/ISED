@@ -346,13 +346,17 @@ class IntListDataset(StructuredDataset):
         for i in range(config[LENGTH]):
             number = ''
             for _ in range(config[N_DIGITS]):
-                number += str(samples[idx].item())
+                number += str(samples[idx])
                 idx += 1
             result[i] = int(number)
         return [result]
 
     def n_unflatten(config):
         return config[LENGTH] * config[N_DIGITS]
+
+
+class SingleIntListListDataset(StructuredDataset):
+    pass
 
 
 class SingleIntGridDataset(StructuredDataset):
@@ -534,6 +538,8 @@ def get_structured_dataset_static(config):
     elif sd == SINGLE_INT_LIST_TYPE:
         return SingleIntListDataset
     elif sd == SINGLE_INT_LIST_LIST_TYPE:
+        return SingleIntListListDataset
+    elif sd == SINGLE_INT_GRID_TYPE:
         return SingleIntGridDataset
     elif sd == INT_LIST_TYPE:
         return IntListDataset
