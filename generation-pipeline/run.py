@@ -207,12 +207,15 @@ class Trainer():
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("mnist_add_two_numbers_sampling")
-    parser.add_argument("--n-epochs", type=int, default=20)
+    parser.add_argument("--n-epochs", type=int, default=5)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--n-samples", type=int, default=1000)
     parser.add_argument("--difficulty", type=str, default="easy")
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
+
+    # environment init
+    torch.multiprocessing.set_start_method('spawn')
 
     # Read json
     dir_path = os.path.dirname(os.path.realpath(__file__))
