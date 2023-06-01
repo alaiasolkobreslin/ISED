@@ -1,4 +1,3 @@
-import torch
 from heapq import merge
 from typing import *
 
@@ -70,6 +69,12 @@ def mult_2(digit_1, digit_2):
 
 
 def hwf(expr):
+    n = len(expr)
+    for i in range(n):
+        if i % 2 == 0 and expr[i] not in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+            return None
+        elif i % 2 == 1 and expr[i] not in ['+', '*', '-', '/']:
+            return None
     try:
         return eval(expr)
     except Exception:
@@ -410,8 +415,6 @@ def jump_game(nums):
 
 def spiral_matrix_ii(n):
     # problem 59: https://leetcode.com/problems/spiral-matrix-ii/
-    # if type(n) is torch.Tensor:
-    #     n = n.item()
     A, lo = [], n*n+1
     while lo > 1:
         lo, hi = lo - len(A), lo

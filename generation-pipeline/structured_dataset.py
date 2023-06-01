@@ -218,7 +218,7 @@ class IntDataset(StructuredDataset):
     def unflatten(config, samples, data, batch_item):
         number = ''
         for i in samples:
-            number += str(i.item())
+            number += str(i)
         return [int(number)]
 
     def n_unflatten(config):
@@ -430,7 +430,7 @@ class SingleIntGridDataset(StructuredDataset):
         return config[LENGTH] ** 2
 
 
-class StringDataset(StructuredDataset):
+class PaddedStringDataset(StructuredDataset):
 
     def __init__(self, config, unstructured_dataset):
         self.config = config
@@ -502,11 +502,76 @@ class StringDataset(StructuredDataset):
         input_mapping = ud.input_mapping(ud)
         string = ''
         for i in samples:
-            string += input_mapping[i]
+            string += str(input_mapping[i])
         return [string]
 
     def n_unflatten(config):
         return config[MAX_LENGTH]
+
+
+class StringDataset(StructuredDataset):
+    def __init__(self, config, unstructured_dataset):
+        self.config = config
+        self.unstructured_dataset = unstructured_dataset
+        self.strategy = self.get_sample_strategy()
+        self.preprocess = self.get_preprocess_strategy()
+        self.dataset = self.generate_dataset()
+
+    def __len__(self):
+        return int(len(self.unstructured_dataset) / self.config[LENGTH])
+
+    def __getitem__(self, index):
+        return self.dataset[index]
+
+    @staticmethod
+    def collate_fn(batch, config):
+        imgs = [torch.stack([item[i] for item in batch])
+                for i in range(len(batch[0]))]
+        return imgs
+
+    def forward(net, x):
+        return [net(item) for item in x]
+
+    def get_sample_strategy(self):
+        length = self.config[LENGTH]
+        s = self.config[STRATEGY]
+        input_mapping = [i for i in range(10)]
+        if s == SIMPLE_LIST_STRATEGY:
+            strat = strategy.SimpleListStrategy(
+                self.unstructured_dataset, input_mapping, length)
+        else:
+            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+        return strat
+
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT]
+        return self.preprocess_from_allowed_strategies(allowed)
+
+    def generate_datapoint(self):
+        samples = self.preprocess.preprocess(self.strategy.sample())
+        imgs, string_list = zip(*samples)
+        string = ''.join(str(n) for n in string_list)
+        return (imgs, string)
+
+    def generate_dataset(self):
+        length = self.__len__()
+        dataset = [None] * length
+        for i in range(length):
+            dataset[i] = self.generate_datapoint()
+
+    def flatten(config, input):
+        return input
+
+    def unflatten(config, samples, data, batch_item):
+        ud = get_unstructured_dataset_static(config)
+        input_mapping = ud.input_mapping(ud)
+        string = ''
+        for i in samples:
+            string += str(input_mapping[i])
+        return [string]
+
+    def n_unflatten(config):
+        return config[LENGTH]
 
 
 def get_unstructured_dataset_static(config):
@@ -543,6 +608,8 @@ def get_structured_dataset_static(config):
         return SingleIntGridDataset
     elif sd == INT_LIST_TYPE:
         return IntListDataset
+    elif sd == STRING_TYPE and MAX_LENGTH in config:
+        return PaddedStringDataset
     elif sd == STRING_TYPE:
         return StringDataset
     else:

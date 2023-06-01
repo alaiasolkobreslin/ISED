@@ -195,7 +195,7 @@ class StandardSample(Sample):
 
 
 class SamplePaddedInput(Sample):
-    def __init__(self, n_inputs, n_samples, fn, flatten_fns, unflatten_fns, n_threads=0):
+    def __init__(self, n_inputs, n_samples, fn, flatten_fns, unflatten_fns, config, n_threads=0):
         self.n_inputs = n_inputs
         self.n_samples = n_samples
         self.fn = fn

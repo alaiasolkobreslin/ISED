@@ -586,7 +586,7 @@
         "type": "str",
         "strategy": "list",
         "preprocess": "id",
-        "max_length": 7,
+        "length": 7,
         "dataset": "EMNIST",
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
       }
@@ -639,7 +639,7 @@
         "type": "str",
         "strategy": "list",
         "preprocess": "id",
-        "max_length": 5,
+        "length": 5,
         "dataset": "EMNIST",
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
       }
@@ -727,7 +727,7 @@
         "type": "List[str]",
         "strategy": "list",
         "preprocess": "id",
-        "max_length": 7,
+        "length": 7,
         "dataset": "EMNIST",
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
       }
@@ -1086,7 +1086,7 @@
         "type": "str",
         "strategy": "list",
         "preprocess": "id",
-        "max_length": 7,
+        "length": 7,
         "dataset": "EMNIST",
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
       },
@@ -1095,7 +1095,7 @@
         "type": "str",
         "strategy": "list",
         "preprocess": "id",
-        "max_length": 7,
+        "length": 7,
         "dataset": "EMNIST",
         "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
       }
@@ -1187,7 +1187,7 @@
     "inputs": [
       {
         "name": "s",
-        "type": "List[digit]",
+        "type": "str",
         "strategy": "list",
         "preprocess": "id",
         "length": 3,
