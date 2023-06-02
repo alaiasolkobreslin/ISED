@@ -224,16 +224,31 @@ class SamplePaddedInput(Sample):
         I_p, I_m = [], []
         for _ in range(self.n_samples):
             idxs = [i.sample() for i in input_sampler]
-            idxs_probs = torch.stack([input_distrs[i][idx]
-                                     for i, idx in enumerate(idxs)])
-            output_prob = torch.prod(idxs_probs, dim=0)
+            # TODO: this is wrong. We are using all idxs instead of the
+            # relevant ones
+            # idxs_probs = torch.stack([input_distrs[i][idx]
+            #                          for i, idx in enumerate(idxs)])
+            # output_prob = torch.prod(idxs_probs, dim=0)
 
             inputs_ = []
             last_idx = 0
+            relevant_distrs = []
+            relevant_distrs_for_grad = []
+
             for i, (unflatten, n) in enumerate(self.unflatten_fns):
+
+                length = data[i][1][batch_num].item()
+                relevant_idxs = idxs[last_idx:(length + last_idx)]
+                relevant_distrs += [input_distrs[i + last_idx][idx]
+                                    for i, idx in enumerate(relevant_idxs)]
+                relevant_distrs_for_grad += [input_distrs[i + last_idx]
+                                             for i, _ in enumerate(relevant_idxs)]
+
                 current_inputs = idxs[last_idx:(n+last_idx)]
                 inputs_ += unflatten(current_inputs, data[i], batch_num)
                 last_idx += n
+
+            output_prob = torch.prod(torch.stack(relevant_distrs), dim=0)
 
             if self.fn(*inputs_) == ground_truth:
                 I_p.append(output_prob)
@@ -252,7 +267,12 @@ class SamplePaddedInput(Sample):
             size=falsey.shape, requires_grad=True, device=DEVICE)))
         l = F.binary_cross_entropy(I, I_truth)
         l.backward()
-        gradients = torch.stack([i.grad for i in input_distrs])
+
+        # for distr in relevant_distrs_for_grad:
+        #     distr.requires_grad = True
+        #     distr.retain_grad()
+
+        gradients = torch.stack([i.grad for i in relevant_distrs_for_grad])
         return gradients
 
     def sample_train_backward_non_batch(self, inputs):

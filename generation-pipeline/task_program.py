@@ -521,6 +521,7 @@ def largest_rectangle_in_histogram(heights):
 def subsets_ii(nums):
     # problem 90: https://leetcode.com/problems/subsets-ii/
     res = [[]]
+    nums = list(nums)
     nums.sort()
     for i in range(len(nums)):
         if i == 0 or nums[i] != nums[i - 1]:
