@@ -71,14 +71,11 @@ def mult_2(digit_1, digit_2):
 def hwf(expr):
     n = len(expr)
     for i in range(n):
-        if i % 2 == 0 and expr[i] not in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
-            return None
+        if i % 2 == 0 and not expr[i].isdigit():
+            raise Exception("Invalid HWF")
         elif i % 2 == 1 and expr[i] not in ['+', '*', '-', '/']:
-            return None
-    try:
-        return eval(expr)
-    except Exception:
-        return None
+            raise Exception("Invalid HWF")
+    return eval(expr)
 
 # Leetcode problems
 
