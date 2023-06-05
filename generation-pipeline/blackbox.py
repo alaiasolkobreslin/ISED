@@ -39,7 +39,7 @@ class BlackBoxFunction(torch.nn.Module):
             input_mappings: Tuple[InputMapping],
             output_mapping: OutputMapping,
             sample_count: int = 100,
-            timeout_seconds: int = 100):
+            timeout_seconds: int = 1):
         super(BlackBoxFunction, self).__init__()
         assert type(input_mappings) == tuple, "input_mappings must be a tuple"
         self.function = function

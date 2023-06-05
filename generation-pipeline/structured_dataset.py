@@ -7,6 +7,10 @@ import preprocess
 import input
 
 
+def id(x):
+    return x
+
+
 class UnknownUnstructuredDataset(Exception):
     pass
 
@@ -167,7 +171,7 @@ class SingleDataset(StructuredDataset):
 
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
-        return input.DiscreteInputMapping(ud.input_mapping(ud))
+        return input.DiscreteInputMapping(ud.input_mapping(ud), id)
 
 
 class IntDataset(StructuredDataset):
@@ -234,11 +238,13 @@ class IntDataset(StructuredDataset):
         return config[N_DIGITS]
 
     def get_input_mapping(config):
+        def combine(inputs):
+            return int("".join(str(s) for s in inputs))
         ud = get_unstructured_dataset_static(config)
         length = config[LENGTH]
         element_input_mapping = input.DiscreteInputMapping(
-            ud.input_mapping(ud))
-        return input.ListInputMapping(length, element_input_mapping)
+            ud.input_mapping(ud), id)
+        return input.ListInputMapping(length, element_input_mapping, combine)
 
 
 class SingleIntListDataset(StructuredDataset):
@@ -302,8 +308,8 @@ class SingleIntListDataset(StructuredDataset):
         ud = get_unstructured_dataset_static(config)
         length = config[LENGTH]
         element_input_mapping = input.DiscreteInputMapping(
-            ud.input_mapping(ud))
-        return input.ListInputMapping(length, element_input_mapping)
+            ud.input_mapping(ud), id)
+        return input.ListInputMapping(length, element_input_mapping, id)
 
 
 class IntListDataset(StructuredDataset):
@@ -378,14 +384,16 @@ class IntListDataset(StructuredDataset):
         return config[LENGTH] * config[N_DIGITS]
 
     def get_input_mapping(config):
+        def combine(input):
+            return int("".join(str(digit) for digit in input))
         ud = get_unstructured_dataset_static(config)
         length = config[LENGTH]
         n_digits = config[N_DIGITS]
         digit_input_mapping = input.DiscreteInputMapping(
-            ud.input_mapping(ud))
+            ud.input_mapping(ud), IntListDataset.combine, id)
         element_input_mapping = input.ListInputMapping(
-            n_digits, digit_input_mapping)
-        return input.ListInputMapping(length, element_input_mapping)
+            n_digits, digit_input_mapping, combine)
+        return input.ListInputMapping(length, element_input_mapping, id)
 
 
 class SingleIntListListDataset(StructuredDataset):
@@ -466,10 +474,10 @@ class SingleIntGridDataset(StructuredDataset):
         ud = get_unstructured_dataset_static(config)
         length = config[LENGTH]
         digit_input_mapping = input.DiscreteInputMapping(
-            ud.input_mapping(ud))
+            ud.input_mapping(ud), SingleIntGridDataset.combine, id)
         element_input_mapping = input.ListInputMapping(
-            length, digit_input_mapping)
-        return input.ListInputMapping(length, element_input_mapping)
+            length, digit_input_mapping, id)
+        return input.ListInputMapping(length, element_input_mapping, id)
 
 
 class PaddedStringDataset(StructuredDataset):
@@ -551,11 +559,13 @@ class PaddedStringDataset(StructuredDataset):
         return config[MAX_LENGTH]
 
     def get_input_mapping(config):
+        def combine(inputs):
+            return "".join(str(s) for s in inputs)
         max_length = config[MAX_LENGTH]
         ud = get_unstructured_dataset_static(config)
         element_input_mapping = input.DiscreteInputMapping(
-            ud.input_mapping(ud))
-        return input.PaddedListInputMapping(max_length, element_input_mapping)
+            ud.input_mapping(ud), id)
+        return input.PaddedListInputMapping(max_length, element_input_mapping, combine)
 
 
 class StringDataset(StructuredDataset):
@@ -623,11 +633,13 @@ class StringDataset(StructuredDataset):
         return config[LENGTH]
 
     def get_input_mapping(config):
+        def combine(inputs):
+            return "".join(str(s) for s in inputs)
         length = config[LENGTH]
         ud = get_unstructured_dataset_static(config)
         element_input_mapping = input.DiscreteInputMapping(
-            ud.input_mapping(ud))
-        return input.ListInputMapping(length, element_input_mapping)
+            ud.input_mapping(ud), StringDataset.combine, id)
+        return input.ListInputMapping(length, element_input_mapping, combine)
 
 
 def get_unstructured_dataset_static(config):

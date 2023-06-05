@@ -39,9 +39,10 @@ class InputMapping:
 
 
 class PaddedListInputMapping(InputMapping):
-    def __init__(self, max_length: int, element_input_mapping: InputMapping):
+    def __init__(self, max_length: int, element_input_mapping: InputMapping, combine: Callable):
         self.max_length = max_length
         self.element_input_mapping = element_input_mapping
+        self.combine = combine
 
     def sample(self, list_input: PaddedListInput, sample_count: int) -> Tuple[torch.Tensor, List[List[Any]]]:
         # Sample the elements
@@ -71,9 +72,10 @@ class PaddedListInputMapping(InputMapping):
 
 
 class ListInputMapping(InputMapping):
-    def __init__(self, length: int, element_input_mapping: InputMapping):
+    def __init__(self, length: int, element_input_mapping: InputMapping, combine: Callable):
         self.length = length
         self.element_input_mapping = element_input_mapping
+        self.combine = combine
 
     def sample(self, list_input: ListInput, sample_count: int) -> Tuple[torch.Tensor, List[List[Any]]]:
         # Sample the elements
@@ -103,8 +105,9 @@ class ListInputMapping(InputMapping):
 
 
 class DiscreteInputMapping(InputMapping):
-    def __init__(self, elements: List[Any]):
+    def __init__(self, elements: List[Any], combine: Callable):
         self.elements = elements
+        self.combine = combine
 
     def sample(self, inputs: torch.Tensor, sample_count: int) -> Tuple[torch.Tensor, List[Any]]:
         num_input_elements = inputs.shape[1]
