@@ -99,9 +99,8 @@ class BlackBoxFunction(torch.nn.Module):
         """
         for r in inputs:
             try:
-                # TODO: change this temporary fix for hwf
-                i = "".join(elt for elt in r[0])
-                fn_input = (i,)
+                fn_input = (self.input_mappings[i].combine(
+                    elt) for i, elt in enumerate(r))
                 y = self.timeout_decorator(self.function)(*fn_input)
                 yield y
             except:

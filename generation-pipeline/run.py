@@ -157,8 +157,6 @@ class Trainer():
                                config=config, fn=fn, output_mapping=output_mapping, sample_count=sample_count, batch_size_train=batch_size_train)
         self.optimizers = [optim.Adam(
             net.parameters(), lr=learning_rate) for net in self.network.nets_dict.values()]
-        # TODO: fix optimizers
-        self.optimizer = self.optimizers[0]
         self.train_loader = train_loader
         self.test_loader = test_loader
         self.loss_fn = F.binary_cross_entropy
@@ -183,9 +181,11 @@ class Trainer():
 
             # Compute loss
             loss = self.loss_fn(y_pred, y)
-            self.optimizer.zero_grad()
+            for optimizer in self.optimizers:
+                optimizer.zero_grad()
             loss.backward()
-            self.optimizer.step()
+            for optimizer in self.optimizers:
+                optimizer.step()
             if not math.isnan(loss.item()):
                 train_loss += loss.item()
 
