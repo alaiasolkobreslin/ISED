@@ -50,3 +50,6 @@ PREPROCESS = "preprocess"
 PREPROCESS_IDENTITY = "id"
 PREPROCESS_SORT = "sort"
 PREPROCESS_SUDOKU_BOARD = 'make_board'
+
+# Reserved failure
+RESERVED_FAILURE = "__RESERVED_FAILURE__"

@@ -136,7 +136,7 @@ class HWFDataset(UnstructuredDataset):
         return HWF_dataset.HWFDataset.collate_fn(batch)
 
     def input_mapping(self):
-        return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/']
+        return [str(x) for x in range(10)] + ['+', '-', '*', '/']
 
     def sample_with_y(self, expr_id: int) -> int:
         expr = self.data.metadata[expr_id]['expr']

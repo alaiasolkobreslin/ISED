@@ -4,6 +4,7 @@ from constants import *
 import strategy
 import unstructured_dataset
 import preprocess
+import input
 
 
 class UnknownUnstructuredDataset(Exception):
@@ -160,6 +161,10 @@ class SingleDataset(StructuredDataset):
     def n_unflatten(config):
         return 1
 
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        return input.DiscreteInputMapping(ud.input_mapping(ud))
+
 
 class IntDataset(StructuredDataset):
 
@@ -224,6 +229,13 @@ class IntDataset(StructuredDataset):
     def n_unflatten(config):
         return config[N_DIGITS]
 
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        length = config[LENGTH]
+        element_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud))
+        return input.ListInputMapping(length, element_input_mapping)
+
 
 class SingleIntListDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
@@ -281,6 +293,13 @@ class SingleIntListDataset(StructuredDataset):
 
     def n_unflatten(config):
         return config[LENGTH]
+
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        length = config[LENGTH]
+        element_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud))
+        return input.ListInputMapping(length, element_input_mapping)
 
 
 class IntListDataset(StructuredDataset):
@@ -353,6 +372,16 @@ class IntListDataset(StructuredDataset):
 
     def n_unflatten(config):
         return config[LENGTH] * config[N_DIGITS]
+
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        length = config[LENGTH]
+        n_digits = config[N_DIGITS]
+        digit_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud))
+        element_input_mapping = input.ListInputMapping(
+            n_digits, digit_input_mapping)
+        return input.ListInputMapping(length, element_input_mapping)
 
 
 class SingleIntListListDataset(StructuredDataset):
@@ -428,6 +457,15 @@ class SingleIntGridDataset(StructuredDataset):
 
     def n_unflatten(config):
         return config[LENGTH] ** 2
+
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        length = config[LENGTH]
+        digit_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud))
+        element_input_mapping = input.ListInputMapping(
+            length, digit_input_mapping)
+        return input.ListInputMapping(length, element_input_mapping)
 
 
 class PaddedStringDataset(StructuredDataset):
@@ -508,6 +546,13 @@ class PaddedStringDataset(StructuredDataset):
     def n_unflatten(config):
         return config[MAX_LENGTH]
 
+    def get_input_mapping(config):
+        max_length = config[MAX_LENGTH]
+        ud = get_unstructured_dataset_static(config)
+        element_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud))
+        return input.PaddedListInputMapping(max_length, element_input_mapping)
+
 
 class StringDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
@@ -572,6 +617,13 @@ class StringDataset(StructuredDataset):
 
     def n_unflatten(config):
         return config[LENGTH]
+
+    def get_input_mapping(config):
+        length = config[LENGTH]
+        ud = get_unstructured_dataset_static(config)
+        element_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud))
+        return input.ListInputMapping(length, element_input_mapping)
 
 
 def get_unstructured_dataset_static(config):
