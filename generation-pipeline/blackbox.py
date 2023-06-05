@@ -39,7 +39,7 @@ class BlackBoxFunction(torch.nn.Module):
             input_mappings: Tuple[InputMapping],
             output_mapping: OutputMapping,
             sample_count: int = 100,
-            timeout_seconds: int = 1):
+            timeout_seconds: int = 100):
         super(BlackBoxFunction, self).__init__()
         assert type(input_mappings) == tuple, "input_mappings must be a tuple"
         self.function = function
@@ -99,7 +99,10 @@ class BlackBoxFunction(torch.nn.Module):
         """
         for r in inputs:
             try:
-                y = self.timeout_decorator(self.function)(*r)
+                # TODO: change this temporary fix for hwf
+                i = "".join(elt for elt in r[0])
+                fn_input = (i,)
+                y = self.timeout_decorator(self.function)(*fn_input)
                 yield y
             except:
                 yield RESERVED_FAILURE
