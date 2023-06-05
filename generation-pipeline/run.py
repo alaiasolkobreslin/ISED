@@ -73,19 +73,10 @@ class TaskNet(nn.Module):
         self.nets_dict = {}
         self.nets = self.get_nets_list()
 
-        n_inputs = len(self.nets)
         structured_datasets = [
             structured_dataset.get_structured_dataset_static(input) for input in config]
-        self.flatten_fns = [partial(sd.flatten, config[i])
-                            for i, sd in enumerate(structured_datasets)]
-        unflatten_fns = [(partial(sd.unflatten, config[i]), sd.n_unflatten(config[i]))
-                         for i, sd in enumerate(structured_datasets)]
         self.forward_fns = [partial(sd.forward, self.nets[i])
                             for i, sd in enumerate(structured_datasets)]
-
-        self.sampling = sample.StandardSample(
-            n_inputs, args.n_samples, fn, self.flatten_fns, unflatten_fns, config, args.threaded)
-        self.sampling_fn = self.sampling.sample_train_backward_threaded if args.threaded else self.sampling.sample_train_backward
 
         self.pool = Pool(processes=batch_size_train)
 

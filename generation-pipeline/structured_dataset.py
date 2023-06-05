@@ -85,33 +85,10 @@ class StructuredDataset:
         """
         pass
 
-    def flatten(config, input):
-        """
-        Returns a flattened list of input distributions.
-        This is the format that is needed for the sampling algorithm to sample 
-        inputs
-        """
-        pass
-
-    def unflatten(config, samples, data, batch_item):
-        """
-        Returns an unflattened list of inputs.
-        This is the format that is needed to pass the sampled inputs to a 
-        black-box function
-        """
-        pass
-
-    def n_unflatten(config):
-        """
-        Returns the length of each sublist of inputs to unflatten.
-        This number is used to split the list of sampled inputs into lists of a 
-        certain length. These lists are then unflattened to get a list of list
-        of inputs to pass to the black-box function.
-        """
-        pass
-
     def get_input_mapping(config):
-
+        """
+        Returns the input mapping for the structured dataset
+        """
         pass
 
 
@@ -159,15 +136,6 @@ class SingleDataset(StructuredDataset):
         dataset = [None] * length
         for i in range(length):
             dataset[i] = self.generate_datapoint()
-
-    def flatten(config, input):
-        return [input]
-
-    def unflatten(config, samples, data, batch_item):
-        return samples
-
-    def n_unflatten(config):
-        return 1
 
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
@@ -224,18 +192,6 @@ class IntDataset(StructuredDataset):
         dataset = [None] * length
         for i in range(length):
             dataset[i] = self.generate_datapoint()
-
-    def flatten(config, input):
-        return input
-
-    def unflatten(config, samples, data, batch_item):
-        number = ''
-        for i in samples:
-            number += str(i)
-        return [int(number)]
-
-    def n_unflatten(config):
-        return config[N_DIGITS]
 
     def get_input_mapping(config):
         def combine(inputs):
@@ -294,15 +250,6 @@ class SingleIntListDataset(StructuredDataset):
         dataset = [None] * length
         for i in range(length):
             dataset[i] = self.generate_datapoint()
-
-    def flatten(config, input):
-        return input
-
-    def unflatten(config, samples, data, batch_item):
-        return [samples]
-
-    def n_unflatten(config):
-        return config[LENGTH]
 
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
@@ -365,23 +312,6 @@ class IntListDataset(StructuredDataset):
         dataset = [None] * length
         for i in range(length):
             dataset[i] = self.generate_datapoint()
-
-    def flatten(config, input):
-        return [item for i in input for item in i]
-
-    def unflatten(config, samples, data, batch_item):
-        result = [0] * config[LENGTH]
-        idx = 0
-        for i in range(config[LENGTH]):
-            number = ''
-            for _ in range(config[N_DIGITS]):
-                number += str(samples[idx])
-                idx += 1
-            result[i] = int(number)
-        return [result]
-
-    def n_unflatten(config):
-        return config[LENGTH] * config[N_DIGITS]
 
     def get_input_mapping(config):
         def combine(input):
@@ -451,24 +381,6 @@ class SingleIntGridDataset(StructuredDataset):
         dataset = [None] * length
         for i in range(length):
             dataset[i] = self.generate_datapoint()
-
-    def flatten(config, input):
-        return [item for i in input for item in i]
-
-    def unflatten(config, samples, data, batch_item):
-        n = config[LENGTH]
-        result = [0] * n
-        idx = 0
-        for i in range(n):
-            row = [0] * n
-            for j in range(n):
-                row[j] = samples[idx]
-                idx += 1
-            result[i] = row
-        return [result]
-
-    def n_unflatten(config):
-        return config[LENGTH] ** 2
 
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
@@ -542,22 +454,6 @@ class PaddedStringDataset(StructuredDataset):
             dataset[i] = ((imgs, len(string)), string)
         return dataset
 
-    def flatten(config, input):
-        return [item for item in torch.transpose(input, 0, 1)]
-
-    def unflatten(config, samples, data, batch_item):
-        length = data[1][batch_item].item()
-        samples = samples[:length]
-        ud = get_unstructured_dataset_static(config)
-        input_mapping = ud.input_mapping(ud)
-        string = ''
-        for i in samples:
-            string += str(input_mapping[i])
-        return [string]
-
-    def n_unflatten(config):
-        return config[MAX_LENGTH]
-
     def get_input_mapping(config):
         def combine(inputs):
             return "".join(str(s) for s in inputs)
@@ -617,20 +513,6 @@ class StringDataset(StructuredDataset):
         dataset = [None] * length
         for i in range(length):
             dataset[i] = self.generate_datapoint()
-
-    def flatten(config, input):
-        return input
-
-    def unflatten(config, samples, data, batch_item):
-        ud = get_unstructured_dataset_static(config)
-        input_mapping = ud.input_mapping(ud)
-        string = ''
-        for i in samples:
-            string += str(input_mapping[i])
-        return [string]
-
-    def n_unflatten(config):
-        return config[LENGTH]
 
     def get_input_mapping(config):
         def combine(inputs):
