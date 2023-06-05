@@ -91,6 +91,14 @@ class StructuredDataset:
         """
         pass
 
+    def distrs_to_input(distrs, x, config):
+        """
+        Returns the distrs in a cleaner input format (such as ListInput), if
+        required. The original input `x` is also given in case input lengths
+        are needed such as in padded inputs.
+        """
+        pass
+
 
 class SingleDataset(StructuredDataset):
 
@@ -140,6 +148,9 @@ class SingleDataset(StructuredDataset):
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
         return input.DiscreteInputMapping(ud.input_mapping(ud), id)
+
+    def distrs_to_input(distrs, x, config):
+        return distrs
 
 
 class IntDataset(StructuredDataset):
@@ -202,6 +213,10 @@ class IntDataset(StructuredDataset):
             ud.input_mapping(ud), id)
         return input.ListInputMapping(length, element_input_mapping, combine)
 
+    def distrs_to_input(distrs, x, config):
+        length = config[LENGTH]
+        return input.ListInput(distrs, length)
+
 
 class SingleIntListDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
@@ -257,6 +272,10 @@ class SingleIntListDataset(StructuredDataset):
         element_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
         return input.ListInputMapping(length, element_input_mapping, id)
+
+    def distrs_to_input(distrs, x, config):
+        length = config[LENGTH]
+        return input.ListInput(distrs, length)
 
 
 class IntListDataset(StructuredDataset):
@@ -325,6 +344,9 @@ class IntListDataset(StructuredDataset):
             n_digits, digit_input_mapping, combine)
         return input.ListInputMapping(length, element_input_mapping, id)
 
+    def distrs_to_input(distrs, x, config):
+        pass
+
 
 class SingleIntListListDataset(StructuredDataset):
     pass
@@ -390,6 +412,9 @@ class SingleIntGridDataset(StructuredDataset):
         element_input_mapping = input.ListInputMapping(
             length, digit_input_mapping, id)
         return input.ListInputMapping(length, element_input_mapping, id)
+
+    def distrs_to_input(distrs, x, config):
+        pass
 
 
 class PaddedStringDataset(StructuredDataset):
@@ -463,6 +488,10 @@ class PaddedStringDataset(StructuredDataset):
             ud.input_mapping(ud), id)
         return input.PaddedListInputMapping(max_length, element_input_mapping, combine)
 
+    def distrs_to_input(distrs, x, config):
+        lengths = [l.item() for l in x[1]]
+        return input.PaddedListInput(distrs, lengths)
+
 
 class StringDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
@@ -522,6 +551,10 @@ class StringDataset(StructuredDataset):
         element_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), StringDataset.combine, id)
         return input.ListInputMapping(length, element_input_mapping, combine)
+
+    def distrs_to_input(distrs, x, config):
+        length = config[LENGTH]
+        return input.ListInput(distrs, length)
 
 
 def get_unstructured_dataset_static(config):

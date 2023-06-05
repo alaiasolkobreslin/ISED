@@ -69,21 +69,23 @@ class TaskNet(nn.Module):
     def __init__(self, unstructured_datasets, config, fn, output_mapping, sample_count, batch_size_train):
         super(TaskNet, self).__init__()
 
+        self.config = config
         self.unstructured_datasets = unstructured_datasets
+        self.structured_datasets = [
+            structured_dataset.get_structured_dataset_static(input) for input in config]
+
         self.nets_dict = {}
         self.nets = self.get_nets_list()
 
-        structured_datasets = [
-            structured_dataset.get_structured_dataset_static(input) for input in config]
         self.forward_fns = [partial(sd.forward, self.nets[i])
-                            for i, sd in enumerate(structured_datasets)]
-
-        self.pool = Pool(processes=batch_size_train)
-
+                            for i, sd in enumerate(self.structured_datasets)]
         input_mappings = tuple([sd.get_input_mapping(
-            config[i]) for i, sd in enumerate(structured_datasets)])
+            config[i]) for i, sd in enumerate(self.structured_datasets)])
+        self.input_types = []
         self.eval_formula = blackbox.BlackBoxFunction(
             function=fn, input_mappings=input_mappings, output_mapping=output_mapping, sample_count=sample_count)
+
+        self.pool = Pool(processes=batch_size_train)
 
     def get_nets_list(self):
         nets = []
@@ -117,11 +119,11 @@ class TaskNet(nn.Module):
         return self.sampling.sample_test(args, data=x)
 
     def forward(self, x):
-        # TODO: generalize the forward function
-        distrs = [self.forward_fns[i](x[key]) for i, key in enumerate(x)]
-        symbol = distrs[0]
-        length = [l.item() for l in x['expr'][1]]
-        return self.eval_formula(input.PaddedListInput(symbol, length))
+        keys = [key for key in x]
+        distrs = [self.forward_fns[i](x[key]) for i, key in enumerate(keys)]
+        inputs = [self.structured_datasets[i].distrs_to_input(distrs[i], x[keys[i]], input)
+                  for i, input in enumerate(self.config)]
+        return self.eval_formula(*inputs)
 
     def evaluate(self, x):
         """
