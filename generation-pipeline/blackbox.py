@@ -84,6 +84,8 @@ class BlackBoxFunction(torch.nn.Module):
             return input.shape[0]
         elif type(input) == ListInput:
             return len(input.lengths)
+        elif type(input) == PaddedListInput:
+            return len(input.lengths)
         raise Exception("Unknown input type")
 
     def zip_batched_inputs(self, batched_inputs):

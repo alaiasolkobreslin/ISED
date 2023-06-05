@@ -20,7 +20,12 @@
       }
     ],
     "output": {
-      "type": "int"
+      "type": "int",
+      "output_mapping": "range",
+      "output_mapping_range": {
+        "start": 0,
+        "end": 19
+      }
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
@@ -49,7 +54,12 @@
       }
     ],
     "output": {
-      "type": "int"
+      "type": "int",
+      "output_mapping": "range",
+      "output_mapping_range": {
+        "start": 0,
+        "end": 19
+      }
     },
     "learning_rate": 0.0001,
     "batch_size_train": 64,
@@ -539,7 +549,9 @@
       }
     ],
     "output": {
-      "type": "float"
+      "type": "float",
+      "output_mapping": "unknown",
+      "fallback": 0
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,

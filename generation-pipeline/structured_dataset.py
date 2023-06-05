@@ -106,6 +106,10 @@ class StructuredDataset:
         """
         pass
 
+    def get_input_mapping(config):
+
+        pass
+
 
 class SingleDataset(StructuredDataset):
 

@@ -51,5 +51,15 @@ PREPROCESS_IDENTITY = "id"
 PREPROCESS_SORT = "sort"
 PREPROCESS_SUDOKU_BOARD = 'make_board'
 
+# Output
+OUTPUT = "output"
+OUTPUT_MAPPING = "output_mapping"
+RANGE = "range"
+OUTPUT_MAPPING_RANGE = "output_mapping_range"
+START = "start"
+END = "end"
+UNKNOWN = "unknown"
+FALLBACK = "fallback"
+
 # Reserved failure
 RESERVED_FAILURE = "__RESERVED_FAILURE__"
