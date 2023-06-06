@@ -81,7 +81,6 @@ class TaskNet(nn.Module):
                             for i, sd in enumerate(self.structured_datasets)]
         input_mappings = tuple([sd.get_input_mapping(
             config[i]) for i, sd in enumerate(self.structured_datasets)])
-        self.input_types = []
         self.eval_formula = blackbox.BlackBoxFunction(
             function=fn, input_mappings=input_mappings, output_mapping=output_mapping, batch_size=batch_size_train, sample_count=sample_count)
 
@@ -250,7 +249,7 @@ class Trainer():
 
 if __name__ == "__main__":
     # Argument parser
-    parser = ArgumentParser("mnist_add_two_numbers_sampling")
+    parser = ArgumentParser("neuro-symbolic-dataset")
     parser.add_argument("--n-epochs", type=int, default=5)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--n-samples", type=int, default=1000)
@@ -274,9 +273,6 @@ if __name__ == "__main__":
     # Dataloaders
     for task in configuration:
         print('Task: {}'.format(task))
-
-        if task != 'hwf':
-            continue
 
         task_config = configuration[task]
 

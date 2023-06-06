@@ -21,15 +21,12 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "range",
-      "output_mapping_range": {
-        "start": 0,
-        "end": 19
-      }
+      "output_mapping": "unknown",
+      "fallback": 0
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -62,8 +59,8 @@
       }
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -99,8 +96,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -136,8 +133,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -181,8 +178,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -210,8 +207,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -247,8 +244,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -276,8 +273,8 @@
       "type": "bool"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -298,8 +295,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -320,8 +317,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -342,8 +339,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -364,8 +361,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -382,11 +379,13 @@
       }
     ],
     "output": {
-      "type": "int"
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 8,
+    "batch_size_test": 8,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -414,8 +413,8 @@
       "type": "bool"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -443,8 +442,8 @@
       "type": "bool"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -472,8 +471,8 @@
       "type": "bool"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -501,8 +500,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -530,8 +529,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -585,8 +584,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -607,8 +606,8 @@
       "type": "str"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -638,8 +637,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -660,8 +659,8 @@
       "type": "str"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -682,8 +681,8 @@
       "type": "bool"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -704,8 +703,8 @@
       "type": "bool"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -726,8 +725,8 @@
       "type": "str"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -748,8 +747,8 @@
       "type": "str"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -770,8 +769,8 @@
       "type": "List[str]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -801,8 +800,8 @@
       "type": "List[int]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -823,8 +822,8 @@
       "type": "List[int]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -845,8 +844,8 @@
       "type": "bool"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -867,8 +866,8 @@
       "type": "List[List[str]]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -889,8 +888,8 @@
       "type": "List[int]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -911,8 +910,8 @@
       "type": "Grid[int]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -933,8 +932,8 @@
       "type": "List[List[str]]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -955,8 +954,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -977,8 +976,8 @@
       "type": "List[int]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -999,8 +998,8 @@
       "type": "bool"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1020,8 +1019,8 @@
       "type": "Grid[int]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1042,8 +1041,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1064,8 +1063,8 @@
       "type": "List[int]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1085,8 +1084,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1116,8 +1115,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1145,8 +1144,8 @@
       "type": "List[List[int]]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1167,8 +1166,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1189,8 +1188,8 @@
       "type": "List[List[int]]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1211,8 +1210,8 @@
       "type": "int"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1233,8 +1232,8 @@
       "type": "List[int]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1256,8 +1255,8 @@
       "type": "List[int]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1277,8 +1276,8 @@
       "type": "char"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -1298,8 +1297,8 @@
       "type": "List[int]"
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 64,
-    "batch_size_test": 64,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   }
