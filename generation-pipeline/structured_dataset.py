@@ -204,14 +204,15 @@ class IntDataset(StructuredDataset):
         for i in range(length):
             dataset[i] = self.generate_datapoint()
 
+    def combine(inputs):
+        return int("".join(str(s) for s in inputs))
+
     def get_input_mapping(config):
-        def combine(inputs):
-            return int("".join(str(s) for s in inputs))
         ud = get_unstructured_dataset_static(config)
         length = config[LENGTH]
         element_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
-        return input.ListInputMapping(length, element_input_mapping, combine)
+        return input.ListInputMapping(length, element_input_mapping, IntDataset.combine)
 
     def distrs_to_input(distrs, x, config):
         length = config[LENGTH]
@@ -332,16 +333,17 @@ class IntListDataset(StructuredDataset):
         for i in range(length):
             dataset[i] = self.generate_datapoint()
 
+    def combine(input):
+        return int("".join(str(digit) for digit in input))
+
     def get_input_mapping(config):
-        def combine(input):
-            return int("".join(str(digit) for digit in input))
         ud = get_unstructured_dataset_static(config)
         length = config[LENGTH]
         n_digits = config[N_DIGITS]
         digit_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), IntListDataset.combine, id)
         element_input_mapping = input.ListInputMapping(
-            n_digits, digit_input_mapping, combine)
+            n_digits, digit_input_mapping, IntListDataset.combine)
         return input.ListInputMapping(length, element_input_mapping, id)
 
     def distrs_to_input(distrs, x, config):
@@ -403,6 +405,9 @@ class SingleIntGridDataset(StructuredDataset):
         dataset = [None] * length
         for i in range(length):
             dataset[i] = self.generate_datapoint()
+
+    def combine(input):
+        pass
 
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
@@ -479,14 +484,15 @@ class PaddedStringDataset(StructuredDataset):
             dataset[i] = ((imgs, len(string)), string)
         return dataset
 
+    def combine(inputs):
+        return "".join(str(s) for s in inputs)
+
     def get_input_mapping(config):
-        def combine(inputs):
-            return "".join(str(s) for s in inputs)
         max_length = config[MAX_LENGTH]
         ud = get_unstructured_dataset_static(config)
         element_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
-        return input.PaddedListInputMapping(max_length, element_input_mapping, combine)
+        return input.PaddedListInputMapping(max_length, element_input_mapping, PaddedStringDataset.combine)
 
     def distrs_to_input(distrs, x, config):
         lengths = [l.item() for l in x[1]]
@@ -543,14 +549,15 @@ class StringDataset(StructuredDataset):
         for i in range(length):
             dataset[i] = self.generate_datapoint()
 
+    def combine(inputs):
+        return "".join(str(s) for s in inputs)
+
     def get_input_mapping(config):
-        def combine(inputs):
-            return "".join(str(s) for s in inputs)
         length = config[LENGTH]
         ud = get_unstructured_dataset_static(config)
         element_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), StringDataset.combine, id)
-        return input.ListInputMapping(length, element_input_mapping, combine)
+        return input.ListInputMapping(length, element_input_mapping, StringDataset.combine)
 
     def distrs_to_input(distrs, x, config):
         length = config[LENGTH]

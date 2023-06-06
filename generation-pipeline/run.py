@@ -83,7 +83,7 @@ class TaskNet(nn.Module):
             config[i]) for i, sd in enumerate(self.structured_datasets)])
         self.input_types = []
         self.eval_formula = blackbox.BlackBoxFunction(
-            function=fn, input_mappings=input_mappings, output_mapping=output_mapping, sample_count=sample_count)
+            function=fn, input_mappings=input_mappings, output_mapping=output_mapping, batch_size=batch_size_train, sample_count=sample_count)
 
         self.pool = Pool(processes=batch_size_train)
 

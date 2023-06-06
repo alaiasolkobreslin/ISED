@@ -28,7 +28,7 @@ class DiscreteOutputMapping(OutputMapping):
                 if results[i][j] != RESERVED_FAILURE:
                     result_tensor[i, self.element_indices[results[i]
                                                           [j]]] += result_probs[i, j]
-        return torch.nn.functional.normalize(result_tensor, dim=1)
+        return (self.element_indices, torch.nn.functional.normalize(result_tensor, dim=1))
 
 
 class UnknownDiscreteOutputMapping(OutputMapping):

@@ -4,6 +4,7 @@ import errno
 import os
 import signal
 import functools
+from torch.multiprocessing import Pool
 
 from constants import *
 from input import *
@@ -14,22 +15,22 @@ class TimeoutError(Exception):
     pass
 
 
-def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
-    def decorator(func):
-        def _handle_timeout(signum, frame):
-            raise TimeoutError(error_message)
+# def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
+#     def decorator(func):
+#         def _handle_timeout(signum, frame):
+#             raise TimeoutError(error_message)
 
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            signal.signal(signal.SIGALRM, _handle_timeout)
-            signal.alarm(seconds)
-            try:
-                result = func(*args, **kwargs)
-            finally:
-                signal.alarm(0)
-            return result
-        return wrapper
-    return decorator
+#         @functools.wraps(func)
+#         def wrapper(*args, **kwargs):
+#             signal.signal(signal.SIGALRM, _handle_timeout)
+#             signal.alarm(seconds)
+#             try:
+#                 result = func(*args, **kwargs)
+#             finally:
+#                 signal.alarm(0)
+#             return result
+#         return wrapper
+#     return decorator
 
 
 class BlackBoxFunction(torch.nn.Module):
@@ -38,6 +39,7 @@ class BlackBoxFunction(torch.nn.Module):
             function: Callable,
             input_mappings: Tuple[InputMapping],
             output_mapping: OutputMapping,
+            batch_size: int,
             sample_count: int = 100,
             timeout_seconds: int = 1):
         super(BlackBoxFunction, self).__init__()
@@ -45,8 +47,9 @@ class BlackBoxFunction(torch.nn.Module):
         self.function = function
         self.input_mappings = input_mappings
         self.output_mapping = output_mapping
+        self.pool = Pool(processes=batch_size)
         self.sample_count = sample_count
-        self.timeout_decorator = timeout(seconds=timeout_seconds)
+        # self.timeout_decorator = timeout(seconds=timeout_seconds)
 
     def forward(self, *inputs):
         num_inputs = len(inputs)
@@ -101,10 +104,21 @@ class BlackBoxFunction(torch.nn.Module):
             try:
                 fn_input = (self.input_mappings[i].combine(
                     elt) for i, elt in enumerate(r))
-                y = self.timeout_decorator(self.function)(*fn_input)
+                y = self.function(*fn_input)
                 yield y
             except:
                 yield RESERVED_FAILURE
 
+    def process_batch(self, batch):
+        return list(self.invoke_function_on_inputs(batch))
+
     def invoke_function_on_batched_inputs(self, batched_inputs):
-        return [list(self.invoke_function_on_inputs(batch)) for batch in batched_inputs]
+        return self.pool.map(self.process_batch, batched_inputs)
+
+    def __getstate__(self):
+        self_dict = self.__dict__.copy()
+        del self_dict['pool']
+        return self_dict
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
