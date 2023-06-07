@@ -406,20 +406,19 @@ class SingleIntGridDataset(StructuredDataset):
         for i in range(length):
             dataset[i] = self.generate_datapoint()
 
-    def combine(input):
-        pass
-
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
         length = config[LENGTH]
         digit_input_mapping = input.DiscreteInputMapping(
-            ud.input_mapping(ud), SingleIntGridDataset.combine, id)
+            ud.input_mapping(ud), id)
         element_input_mapping = input.ListInputMapping(
             length, digit_input_mapping, id)
         return input.ListInputMapping(length, element_input_mapping, id)
 
     def distrs_to_input(distrs, x, config):
-        pass
+        # TODO: fix this
+        length = config[LENGTH]
+        return input.ListInput(distrs, length)
 
 
 class PaddedStringDataset(StructuredDataset):

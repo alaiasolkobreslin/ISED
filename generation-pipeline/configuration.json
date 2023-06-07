@@ -52,11 +52,8 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "range",
-      "output_mapping_range": {
-        "start": 0,
-        "end": 19
-      }
+      "output_mapping": "unknown",
+      "fallback": 0
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -93,7 +90,9 @@
       }
     ],
     "output": {
-      "type": "int"
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -130,7 +129,9 @@
       }
     ],
     "output": {
-      "type": "int"
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -384,8 +385,8 @@
       "fallback": 0
     },
     "learning_rate": 0.0001,
-    "batch_size_train": 8,
-    "batch_size_test": 8,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
@@ -833,7 +834,7 @@
       {
         "name": "board",
         "type": "List[List[str]]",
-        "strategy": "list",
+        "strategy": "2d_list",
         "preprocess": "make_board",
         "length": 30,
         "dataset": "MNIST",
@@ -855,7 +856,7 @@
       {
         "name": "board",
         "type": "List[List[str]]",
-        "strategy": "list",
+        "strategy": "2d_list",
         "preprocess": "make_board",
         "length": 30,
         "dataset": "MNIST",
@@ -899,7 +900,7 @@
       {
         "name": "nums",
         "type": "Grid[digit]",
-        "strategy": "list",
+        "strategy": "2d_list",
         "preprocess": "id",
         "length": 3,
         "dataset": "MNIST",
@@ -965,9 +966,10 @@
       {
         "name": "matrix",
         "type": "List[List[digit]]",
-        "strategy": "list",
+        "strategy": "2d_list",
         "preprocess": "id",
-        "length": 3,
+        "n_rows": 2,
+        "n_cols": 3,
         "dataset": "MNIST",
         "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
       }
@@ -1030,9 +1032,10 @@
       {
         "name": "grid",
         "type": "List[List[digit]]",
-        "strategy": "list",
+        "strategy": "2d_list",
         "preprocess": "id",
-        "length": 3,
+        "n_rows": 2,
+        "n_cols": 3,
         "dataset": "MNIST",
         "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
       }
@@ -1295,6 +1298,28 @@
     ],
     "output": {
       "type": "List[int]"
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "grid_identity": {
+    "py_func": "grid_identity",
+    "inputs": [
+      {
+        "name": "grid",
+        "type": "Grid[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+      }
+    ],
+    "output": {
+      "type": "Grid[int]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,

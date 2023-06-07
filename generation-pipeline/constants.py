@@ -19,6 +19,8 @@ NAME = "name"
 N_DIGITS = "num_digits"
 LENGTH = "length"
 MAX_LENGTH = "max_length"
+N_ROWS = 'n_rows'
+N_COLS = 'n_cols'
 
 # Types
 DIGIT_TYPE = "digit"
@@ -44,6 +46,7 @@ MNIST_GRID = "MNIST_GRID"
 STRATEGY = "strategy"
 SINGLETON_STRATEGY = "singleton"
 SIMPLE_LIST_STRATEGY = "list"
+LIST_2D = "2d_list"
 
 # Preprocessing
 PREPROCESS = "preprocess"
