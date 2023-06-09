@@ -86,7 +86,7 @@ class BlackBoxFunction(torch.nn.Module):
         if type(input) == torch.Tensor:
             return input.shape[0]
         elif type(input) == ListInput:
-            return len(input.lengths)
+            return input.tensor.shape[0]
         elif type(input) == PaddedListInput:
             return len(input.lengths)
         raise Exception("Unknown input type")

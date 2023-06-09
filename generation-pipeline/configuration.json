@@ -582,7 +582,9 @@
       }
     ],
     "output": {
-      "type": "int"
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1309,7 +1311,7 @@
     "py_func": "grid_identity",
     "inputs": [
       {
-        "name": "grid",
+        "name": "x",
         "type": "Grid[digit]",
         "strategy": "list",
         "preprocess": "id",
@@ -1319,7 +1321,9 @@
       }
     ],
     "output": {
-      "type": "Grid[int]"
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,

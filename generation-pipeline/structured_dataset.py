@@ -169,13 +169,12 @@ class IntDataset(StructuredDataset):
         return self.dataset[index]
 
     @staticmethod
-    def collate_fn(batch, config):
-        imgs = [torch.stack([item[i] for item in batch])
-                for i in range(len(batch[0]))]
-        return imgs
+    def collate_fn(batch, _):
+        return torch.stack([torch.stack(item) for item in batch])
 
     def forward(net, x):
-        return [net(item) for item in x]
+        batch_size, length, _, _, _ = x.shape
+        return net(x.flatten(start_dim=0, end_dim=1)).view(batch_size, length, -1)
 
     def get_sample_strategy(self):
         n_digits = self.config[N_DIGITS]
@@ -209,13 +208,13 @@ class IntDataset(StructuredDataset):
 
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
-        length = config[LENGTH]
+        length = config[N_DIGITS]
         element_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
         return input.ListInputMapping(length, element_input_mapping, IntDataset.combine)
 
     def distrs_to_input(distrs, x, config):
-        length = config[LENGTH]
+        length = config[N_DIGITS]
         return input.ListInput(distrs, length)
 
 

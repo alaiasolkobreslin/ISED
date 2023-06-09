@@ -124,13 +124,6 @@ class TaskNet(nn.Module):
                   for i, input in enumerate(self.config)]
         return self.eval_formula(*inputs)
 
-    def evaluate(self, x):
-        """
-        Invoked during testing
-        """
-        distrs = [self.forward_fns[i](x[key]) for i, key in enumerate(x)]
-        return self.task_test(distrs, [val for val in x.values()])
-
     def eval(self):
         for net in self.nets_dict.values():
             net.eval()
