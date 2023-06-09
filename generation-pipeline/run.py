@@ -22,6 +22,7 @@ import sample
 import input
 import output
 import blackbox
+import util
 from constants import *
 
 
@@ -147,7 +148,14 @@ class Trainer():
         self.loss_fn = F.binary_cross_entropy
 
     def eval_result_eq(self, a, b, threshold=0.01):
-        result = abs(a - b) < threshold
+        if type(a) is float or type(b) is float:
+            result = abs(a - b) < threshold
+        elif type(a) is tuple and type(b) is tuple:
+            result = True
+            for i in range(len(a)):
+                result = result and self.eval_result_eq(a[i], b[i], threshold)
+        else:
+            result = a == b
         return result
 
     def train_epoch(self, epoch):
@@ -162,7 +170,7 @@ class Trainer():
             # Normalize label format
             batch_size, num_outputs = y_pred.shape
             y = torch.tensor([1.0 if self.eval_result_eq(
-                l, m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+                util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
 
             # Compute loss
             loss = self.loss_fn(y_pred, y)
@@ -206,7 +214,7 @@ class Trainer():
                 # Normalize label format
                 batch_size, num_outputs = y_pred.shape
                 y = torch.tensor([1.0 if self.eval_result_eq(
-                    l, m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+                    util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
 
                 # Compute loss
                 loss = self.loss_fn(y_pred, y)

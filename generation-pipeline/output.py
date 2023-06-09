@@ -3,6 +3,7 @@ from typing import *
 import torch
 
 from constants import *
+import util
 
 
 class OutputMapping:
@@ -40,7 +41,7 @@ class UnknownDiscreteOutputMapping(OutputMapping):
 
         # Get the unique elements
         elements = list(
-            set([elem for batch in results for elem in batch if elem != RESERVED_FAILURE]))
+            set([(util.get_hashable_elem(elem)) for batch in results for elem in batch if elem != RESERVED_FAILURE]))
         element_indices = {e: i for (i, e) in enumerate(elements)}
 
         # If there is no element being derived...
@@ -53,7 +54,8 @@ class UnknownDiscreteOutputMapping(OutputMapping):
         for i in range(batch_size):
             for j in range(sample_count):
                 if results[i][j] != RESERVED_FAILURE:
-                    result_tensor[i, element_indices[results[i][j]]
+                    idx = util.get_hashable_elem(results[i][j])
+                    result_tensor[i, element_indices[idx]
                                   ] += result_probs[i, j]
         result_tensor = torch.nn.functional.normalize(result_tensor, dim=1)
 

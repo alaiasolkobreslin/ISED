@@ -233,13 +233,12 @@ class SingleIntListDataset(StructuredDataset):
         return self.dataset[index]
 
     @staticmethod
-    def collate_fn(batch, config):
-        imgs = [torch.stack([item[i] for item in batch])
-                for i in range(len(batch[0]))]
-        return imgs
+    def collate_fn(batch, _):
+        return torch.stack([torch.stack(item) for item in batch])
 
     def forward(net, x):
-        return [net(item) for item in x]
+        batch_size, length, _, _, _ = x.shape
+        return net(x.flatten(start_dim=0, end_dim=1)).view(batch_size, length, -1)
 
     def get_sample_strategy(self):
         length = self.config[LENGTH]
