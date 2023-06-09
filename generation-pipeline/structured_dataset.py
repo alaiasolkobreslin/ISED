@@ -351,9 +351,6 @@ class IntListDataset(StructuredDataset):
         n_digits = config[N_DIGITS]
         digit_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
-        # element_input_mapping = input.ListInputMapping(
-        #     n_digits, digit_input_mapping, IntListDataset.combine)
-        # return input.ListInputMapping(length, element_input_mapping, id)
         return input.ListInputMapping2D(length, n_digits, digit_input_mapping, partial(IntListDataset.combine, n_digits))
 
     def distrs_to_input(distrs, x, config):
@@ -382,11 +379,11 @@ class SingleIntGridDataset(StructuredDataset):
 
     @staticmethod
     def collate_fn(batch, config):
-        return [[torch.stack([item[i][j] for item in batch]) for j in range(
-            len(batch[0][0]))] for i in range(len(batch[0]))]
+        return torch.stack([torch.stack([torch.stack(i) for i in item]) for item in batch])
 
     def forward(net, x):
-        return [[net(i) for i in item] for item in x]
+        batch_size, length, n_digits, _, _, _ = x.shape
+        return net(x.flatten(start_dim=0, end_dim=2)).view(batch_size, length, n_digits, -1)
 
     def get_sample_strategy(self):
         length = self.config[LENGTH]
@@ -408,7 +405,7 @@ class SingleIntGridDataset(StructuredDataset):
         for i in range(self.config[LENGTH]):
             samples = self.strategy.sample()
             imgs, row = zip(*samples)
-            lst[i] = (imgs, list(row))
+            lst[i] = (imgs, tuple(row))
         lst = self.preprocess.preprocess(lst)
         return zip(*lst)
 
@@ -418,19 +415,28 @@ class SingleIntGridDataset(StructuredDataset):
         for i in range(length):
             dataset[i] = self.generate_datapoint()
 
+    def combine(length, input):
+        result = []
+        i = 0
+        current_row = []
+        while i < len(input):
+            current_row.append(input[i])
+            i += 1
+            if i % length == 0:
+                result.append(current_row)
+                current_row = []
+        return result
+
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
         length = config[LENGTH]
         digit_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
-        element_input_mapping = input.ListInputMapping(
-            length, digit_input_mapping, id)
-        return input.ListInputMapping(length, element_input_mapping, id)
+        return input.ListInputMapping2D(length, length, digit_input_mapping, partial(SingleIntGridDataset.combine, length))
 
     def distrs_to_input(distrs, x, config):
-        # TODO: fix this
         length = config[LENGTH]
-        return input.ListInput(distrs, length)
+        return input.ListInput2D(distrs, length, length)
 
 
 class PaddedStringDataset(StructuredDataset):
