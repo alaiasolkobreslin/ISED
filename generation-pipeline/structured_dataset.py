@@ -73,6 +73,8 @@ class StructuredDataset:
             strat = preprocess.PreprocessIdentity()
         elif s == PREPROCESS_SORT:
             strat = preprocess.PreprocessSort()
+        elif s == PREPROCESS_SUDOKU_BOARD:
+            strat = preprocess.PreprocessSudokuBoard()
         return strat
 
     def get_preprocess_strategy(self):
@@ -104,15 +106,16 @@ class StructuredDataset:
 
 class SingleDataset(StructuredDataset):
 
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return len(self.unstructured_dataset)
+        return self.dataset_size
 
     def __getitem__(self, index):
         return self.dataset[index]
@@ -157,15 +160,16 @@ class SingleDataset(StructuredDataset):
 
 class IntDataset(StructuredDataset):
 
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return int(len(self.unstructured_dataset) / self.config[N_DIGITS])
+        return self.dataset_size
 
     def __getitem__(self, index):
         return self.dataset[index]
@@ -221,15 +225,16 @@ class IntDataset(StructuredDataset):
 
 
 class SingleIntListDataset(StructuredDataset):
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return int(len(self.unstructured_dataset) / self.config[LENGTH])
+        return self.dataset_size
 
     def __getitem__(self, index):
         return self.dataset[index]
@@ -281,15 +286,16 @@ class SingleIntListDataset(StructuredDataset):
 
 class IntListDataset(StructuredDataset):
 
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return int(len(self.unstructured_dataset) / (self.config[N_DIGITS] * self.config[LENGTH]))
+        return self.dataset_size
 
     def __getitem__(self, index):
         return self.dataset[index]
@@ -360,15 +366,16 @@ class IntListDataset(StructuredDataset):
 
 
 class SingleIntListListDataset(StructuredDataset):
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return len(self.unstructured_dataset)
+        return self.dataset_size
 
     def __getitem__(self, index):
         return self.dataset[index]
@@ -393,7 +400,8 @@ class SingleIntListListDataset(StructuredDataset):
         return strat
 
     def get_preprocess_strategy(self):
-        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT]
+        allowed = [PREPROCESS_IDENTITY,
+                   PREPROCESS_SORT, PREPROCESS_SUDOKU_BOARD]
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
@@ -410,6 +418,7 @@ class SingleIntListListDataset(StructuredDataset):
         dataset = [None] * length
         for i in range(length):
             dataset[i] = self.generate_datapoint()
+        return dataset
 
     def combine(length, input):
         result = []
@@ -439,15 +448,16 @@ class SingleIntListListDataset(StructuredDataset):
 
 class PaddedStringDataset(StructuredDataset):
 
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return len(self.unstructured_dataset)
+        return self.dataset_size
 
     def __getitem__(self, index):
         return self.dataset[index]
@@ -515,15 +525,16 @@ class PaddedStringDataset(StructuredDataset):
 
 
 class StringDataset(StructuredDataset):
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
         self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return int(len(self.unstructured_dataset) / self.config[LENGTH])
+        return self.dataset_size
 
     def __getitem__(self, index):
         return self.dataset[index]
