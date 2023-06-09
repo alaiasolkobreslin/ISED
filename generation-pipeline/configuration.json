@@ -8,7 +8,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_2",
@@ -16,7 +16,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -70,7 +70,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_2",
@@ -78,7 +78,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_3",
@@ -86,7 +86,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -148,7 +148,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_2",
@@ -156,7 +156,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_3",
@@ -164,7 +164,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_4",
@@ -172,7 +172,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -193,7 +193,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_2",
@@ -201,7 +201,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -222,7 +222,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_2",
@@ -230,7 +230,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_3",
@@ -238,7 +238,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -259,7 +259,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_2",
@@ -267,7 +267,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -289,7 +289,7 @@
         "preprocess": "id",
         "length": 3,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -311,7 +311,7 @@
         "preprocess": "id",
         "length": 3,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -333,7 +333,7 @@
         "preprocess": "id",
         "length": 3,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -355,7 +355,7 @@
         "preprocess": "id",
         "length": 3,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -376,7 +376,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -399,7 +399,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_2",
@@ -407,7 +407,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -428,7 +428,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_2",
@@ -436,7 +436,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -457,7 +457,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_2",
@@ -465,7 +465,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -486,7 +486,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_2",
@@ -494,7 +494,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -515,7 +515,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "digit_2",
@@ -523,7 +523,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -545,7 +545,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "HWF",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 45 x 45]]"
       }
     ],
     "output": {
@@ -569,7 +569,7 @@
         "strategy": "list",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       },
       {
         "name": "number_2",
@@ -578,7 +578,7 @@
         "strategy": "list",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -602,7 +602,7 @@
         "preprocess": "id",
         "length": 7,
         "dataset": "EMNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -624,7 +624,7 @@
         "preprocess": "sort",
         "length": 3,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       },
       {
         "name": "nums2",
@@ -633,7 +633,7 @@
         "preprocess": "sort",
         "length": 3,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -655,7 +655,7 @@
         "preprocess": "id",
         "length": 5,
         "dataset": "EMNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -677,7 +677,7 @@
         "strategy": "list",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -699,7 +699,7 @@
         "strategy": "list",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -721,7 +721,7 @@
         "strategy": "list",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -743,7 +743,7 @@
         "preprocess": "id",
         "length": 7,
         "dataset": "EMNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -765,7 +765,7 @@
         "preprocess": "id",
         "length": 2,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -787,7 +787,7 @@
         "preprocess": "sort",
         "length": 2,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       },
       {
         "name": "list2",
@@ -796,7 +796,7 @@
         "preprocess": "sort",
         "length": 2,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -818,7 +818,7 @@
         "preprocess": "sort",
         "length": 2,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -838,9 +838,10 @@
         "type": "List[List[str]]",
         "strategy": "2d_list",
         "preprocess": "make_board",
-        "length": 30,
+        "n_rows": 30,
+        "n_cols": 30,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+        "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
     ],
     "output": {
@@ -860,9 +861,10 @@
         "type": "List[List[str]]",
         "strategy": "2d_list",
         "preprocess": "make_board",
-        "length": 30,
+        "n_rows": 30,
+        "n_cols": 30,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+        "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
     ],
     "output": {
@@ -884,7 +886,7 @@
         "preprocess": "id",
         "length": 4,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -901,16 +903,17 @@
     "inputs": [
       {
         "name": "nums",
-        "type": "Grid[digit]",
+        "type": "List[List[digit]]",
         "strategy": "2d_list",
         "preprocess": "id",
-        "length": 3,
+        "n_rows": 3,
+        "n_cols": 3,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+        "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
     ],
     "output": {
-      "type": "Grid[int]"
+      "type": "List[List[int]]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -928,7 +931,7 @@
         "preprocess": "id",
         "length": 6,
         "dataset": "EMNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -950,7 +953,7 @@
         "preprocess": "id",
         "length": 8,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -973,7 +976,7 @@
         "n_rows": 2,
         "n_cols": 3,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+        "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
     ],
     "output": {
@@ -995,7 +998,7 @@
         "preprocess": "id",
         "length": 5,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -1016,11 +1019,11 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
-      "type": "Grid[int]"
+      "type": "List[List[int]]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1039,7 +1042,7 @@
         "n_rows": 2,
         "n_cols": 3,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+        "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
     ],
     "output": {
@@ -1061,7 +1064,7 @@
         "preprocess": "id",
         "length": 3,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -1082,7 +1085,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -1104,7 +1107,7 @@
         "preprocess": "id",
         "length": 7,
         "dataset": "EMNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       },
       {
         "name": "word2",
@@ -1113,7 +1116,7 @@
         "preprocess": "id",
         "length": 7,
         "dataset": "EMNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -1134,7 +1137,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       },
       {
         "name": "k",
@@ -1142,7 +1145,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -1164,7 +1167,7 @@
         "preprocess": "id",
         "length": 6,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -1186,7 +1189,7 @@
         "preprocess": "id",
         "length": 3,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -1208,7 +1211,7 @@
         "preprocess": "id",
         "length": 3,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -1230,7 +1233,7 @@
         "preprocess": "id",
         "length": 4,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -1255,7 +1258,7 @@
         "num_digits": 2,
         "length": 2,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+        "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
     ],
     "output": {
@@ -1278,7 +1281,7 @@
         "strategy": "singleton",
         "preprocess": "id",
         "dataset": "EMNIST",
-        "unstructured_input_type": "Tensor[1 x 27 x 27]"
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -1299,7 +1302,7 @@
         "strategy": "list",
         "preprocess": "id",
         "dataset": "MNIST_VIDEO",
-        "unstructured_input_type": "List[Tensor[1 x 27 x 27]]"
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
@@ -1316,12 +1319,13 @@
     "inputs": [
       {
         "name": "x",
-        "type": "Grid[digit]",
+        "type": "List[List[digit]]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 3,
+        "n_rows": 2,
+        "n_cols": 2,
         "dataset": "MNIST",
-        "unstructured_input_type": "List[List[Tensor[1 x 27 x 27]]]"
+        "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
     ],
     "output": {

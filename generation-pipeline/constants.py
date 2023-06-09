@@ -29,7 +29,6 @@ CHAR_TYPE = "char"
 SINGLE_INT_LIST_TYPE = "List[digit]"
 INT_LIST_TYPE = "List[int]"
 SINGLE_INT_LIST_LIST_TYPE = "List[List[digit]]"
-SINGLE_INT_GRID_TYPE = "Grid[digit]"
 INT_LIST_LIST_TYPE = "List[List[int]]"
 STRING_TYPE = "str"
 

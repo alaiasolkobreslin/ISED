@@ -360,10 +360,6 @@ class IntListDataset(StructuredDataset):
 
 
 class SingleIntListListDataset(StructuredDataset):
-    pass
-
-
-class SingleIntGridDataset(StructuredDataset):
     def __init__(self, config, unstructured_dataset):
         self.config = config
         self.unstructured_dataset = unstructured_dataset
@@ -386,7 +382,7 @@ class SingleIntGridDataset(StructuredDataset):
         return net(x.flatten(start_dim=0, end_dim=2)).view(batch_size, length, n_digits, -1)
 
     def get_sample_strategy(self):
-        length = self.config[LENGTH]
+        length = self.config[N_COLS]
         s = self.config[STRATEGY]
         input_mapping = [i for i in range(10)]
         if s == SIMPLE_LIST_STRATEGY:
@@ -401,8 +397,8 @@ class SingleIntGridDataset(StructuredDataset):
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
-        lst = [None] * self.config[LENGTH]
-        for i in range(self.config[LENGTH]):
+        lst = [None] * self.config[N_ROWS]
+        for i in range(self.config[N_ROWS]):
             samples = self.strategy.sample()
             imgs, row = zip(*samples)
             lst[i] = (imgs, tuple(row))
@@ -429,14 +425,16 @@ class SingleIntGridDataset(StructuredDataset):
 
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
-        length = config[LENGTH]
+        n_rows = config[N_ROWS]
+        n_cols = config[N_COLS]
         digit_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
-        return input.ListInputMapping2D(length, length, digit_input_mapping, partial(SingleIntGridDataset.combine, length))
+        return input.ListInputMapping2D(n_rows, n_cols, digit_input_mapping, partial(SingleIntListListDataset.combine, n_cols))
 
     def distrs_to_input(distrs, x, config):
-        length = config[LENGTH]
-        return input.ListInput2D(distrs, length, length)
+        n_rows = config[N_ROWS]
+        n_cols = config[N_COLS]
+        return input.ListInput2D(distrs, n_rows, n_cols)
 
 
 class PaddedStringDataset(StructuredDataset):
@@ -611,8 +609,6 @@ def get_structured_dataset_static(config):
         return SingleIntListDataset
     elif sd == SINGLE_INT_LIST_LIST_TYPE:
         return SingleIntListListDataset
-    elif sd == SINGLE_INT_GRID_TYPE:
-        return SingleIntGridDataset
     elif sd == INT_LIST_TYPE:
         return IntListDataset
     elif sd == STRING_TYPE and MAX_LENGTH in config:
