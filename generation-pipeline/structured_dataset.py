@@ -1,5 +1,7 @@
 import torch
 
+from functools import partial
+
 from constants import *
 import strategy
 import unstructured_dataset
@@ -294,11 +296,11 @@ class IntListDataset(StructuredDataset):
 
     @staticmethod
     def collate_fn(batch, config):
-        return [[torch.stack([item[i][j] for item in batch]) for j in range(
-            len(batch[0][0]))] for i in range(len(batch[0]))]
+        return torch.stack([torch.stack([torch.stack(i) for i in item]) for item in batch])
 
     def forward(net, x):
-        return [[net(i) for i in item] for item in x]
+        batch_size, length, n_digits, _, _, _ = x.shape
+        return net(x.flatten(start_dim=0, end_dim=2)).view(batch_size, length, n_digits, -1)
 
     def get_sample_strategy(self):
         n_digits = self.config[N_DIGITS]
@@ -331,21 +333,33 @@ class IntListDataset(StructuredDataset):
         for i in range(length):
             dataset[i] = self.generate_datapoint()
 
-    def combine(input):
-        return int("".join(str(digit) for digit in input))
+    def combine(n_digits, input):
+        result = []
+        i = 0
+        current_int = ""
+        while i < len(input):
+            current_int += str(input[i])
+            i += 1
+            if i % n_digits == 0:
+                result.append(int(current_int))
+                current_int = ""
+        return result
 
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
         length = config[LENGTH]
         n_digits = config[N_DIGITS]
         digit_input_mapping = input.DiscreteInputMapping(
-            ud.input_mapping(ud), IntListDataset.combine, id)
-        element_input_mapping = input.ListInputMapping(
-            n_digits, digit_input_mapping, IntListDataset.combine)
-        return input.ListInputMapping(length, element_input_mapping, id)
+            ud.input_mapping(ud), id)
+        # element_input_mapping = input.ListInputMapping(
+        #     n_digits, digit_input_mapping, IntListDataset.combine)
+        # return input.ListInputMapping(length, element_input_mapping, id)
+        return input.ListInputMapping2D(length, n_digits, digit_input_mapping, partial(IntListDataset.combine, n_digits))
 
     def distrs_to_input(distrs, x, config):
-        pass
+        n_rows = config[LENGTH]
+        n_cols = config[N_DIGITS]
+        return input.ListInput2D(distrs, n_rows, n_cols)
 
 
 class SingleIntListListDataset(StructuredDataset):

@@ -1,6 +1,7 @@
-from typing import *
-
+import itertools
 import torch
+
+from typing import *
 
 
 class ListInput:
@@ -31,11 +32,25 @@ class PaddedListInput:
         return torch.prod(result, dim=1)
 
 
+class ListInput2D:
+
+    def __init__(self, tensor: torch.Tensor, n_rows: int, n_cols: int):
+        self.tensor = tensor
+        self.n_rows = n_rows
+        self.n_cols = n_cols
+
+    def gather(self, dim: int, indices: torch.Tensor):
+        result = self.tensor.gather(dim + 2, indices)
+        return torch.prod(torch.prod(result, dim=1), dim=1)
+
+
 class InputMapping:
     def __init__(self): pass
 
     def sample(self, input: Any,
                sample_count: int) -> Tuple[torch.Tensor, List[Any]]: pass
+
+    def permute(self, inputs: List[Any]) -> List[Any]: pass
 
 
 class PaddedListInputMapping(InputMapping):
@@ -100,6 +115,47 @@ class ListInputMapping(InputMapping):
         sampled_indices_original_shape = tuple(sampled_indices.shape[1:])
         sampled_indices = sampled_indices.reshape(
             batch_size, list_length, *sampled_indices_original_shape)
+
+        return (sampled_indices, result_sampled_elements)
+
+
+class ListInputMapping2D(InputMapping):
+    def __init__(self, n_rows: int, n_cols, element_input_mapping: InputMapping, combine: Callable):
+        self.n_rows = n_rows
+        self.n_cols = n_cols
+        self.element_input_mapping = element_input_mapping
+        self.combine = combine
+        self.does_permute = True
+
+    def sample(self, list_input: ListInput2D, sample_count: int) -> Tuple[torch.Tensor, List[List[Any]]]:
+        # Sample the elements
+        batch_size = list_input.tensor.shape[0]
+        n_rows = list_input.tensor.shape[1]
+        n_cols = list_input.tensor.shape[2]
+        assert (n_rows == self.n_rows and n_cols ==
+                self.n_cols), "inputs dimensions must match n_rows and n_cols"
+        flattened = list_input.tensor.reshape(
+            (batch_size * n_rows * n_cols, -1))
+        sampled_indices, sampled_elements = self.element_input_mapping.sample(
+            flattened, sample_count)
+
+        # Reshape the sampled elements
+        result_sampled_elements = []
+        for i in range(batch_size):
+            curr_batch = []
+            for j in range(sample_count):
+                curr_elem = []
+                for k in range(list_input.n_rows * list_input.n_cols):
+                    # for k in range(list_input.length):
+                    curr_elem.append(
+                        sampled_elements[i * n_rows * n_cols + k][j])
+                curr_batch.append(curr_elem)
+            result_sampled_elements.append(curr_batch)
+
+        # Reshape the sampled indices
+        sampled_indices_original_shape = tuple(sampled_indices.shape[1:])
+        sampled_indices = sampled_indices.reshape(
+            batch_size, n_rows, n_cols, *sampled_indices_original_shape)
 
         return (sampled_indices, result_sampled_elements)
 
