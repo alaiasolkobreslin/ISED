@@ -48,10 +48,15 @@ class Simple2DListStrategy(Strategy):
         self.n_cols = n_cols
 
     def sample(self):
-        samples = [[None] * self.n_cols] * self.n_rows
-        for i in range(self.n_rows):
-            for j in range(self.n_cols):
+        samples = []
+        for _ in range(self.n_rows):
+            row_img = []
+            row_value = []
+            for _ in range(self.n_cols):
                 sample = random.randrange(0, len(self.input_mapping))
                 idx = self.unstructured_dataset.sample_with_y(sample)
-                samples[i][j] = self.unstructured_dataset.get(idx)
+                (img, value) = self.unstructured_dataset.get(idx)
+                row_img.append(img)
+                row_value.append(value)
+            samples.append((row_img, row_value))
         return samples

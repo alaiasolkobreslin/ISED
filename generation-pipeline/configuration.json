@@ -836,7 +836,7 @@
       {
         "name": "board",
         "type": "List[List[digit]]",
-        "strategy": "list",
+        "strategy": "2d_list",
         "preprocess": "make_board",
         "n_rows": 9,
         "n_cols": 9,
@@ -1322,7 +1322,7 @@
       {
         "name": "x",
         "type": "List[List[digit]]",
-        "strategy": "list",
+        "strategy": "2d_list",
         "preprocess": "id",
         "n_rows": 2,
         "n_cols": 2,

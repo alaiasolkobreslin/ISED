@@ -24,6 +24,16 @@ class PreprocessSort(Preprocess):
 class PreprocessSudokuBoard(Preprocess):
 
     def preprocess(self, input):
-        # length = len(input)
-        # TODO: make sudoku board
-        return input
+        length = len(input)
+        indices = [i for i in range(length ** 2)]
+        selected = np.random.choice(indices, 30, replace=False)
+        i = 0
+        for i in range(length ** 2):
+            row = i // length
+            col = i % length
+            if i in selected:
+                curr_digit = input[row][1][col]
+                input[row][1][col] = str(curr_digit)
+            else:
+                input[row][1][col] = '.'
+        return (input, selected)

@@ -338,6 +338,7 @@ class IntListDataset(StructuredDataset):
         dataset = [None] * length
         for i in range(length):
             dataset[i] = self.generate_datapoint()
+        return dataset
 
     def combine(n_digits, input):
         result = []
@@ -389,12 +390,13 @@ class SingleIntListListDataset(StructuredDataset):
         return net(x.flatten(start_dim=0, end_dim=2)).view(batch_size, length, n_digits, -1)
 
     def get_sample_strategy(self):
-        length = self.config[N_COLS]
+        n_rows = self.config[N_ROWS]
+        n_cols = self.config[N_COLS]
         s = self.config[STRATEGY]
         input_mapping = [i for i in range(10)]
-        if s == SIMPLE_LIST_STRATEGY:
-            strat = strategy.SimpleListStrategy(
-                self.unstructured_dataset, input_mapping, length)
+        if s == LIST_2D:
+            strat = strategy.Simple2DListStrategy(
+                self.unstructured_dataset, input_mapping, n_rows, n_cols)
         else:
             raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
         return strat
@@ -405,13 +407,14 @@ class SingleIntListListDataset(StructuredDataset):
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
-        lst = [None] * self.config[N_ROWS]
-        for i in range(self.config[N_ROWS]):
-            samples = self.strategy.sample()
-            imgs, row = zip(*samples)
-            lst[i] = (imgs, tuple(row))
-        lst = self.preprocess.preprocess(lst)
-        return zip(*lst)
+        samples = self.strategy.sample()
+        samples = self.preprocess.preprocess(samples)
+        strat = self.config[STRATEGY]
+        if strat == LIST_2D:
+            (samples, indices) = samples
+            return (zip(*samples), indices)
+        else:
+            return zip(*samples)
 
     def generate_dataset(self):
         length = self.__len__()
