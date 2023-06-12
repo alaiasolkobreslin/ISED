@@ -215,14 +215,18 @@ class SingleIntListDataset(StructuredDataset):
         return net(x.flatten(start_dim=0, end_dim=1)).view(batch_size, length, -1)
 
     def get_sample_strategy(self):
-        length = self.config[LENGTH]
         s = self.config[STRATEGY]
-        input_mapping = [i for i in range(10)]
-        if s == SIMPLE_LIST_STRATEGY:
+        if s == SINGLETON_STRATEGY:
+            input_mapping = [i for i in range(len(self.unstructured_dataset))]
+            strat = strategy.SingletonStrategy(
+                self.unstructured_dataset, input_mapping)
+        elif s == SIMPLE_LIST_STRATEGY:
+            length = self.config[LENGTH]
+            input_mapping = self.unstructured_dataset.input_mapping()
             strat = strategy.SimpleListStrategy(
                 self.unstructured_dataset, input_mapping, length)
         else:
-            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
 
     def get_preprocess_strategy(self):
@@ -455,7 +459,7 @@ class SudokuDataset(StructuredDataset):
         return input.ListInput2DSudoku(distrs, x[1], n_rows, n_cols)
 
 
-class PaddedStringDataset(StructuredDataset):
+class PaddedListDataset(StructuredDataset):
 
     def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
@@ -486,12 +490,12 @@ class PaddedStringDataset(StructuredDataset):
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
-        input_mapping = [i for i in range(len(self.unstructured_dataset))]
-
         if s == SINGLETON_STRATEGY:
+            input_mapping = [i for i in range(len(self.unstructured_dataset))]
             strat = strategy.SingletonStrategy(
                 self.unstructured_dataset, input_mapping)
         elif s == SIMPLE_LIST_STRATEGY:
+            input_mapping = self.unstructured_dataset.input_mapping()
             strat = strategy.SimpleListStrategy(
                 self.unstructured_dataset, input_mapping, self.config[MAX_LENGTH]
             )
@@ -506,7 +510,7 @@ class PaddedStringDataset(StructuredDataset):
     def generate_datapoint(self):
         return self.preprocess.preprocess(self.strategy.sample())
 
-    def combine(inputs):
+    def string_combine(inputs):
         return "".join(str(s) for s in inputs)
 
     def get_input_mapping(config):
@@ -514,7 +518,11 @@ class PaddedStringDataset(StructuredDataset):
         ud = get_unstructured_dataset_static(config)
         element_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
-        return input.PaddedListInputMapping(max_length, element_input_mapping, PaddedStringDataset.combine)
+        if ud == unstructured_dataset.HWFDataset:
+            combine = PaddedListDataset.string_combine
+        else:
+            raise Exception(f'invalid unstructured dataset: {ud}')
+        return input.PaddedListInputMapping(max_length, element_input_mapping, combine)
 
     def distrs_to_input(distrs, x, config):
         lengths = [l.item() for l in x[1]]
@@ -576,6 +584,62 @@ class StringDataset(StructuredDataset):
         return input.ListInput(distrs, length)
 
 
+class VideoDataset(StructuredDataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
+        self.config = config
+        self.dataset_size = dataset_size
+        self.unstructured_dataset = unstructured_dataset
+        self.strategy = self.get_sample_strategy()
+        self.preprocess = self.get_preprocess_strategy()
+
+    def __len__(self):
+        return self.dataset_size
+
+    @staticmethod
+    def collate_fn(batch, _):
+        return torch.stack(batch)
+
+    def forward(net, x):
+        return net(x)
+        # batch_size, length, _, _, _ = x.shape
+        # return net(x.flatten(start_dim=0, end_dim=1)).view(batch_size, length, -1)
+
+    def get_sample_strategy(self):
+        s = self.config[STRATEGY]
+        if s == SINGLETON_STRATEGY:
+            input_mapping = [i for i in range(len(self.unstructured_dataset))]
+            strat = strategy.SingletonStrategy(
+                self.unstructured_dataset, input_mapping)
+        elif s == SIMPLE_LIST_STRATEGY:
+            length = self.config[LENGTH]
+            input_mapping = self.unstructured_dataset.input_mapping()
+            strat = strategy.SimpleListStrategy(
+                self.unstructured_dataset, input_mapping, length)
+        else:
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
+        return strat
+
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT]
+        return self.preprocess_from_allowed_strategies(allowed)
+
+    def generate_datapoint(self):
+        samples = self.preprocess.preprocess(self.strategy.sample())
+        return samples
+
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        length = config[LENGTH]
+        element_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud), id)
+        return input.ListInputMapping(length, element_input_mapping, id)
+
+    # TODO: fix this to include other network predictions other than digit sequence
+    def distrs_to_input(distrs, x, config):
+        length = config[LENGTH]
+        return input.ListInput(distrs[0], length)
+
+
 def get_unstructured_dataset_static(config):
     ud = config[DATASET]
     if ud == MNIST:
@@ -602,6 +666,8 @@ def get_structured_dataset_static(config):
         return SingleDataset
     elif sd == INT_TYPE:
         return IntDataset
+    elif sd == SINGLE_INT_LIST_TYPE and MAX_LENGTH in config:
+        return PaddedListDataset
     elif sd == SINGLE_INT_LIST_TYPE:
         return SingleIntListDataset
     elif sd == SINGLE_INT_LIST_LIST_TYPE:
@@ -609,10 +675,12 @@ def get_structured_dataset_static(config):
     elif sd == INT_LIST_TYPE:
         return IntListDataset
     elif sd == STRING_TYPE and MAX_LENGTH in config:
-        return PaddedStringDataset
+        return PaddedListDataset
     elif sd == STRING_TYPE:
         return StringDataset
     elif sd == SUDOKU_TYPE:
         return SudokuDataset
+    elif sd == VIDEO_DIGIT_TYPE:
+        return VideoDataset
     else:
         raise UnknownStructuredDataset(f"Unknown dataset: {sd}")

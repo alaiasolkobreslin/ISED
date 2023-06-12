@@ -32,6 +32,7 @@ SINGLE_INT_LIST_LIST_TYPE = "List[List[digit]]"
 INT_LIST_LIST_TYPE = "List[List[int]]"
 STRING_TYPE = "str"
 SUDOKU_TYPE = "Sudoku"
+VIDEO_DIGIT_TYPE = "Video[digit]"
 
 # Datasets
 DATASET = "dataset"

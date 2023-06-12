@@ -563,6 +563,10 @@ def grid_identity(x):
     return x
 
 
+def mnist_video_identity(x):
+    return x
+
+
 dispatcher = {
     'sum_2': sum_2,
     'sum_3': sum_3,
@@ -615,6 +619,7 @@ dispatcher = {
     'sort_integer_list': sort_integer_list,
     'char_identity': char_identity,
     'grid_identity': grid_identity,
+    'mnist_video_identity': mnist_video_identity,
 }
 
 
