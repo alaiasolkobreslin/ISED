@@ -91,6 +91,8 @@ class BlackBoxFunction(torch.nn.Module):
             return len(input.lengths)
         elif type(input) == ListInput2D:
             return input.tensor.shape[0]
+        elif type(input) == ListInput2DSudoku:
+            return input.tensor.shape[0]
         raise Exception("Unknown input type")
 
     def zip_batched_inputs(self, batched_inputs):

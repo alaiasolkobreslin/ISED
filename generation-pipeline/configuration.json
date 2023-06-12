@@ -835,7 +835,7 @@
     "inputs": [
       {
         "name": "board",
-        "type": "List[List[digit]]",
+        "type": "Sudoku",
         "strategy": "2d_list",
         "preprocess": "make_board",
         "n_rows": 9,
@@ -860,7 +860,7 @@
     "inputs": [
       {
         "name": "board",
-        "type": "List[List[str]]",
+        "type": "Sudoku",
         "strategy": "2d_list",
         "preprocess": "make_board",
         "n_rows": 30,

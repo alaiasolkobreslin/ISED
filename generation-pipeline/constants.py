@@ -31,6 +31,7 @@ INT_LIST_TYPE = "List[int]"
 SINGLE_INT_LIST_LIST_TYPE = "List[List[digit]]"
 INT_LIST_LIST_TYPE = "List[List[int]]"
 STRING_TYPE = "str"
+SUDOKU_TYPE = "Sudoku"
 
 # Datasets
 DATASET = "dataset"

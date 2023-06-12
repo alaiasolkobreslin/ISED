@@ -348,19 +348,13 @@ class SingleIntListListDataset(StructuredDataset):
         return strat
 
     def get_preprocess_strategy(self):
-        allowed = [PREPROCESS_IDENTITY,
-                   PREPROCESS_SORT, PREPROCESS_SUDOKU_BOARD]
+        allowed = [PREPROCESS_IDENTITY]
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
         samples = self.strategy.sample()
         samples = self.preprocess.preprocess(samples)
-        strat = self.config[STRATEGY]
-        if strat == LIST_2D:
-            (samples, indices) = samples
-            return (zip(*samples), indices)
-        else:
-            return zip(*samples)
+        return zip(*samples)
 
     def combine(length, input):
         result = []
@@ -386,6 +380,79 @@ class SingleIntListListDataset(StructuredDataset):
         n_rows = config[N_ROWS]
         n_cols = config[N_COLS]
         return input.ListInput2D(distrs, n_rows, n_cols)
+
+
+class SudokuDataset(StructuredDataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
+        self.config = config
+        self.dataset_size = dataset_size
+        self.unstructured_dataset = unstructured_dataset
+        self.strategy = self.get_sample_strategy()
+        self.preprocess = self.get_preprocess_strategy()
+
+    def __len__(self):
+        return self.dataset_size
+
+    @staticmethod
+    def collate_fn(batch, config):
+        imgs = torch.stack([torch.stack([torch.stack(i)
+                           for (i, _) in item]) for item in batch])
+        selections = torch.stack(
+            [torch.stack([torch.tensor(s) for (_, s) in item]) for item in batch])
+        return (imgs, selections)
+
+    def forward(net, x):
+        (distrs, _) = x
+        batch_size, n_rows, n_cols, _, _, _ = distrs.shape
+        return net(distrs.flatten(start_dim=0, end_dim=2)).view(batch_size, n_rows, n_cols, -1)
+
+    def get_sample_strategy(self):
+        n_rows = self.config[N_ROWS]
+        n_cols = self.config[N_COLS]
+        s = self.config[STRATEGY]
+        input_mapping = [i for i in range(10)]
+        if s == LIST_2D:
+            strat = strategy.Simple2DListStrategy(
+                self.unstructured_dataset, input_mapping, n_rows, n_cols)
+        else:
+            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+        return strat
+
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_SUDOKU_BOARD]
+        return self.preprocess_from_allowed_strategies(allowed)
+
+    def generate_datapoint(self):
+        samples = self.strategy.sample()
+        (samples, bool_board) = self.preprocess.preprocess(samples)
+        samples = [((sample[0], bool_board[i]), sample[1])
+                   for i, sample in enumerate(samples)]
+        return zip(*samples)
+
+    def combine(length, input):
+        result = []
+        i = 0
+        current_row = []
+        while i < len(input):
+            current_row.append(input[i])
+            i += 1
+            if i % length == 0:
+                result.append(current_row)
+                current_row = []
+        return result
+
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        n_rows = config[N_ROWS]
+        n_cols = config[N_COLS]
+        digit_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud), id)
+        return input.ListInputMapping2DSudoku(n_rows, n_cols, digit_input_mapping, partial(SudokuDataset.combine, n_cols))
+
+    def distrs_to_input(distrs, x, config):
+        n_rows = config[N_ROWS]
+        n_cols = config[N_COLS]
+        return input.ListInput2DSudoku(distrs, x[1], n_rows, n_cols)
 
 
 class PaddedStringDataset(StructuredDataset):
@@ -472,6 +539,7 @@ class StringDataset(StructuredDataset):
         return imgs
 
     def forward(net, x):
+        # TODO: fix this
         return [net(item) for item in x]
 
     def get_sample_strategy(self):
@@ -546,5 +614,7 @@ def get_structured_dataset_static(config):
         return PaddedStringDataset
     elif sd == STRING_TYPE:
         return StringDataset
+    elif sd == SUDOKU_TYPE:
+        return SudokuDataset
     else:
         raise UnknownStructuredDataset(f"Unknown dataset: {sd}")

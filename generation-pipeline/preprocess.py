@@ -27,6 +27,7 @@ class PreprocessSudokuBoard(Preprocess):
         length = len(input)
         indices = [i for i in range(length ** 2)]
         selected = np.random.choice(indices, 30, replace=False)
+        bool_board = [[0 for _ in range(length)] for _ in range(length)]
         i = 0
         for i in range(length ** 2):
             row = i // length
@@ -34,6 +35,7 @@ class PreprocessSudokuBoard(Preprocess):
             if i in selected:
                 curr_digit = input[row][1][col]
                 input[row][1][col] = str(curr_digit)
+                bool_board[row][col] = 1
             else:
                 input[row][1][col] = '.'
-        return (input, selected)
+        return (input, bool_board)
