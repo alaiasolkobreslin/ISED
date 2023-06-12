@@ -534,13 +534,11 @@ class StringDataset(StructuredDataset):
 
     @staticmethod
     def collate_fn(batch, config):
-        imgs = [torch.stack([item[i] for item in batch])
-                for i in range(len(batch[0]))]
-        return imgs
+        return torch.stack([torch.stack(item) for item in batch])
 
     def forward(net, x):
-        # TODO: fix this
-        return [net(item) for item in x]
+        batch_size, length, _, _, _ = x.shape
+        return net(x.flatten(start_dim=0, end_dim=1)).view(batch_size, length, -1)
 
     def get_sample_strategy(self):
         length = self.config[LENGTH]
@@ -570,7 +568,7 @@ class StringDataset(StructuredDataset):
         length = config[LENGTH]
         ud = get_unstructured_dataset_static(config)
         element_input_mapping = input.DiscreteInputMapping(
-            ud.input_mapping(ud), StringDataset.combine, id)
+            ud.input_mapping(ud), StringDataset.combine)
         return input.ListInputMapping(length, element_input_mapping, StringDataset.combine)
 
     def distrs_to_input(distrs, x, config):
