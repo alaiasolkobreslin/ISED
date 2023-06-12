@@ -34,9 +34,6 @@ class StructuredDataset:
     def __len__(self):
         pass
 
-    def __getitem__(self, index):
-        pass
-
     def collate_fn(batch, config):
         pass
 
@@ -83,12 +80,6 @@ class StructuredDataset:
         specified in the configuration
         """
 
-    def generate_dataset(self):
-        """
-        Returns a dataset of sampled datapoints
-        """
-        pass
-
     def get_input_mapping(config):
         """
         Returns the input mapping for the structured dataset
@@ -112,13 +103,9 @@ class SingleDataset(StructuredDataset):
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
         return self.dataset_size
-
-    def __getitem__(self, index):
-        return self.dataset[index]
 
     @staticmethod
     def collate_fn(batch, config):
@@ -144,12 +131,6 @@ class SingleDataset(StructuredDataset):
         allowed = [PREPROCESS_IDENTITY]
         return self.preprocess_from_allowed_strategies(allowed)
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
-
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
         return input.DiscreteInputMapping(ud.input_mapping(ud), id)
@@ -166,13 +147,9 @@ class IntDataset(StructuredDataset):
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
         return self.dataset_size
-
-    def __getitem__(self, index):
-        return self.dataset[index]
 
     @staticmethod
     def collate_fn(batch, _):
@@ -203,12 +180,6 @@ class IntDataset(StructuredDataset):
         number = ''.join(str(n) for n in number_lst)
         return (imgs, int(number))
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
-
     def combine(inputs):
         return int("".join(str(s) for s in inputs))
 
@@ -231,13 +202,9 @@ class SingleIntListDataset(StructuredDataset):
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
         return self.dataset_size
-
-    def __getitem__(self, index):
-        return self.dataset[index]
 
     @staticmethod
     def collate_fn(batch, _):
@@ -266,12 +233,6 @@ class SingleIntListDataset(StructuredDataset):
         samples = self.preprocess.preprocess(self.strategy.sample())
         return zip(*samples)
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
-
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
         length = config[LENGTH]
@@ -292,13 +253,9 @@ class IntListDataset(StructuredDataset):
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
         return self.dataset_size
-
-    def __getitem__(self, index):
-        return self.dataset[index]
 
     @staticmethod
     def collate_fn(batch, config):
@@ -333,13 +290,6 @@ class IntListDataset(StructuredDataset):
         lst = self.preprocess.preprocess(lst)
         return zip(*lst)
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
-        return dataset
-
     def combine(n_digits, input):
         result = []
         i = 0
@@ -373,13 +323,9 @@ class SingleIntListListDataset(StructuredDataset):
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
         return self.dataset_size
-
-    def __getitem__(self, index):
-        return self.dataset[index]
 
     @staticmethod
     def collate_fn(batch, config):
@@ -416,13 +362,6 @@ class SingleIntListListDataset(StructuredDataset):
         else:
             return zip(*samples)
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
-        return dataset
-
     def combine(length, input):
         result = []
         i = 0
@@ -457,13 +396,9 @@ class PaddedStringDataset(StructuredDataset):
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
         return self.dataset_size
-
-    def __getitem__(self, index):
-        return self.dataset[index]
 
     @staticmethod
     def collate_fn(batch, config):
@@ -504,14 +439,6 @@ class PaddedStringDataset(StructuredDataset):
     def generate_datapoint(self):
         return self.preprocess.preprocess(self.strategy.sample())
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            imgs, string = self.generate_datapoint()
-            dataset[i] = ((imgs, len(string)), string)
-        return dataset
-
     def combine(inputs):
         return "".join(str(s) for s in inputs)
 
@@ -534,13 +461,9 @@ class StringDataset(StructuredDataset):
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
         return self.dataset_size
-
-    def __getitem__(self, index):
-        return self.dataset[index]
 
     @staticmethod
     def collate_fn(batch, config):
@@ -571,12 +494,6 @@ class StringDataset(StructuredDataset):
         imgs, string_list = zip(*samples)
         string = ''.join(str(n) for n in string_list)
         return (imgs, string)
-
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
 
     def combine(inputs):
         return "".join(str(s) for s in inputs)
