@@ -150,7 +150,10 @@ class AllPermutations:
             elif input_type in [SINGLE_INT_LIST_LIST_TYPE]:
                 permutations = [
                     ListListPermute(), ListListReflectHorizontal(), ListListReflectVertical()]
-            elif input_type in [SINGLE_INT_GRID_TYPE]:
+                if input[N_ROWS] == input[N_COLS]:
+                    permutations += [GridRotate90(),
+                                     GridRotate180(), GridRotate270()]
+            elif input_type in [SUDOKU_TYPE]:
                 permutations = [ListListPermute(), ListListReflectHorizontal(),
                                 ListListReflectVertical(), GridRotate90(), GridRotate180(), GridRotate270()]
             perm_dict[input[NAME]] = permutations

@@ -601,8 +601,6 @@ class VideoDataset(StructuredDataset):
 
     def forward(net, x):
         return net(x)
-        # batch_size, length, _, _, _ = x.shape
-        # return net(x.flatten(start_dim=0, end_dim=1)).view(batch_size, length, -1)
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
@@ -637,7 +635,7 @@ class VideoDataset(StructuredDataset):
     # TODO: fix this to include other network predictions other than digit sequence
     def distrs_to_input(distrs, x, config):
         length = config[LENGTH]
-        return input.ListInput(distrs[0], length)
+        return input.VideoInput(distrs[0], distrs[1], length)
 
 
 def get_unstructured_dataset_static(config):

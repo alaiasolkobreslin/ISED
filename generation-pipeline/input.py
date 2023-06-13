@@ -56,6 +56,19 @@ class ListInput2DSudoku:
         result = self.tensor.gather(dim + 2, indices)
         return torch.prod(torch.prod(result, dim=1), dim=1)
 
+class VideoInput:
+    """
+    The struct holding vectorized list input
+    """
+
+    def __init__(self, tensor: torch.Tensor, change: torch.Tensor, length: int):
+        self.tensor = tensor
+        self.change = change
+        self.length = length
+
+    def gather(self, dim: int, indices: torch.Tensor):
+        result = self.tensor.gather(dim + 1, indices)
+        return torch.prod(result, dim=1)
 
 class InputMapping:
     def __init__(self): pass
@@ -256,3 +269,6 @@ class DiscreteInputMapping(InputMapping):
         sampled_elements = [[self.elements[i] for i in sampled_indices_for_task_i]
                             for sampled_indices_for_task_i in sampled_indices]
         return (sampled_indices, sampled_elements)
+
+    def permute(self, inputs):
+        return [inputs]
