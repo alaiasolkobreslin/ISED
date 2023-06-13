@@ -4,6 +4,7 @@ import errno
 import os
 import signal
 import functools
+import itertools
 from torch.multiprocessing import Pool
 
 from constants import *
@@ -49,6 +50,7 @@ class BlackBoxFunction(torch.nn.Module):
         self.output_mapping = output_mapping
         self.pool = Pool(processes=batch_size)
         self.sample_count = sample_count
+        self.inputs_permute = True
         # self.timeout_decorator = timeout(seconds=timeout_seconds)
 
     def forward(self, *inputs):
@@ -76,8 +78,21 @@ class BlackBoxFunction(torch.nn.Module):
 
         # Aggregate the probabilities
         result_probs = torch.ones((batch_size, self.sample_count))
-        for (input_tensor, sampled_index) in zip(inputs, sampled_indices):
-            result_probs *= input_tensor.gather(1, sampled_index)
+        # sampled_indices [tensor with shape 16 x 7 x 1000]
+        # for (input_tensor, sampled_index) in zip(inputs, sampled_indices):
+        # sampled_index is 16 x 1000
+        # input_tensor.shape is 16 x 10
+        # result_probs *= input_tensor.gather(1, sampled_index)
+        # input_tensor.gather(1, sampled_index).shape is 16 x 1000
+        # input_permutations = itertools.permutations(
+        #     [i for i in range(len(sampled_indices))])
+        for i in range(len(sampled_indices)):
+            # j = 0 if i == 1 else 1
+            input_tensor = inputs[i]
+            sampled_index_i = sampled_indices[i]
+            # sampled_index_j = sampled_indices[j]
+            result_probs *= input_tensor.gather(1, sampled_index_i)
+            # result_probs *= input_tensor.gather(1, sampled_index_j)
 
         # Vectorize the results back into a tensor
         return self.output_mapping.vectorize(results, result_probs)
@@ -99,6 +114,9 @@ class BlackBoxFunction(torch.nn.Module):
         result = [list(zip(*lists)) for lists in zip(*batched_inputs)]
         return result
 
+    def test_permutations(self):
+        pass
+
     def invoke_function_on_inputs(self, inputs):
         """
         Given a list of inputs, invoke the black-box function on each of them.
@@ -108,6 +126,8 @@ class BlackBoxFunction(torch.nn.Module):
             try:
                 fn_input = (self.input_mappings[i].combine(
                     elt) for i, elt in enumerate(r))
+                # input_permutations = [self.input_mappings[i].permute(
+                #     elt) for i, elt in enumerate(r)]
                 y = self.function(*fn_input)
                 yield y
             except:
