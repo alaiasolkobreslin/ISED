@@ -5,6 +5,7 @@ import os
 import signal
 import functools
 import itertools
+import random
 from torch.multiprocessing import Pool
 
 from constants import *
@@ -84,15 +85,15 @@ class BlackBoxFunction(torch.nn.Module):
         # input_tensor.shape is 16 x 10
         # result_probs *= input_tensor.gather(1, sampled_index)
         # input_tensor.gather(1, sampled_index).shape is 16 x 1000
-        # input_permutations = itertools.permutations(
-        #     [i for i in range(len(sampled_indices))])
+        input_permutations = self.get_permutations(sampled_indices, None)
         for i in range(len(sampled_indices)):
-            # j = 0 if i == 1 else 1
             input_tensor = inputs[i]
-            sampled_index_i = sampled_indices[i]
-            # sampled_index_j = sampled_indices[j]
-            result_probs *= input_tensor.gather(1, sampled_index_i)
-            # result_probs *= input_tensor.gather(1, sampled_index_j)
+            for perm in input_permutations:
+                mapped_index = perm[i]
+                mapped_sampled_index = sampled_indices[mapped_index]
+                result_probs *= input_tensor.gather(1, mapped_sampled_index)
+            # sampled_index = sampled_indices[i]
+            # result_probs *= input_tensor.gather(1, sampled_index)
 
         # Vectorize the results back into a tensor
         return self.output_mapping.vectorize(results, result_probs)
@@ -114,8 +115,18 @@ class BlackBoxFunction(torch.nn.Module):
         result = [list(zip(*lists)) for lists in zip(*batched_inputs)]
         return result
 
-    def test_permutations(self):
-        pass
+    def get_permutations(self, idxs, inputs):
+        if self.inputs_permute:
+            permutations = itertools.permutations(
+                [i for i in range(len(idxs))])
+            rand = random.randrange(0, 10)
+            if rand == 0:
+                # 1/10 chance that we check to make sure the function is symmetric
+                pass
+            else:
+                return permutations
+        else:
+            return [idxs]
 
     def invoke_function_on_inputs(self, inputs):
         """
