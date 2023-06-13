@@ -544,6 +544,53 @@ def decode_ways(s):
     return dp[len(s)]
 
 
+def interleaving_string(s1, s2, s3):
+    # problem 97: https://leetcode.com/problems/interleaving-string/
+    r, c, l = len(s1), len(s2), len(s3)
+    if r+c != l:
+        return False
+    queue, visited = [(0, 0)], set((0, 0))
+    while queue:
+        x, y = queue.pop(0)
+        if x+y == l:
+            return True
+        if x+1 <= r and s1[x] == s3[x+y] and (x+1, y) not in visited:
+            queue.append((x+1, y))
+            visited.add((x+1, y))
+        if y+1 <= c and s2[y] == s3[x+y] and (x, y+1) not in visited:
+            queue.append((x, y+1))
+            visited.add((x, y+1))
+    return False
+
+
+def best_time_to_buy_and_sell_stock(prices):
+    # problem 121: https://leetcode.com/problems/best-time-to-buy-and-sell-stock/
+    left = 0
+    right = 1
+    max_profit = 0
+    while right < len(prices):
+        currentProfit = prices[right] - prices[left]  # our current Profit
+        if prices[left] < prices[right]:
+            max_profit = max(currentProfit, max_profit)
+        else:
+            left = right
+        right += 1
+    return max_profit
+
+
+def longest_consecutive_sequence(nums):
+    # problem 128: https://leetcode.com/problems/longest-consecutive-sequence/
+    nums.sort()
+    longest, cur_longest = 0, min(1, len(nums))
+    for i in range(1, len(nums)):
+        if nums[i] == nums[i - 1]:
+            continue
+        if nums[i] == nums[i - 1] + 1:
+            cur_longest += 1
+        else:
+            longest, cur_longest = max(longest, cur_longest), 1
+    return max(longest, cur_longest)
+
 # Other programs
 
 
@@ -614,6 +661,9 @@ dispatcher = {
     'largest_rectangle_in_histogram': largest_rectangle_in_histogram,
     'subsets_ii': subsets_ii,
     'decode_ways': decode_ways,
+    'interleaving_string': interleaving_string,
+    'best_time_to_buy_and_sell_stock': best_time_to_buy_and_sell_stock,
+    'longest_consecutive_sequence': longest_consecutive_sequence,
 
     'sort_list': sort_list,
     'sort_integer_list': sort_integer_list,

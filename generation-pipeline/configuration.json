@@ -1229,6 +1229,94 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
+  "interleaving_string": {
+    "py_func": "interleaving_string",
+    "inputs": [
+      {
+        "name": "s1",
+        "type": "str",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 4,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      },
+      {
+        "name": "s2",
+        "type": "str",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 4,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      },
+      {
+        "name": "s3",
+        "type": "str",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 8,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int"
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "best_time_to_buy_and_sell_stock": {
+    "py_func": "best_time_to_buy_and_sell_stock",
+    "inputs": [
+      {
+        "name": "prices",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 10,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "longest_consecutive_sequence": {
+    "py_func": "longest_consecutive_sequence",
+    "inputs": [
+      {
+        "name": "nums",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 6,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
   "sort_list": {
     "py_func": "sort_list",
     "inputs": [
