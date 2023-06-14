@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 
 class Preprocess:
@@ -25,17 +26,27 @@ class PreprocessSudokuBoard(Preprocess):
 
     def preprocess(self, input):
         length = len(input)
-        indices = [i for i in range(length ** 2)]
-        selected = np.random.choice(indices, 30, replace=False)
         bool_board = [[0 for _ in range(length)] for _ in range(length)]
-        i = 0
-        for i in range(length ** 2):
-            row = i // length
-            col = i % length
-            if i in selected:
-                curr_digit = input[row][1][col]
-                input[row][1][col] = str(curr_digit)
-                bool_board[row][col] = 1
-            else:
-                input[row][1][col] = '.'
+        for i in range(length):
+            for j in range(length):
+                curr_digit = input[i][1][j]
+                if curr_digit:
+                    input[i][1][j] = str(curr_digit)
+                    bool_board[i][j] = 1
+                else:
+                    input[i][1][j] = '.'
         return (input, bool_board)
+
+
+class PreprocessPalindrome(Preprocess):
+
+    def ceildiv(self, a, b):
+        return -(a // -b)
+
+    def preprocess(self, input):
+        if random.randint(0, 1):
+            return input
+        else:
+            half_to_append = input[:(len(input) // 2)]
+            half_to_return = input[:self.ceildiv(len(input), 2)]
+            return half_to_return + list(reversed(half_to_append))

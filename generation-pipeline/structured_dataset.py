@@ -411,13 +411,11 @@ class SudokuDataset(StructuredDataset):
         return net(distrs.flatten(start_dim=0, end_dim=2)).view(batch_size, n_rows, n_cols, -1)
 
     def get_sample_strategy(self):
-        n_rows = self.config[N_ROWS]
-        n_cols = self.config[N_COLS]
         s = self.config[STRATEGY]
-        input_mapping = [i for i in range(10)]
-        if s == LIST_2D:
-            strat = strategy.Simple2DListStrategy(
-                self.unstructured_dataset, input_mapping, n_rows, n_cols)
+        if s == SUDOKU_PROBLEM_STRATEGY:
+            strat = strategy.SudokuProblemStrategy(self.unstructured_dataset)
+        elif s == SUDOKU_RANDOM_STRATEGY:
+            strat = strategy.SudokuRandomStrategy(self.unstructured_dataset)
         else:
             raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
         return strat

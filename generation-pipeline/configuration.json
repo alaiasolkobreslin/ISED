@@ -699,7 +699,7 @@
         "type": "int",
         "num_digits": 3,
         "strategy": "list",
-        "preprocess": "id",
+        "preprocess": "palindrome",
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -838,7 +838,7 @@
       {
         "name": "board",
         "type": "Sudoku",
-        "strategy": "2d_list",
+        "strategy": "sudoku_random_sample",
         "preprocess": "make_board",
         "n_rows": 9,
         "n_cols": 9,
@@ -863,7 +863,7 @@
       {
         "name": "board",
         "type": "Sudoku",
-        "strategy": "2d_list",
+        "strategy": "sudoku_probem_sample",
         "preprocess": "make_board",
         "n_rows": 30,
         "n_cols": 30,
@@ -1427,6 +1427,30 @@
     ],
     "output": {
       "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "palindrome_string": {
+    "py_func": "palindrome_string",
+    "inputs": [
+      {
+        "name": "str",
+        "type": "str",
+        "length": 5,
+        "strategy": "list",
+        "preprocess": "palindrome",
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "bool",
       "output_mapping": "unknown",
       "fallback": 0
     },

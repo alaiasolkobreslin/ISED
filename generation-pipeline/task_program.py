@@ -614,6 +614,10 @@ def mnist_video_identity(x):
     return x
 
 
+def palindrome_string(str):
+    return str == str[::-1]
+
+
 dispatcher = {
     'sum_2': sum_2,
     'sum_3': sum_3,
@@ -670,6 +674,7 @@ dispatcher = {
     'char_identity': char_identity,
     'grid_identity': grid_identity,
     'mnist_video_identity': mnist_video_identity,
+    'palindrome_string': palindrome_string,
 }
 
 

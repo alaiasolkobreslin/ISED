@@ -48,12 +48,15 @@ STRATEGY = "strategy"
 SINGLETON_STRATEGY = "singleton"
 SIMPLE_LIST_STRATEGY = "list"
 LIST_2D = "2d_list"
+SUDOKU_PROBLEM_STRATEGY = "sudoku_probem_sample"
+SUDOKU_RANDOM_STRATEGY = "sudoku_random_sample"
 
 # Preprocessing
 PREPROCESS = "preprocess"
 PREPROCESS_IDENTITY = "id"
 PREPROCESS_SORT = "sort"
 PREPROCESS_SUDOKU_BOARD = 'make_board'
+PREPROCESS_PALINDROME = 'palindrome'
 
 # Output
 OUTPUT = "output"
