@@ -24,7 +24,6 @@ class TaskDataset:
 
     def __len__(self):
         return self.dataset_size
-        # return min(sd.__len__() for sd in self.structured_datasets.values())
 
     def __getitem__(self, index):
         return self.dataset[index]

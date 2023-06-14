@@ -79,21 +79,10 @@ class BlackBoxFunction(torch.nn.Module):
 
         # Aggregate the probabilities
         result_probs = torch.ones((batch_size, self.sample_count))
-        # sampled_indices [tensor with shape 16 x 7 x 1000]
-        # for (input_tensor, sampled_index) in zip(inputs, sampled_indices):
-        # sampled_index is 16 x 1000
-        # input_tensor.shape is 16 x 10
-        # result_probs *= input_tensor.gather(1, sampled_index)
-        # input_tensor.gather(1, sampled_index).shape is 16 x 1000
-        input_permutations = self.get_permutations(sampled_indices, None)
         for i in range(len(sampled_indices)):
             input_tensor = inputs[i]
-            for perm in input_permutations:
-                mapped_index = perm[i]
-                mapped_sampled_index = sampled_indices[mapped_index]
-                result_probs *= input_tensor.gather(1, mapped_sampled_index)
-            # sampled_index = sampled_indices[i]
-            # result_probs *= input_tensor.gather(1, sampled_index)
+            sampled_index = sampled_indices[i]
+            result_probs *= input_tensor.gather(1, sampled_index)
 
         # Vectorize the results back into a tensor
         return self.output_mapping.vectorize(results, result_probs)
@@ -115,19 +104,6 @@ class BlackBoxFunction(torch.nn.Module):
         result = [list(zip(*lists)) for lists in zip(*batched_inputs)]
         return result
 
-    def get_permutations(self, idxs, inputs):
-        if self.inputs_permute:
-            permutations = itertools.permutations(
-                [i for i in range(len(idxs))])
-            rand = random.randrange(0, 10)
-            if rand == 0:
-                # 1/10 chance that we check to make sure the function is symmetric
-                pass
-            else:
-                return permutations
-        else:
-            return [idxs]
-
     def invoke_function_on_inputs(self, inputs):
         """
         Given a list of inputs, invoke the black-box function on each of them.
@@ -137,8 +113,6 @@ class BlackBoxFunction(torch.nn.Module):
             try:
                 fn_input = (self.input_mappings[i].combine(
                     elt) for i, elt in enumerate(r))
-                # input_permutations = [self.input_mappings[i].permute(
-                #     elt) for i, elt in enumerate(r)]
                 y = self.function(*fn_input)
                 yield y
             except:
