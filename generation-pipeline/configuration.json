@@ -1445,7 +1445,7 @@
         "length": 5,
         "strategy": "list",
         "preprocess": "palindrome",
-        "dataset": "MNIST",
+        "dataset": "EMNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],

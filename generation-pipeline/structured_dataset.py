@@ -65,13 +65,15 @@ class StructuredDataset:
         s = self.config[PREPROCESS]
         if s not in allowed:
             raise InvalidPreprocessStrategy(
-                "Preprocess strategy {s} is invalid")
+                f"Preprocess strategy {s} is invalid")
         elif s == PREPROCESS_IDENTITY:
             strat = preprocess.PreprocessIdentity()
         elif s == PREPROCESS_SORT:
             strat = preprocess.PreprocessSort()
         elif s == PREPROCESS_SUDOKU_BOARD:
             strat = preprocess.PreprocessSudokuBoard()
+        elif s == PREPROCESS_PALINDROME:
+            strat = preprocess.PreprocessPalindrome()
         return strat
 
     def get_preprocess_strategy(self):
@@ -558,7 +560,7 @@ class StringDataset(StructuredDataset):
         return strat
 
     def get_preprocess_strategy(self):
-        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT]
+        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT, PREPROCESS_PALINDROME]
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
