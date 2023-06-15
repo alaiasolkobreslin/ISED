@@ -81,8 +81,11 @@ class BlackBoxFunction(torch.nn.Module):
         result_probs = torch.ones((batch_size, self.sample_count))
         for i in range(len(sampled_indices)):
             input_tensor = inputs[i]
-            sampled_index = sampled_indices[i]
-            result_probs *= input_tensor.gather(1, sampled_index)
+            input_permutations = self.get_permutations(sampled_indices, None)
+            # TODO: fix weights?
+            proofs = [(1 if perm[i] == i else 0.25) * input_tensor.gather(
+                1, sampled_indices[perm[i]]) for perm in input_permutations]
+            result_probs *= sum(proofs)
 
         # Vectorize the results back into a tensor
         return self.output_mapping.vectorize(results, result_probs)
@@ -131,3 +134,13 @@ class BlackBoxFunction(torch.nn.Module):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
+
+    def get_permutations(self, idxs, inputs):
+        if self.inputs_permute:
+            permutations = itertools.permutations(
+                [i for i in range(len(idxs))])
+            # rand = random.randrange(0, 10)
+            # 1/10 chance that we check to make sure the function is symmetric?
+            return permutations
+        else:
+            return [idxs]
