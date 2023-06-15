@@ -1,5 +1,6 @@
 import json
 import os
+from collections import defaultdict
 
 import cv2
 
@@ -84,6 +85,13 @@ class MNISTVideoDataset(torch.utils.data.Dataset):
 def get_data(train):
     data_dir = os.path.abspath(os.path.join(
         os.path.abspath(__file__), "../../data/MNIST_video"))
+    filename = 'MNIST_video_train_1000.json' if train else 'MNIST_video_test_10.json'
     data = MNISTVideoDataset(
-        data_dir, "MNIST_video_train_1000.json", train=train)
-    return data
+        data_dir, filename, train=train)
+    ys = [tuple(video[1][0]) for video in data]
+    sorted_ys = sorted(ys)
+    idxs = sorted(range(len(ys)), key=ys.__getitem__)
+    ids_of_video = defaultdict(lambda: [])
+    for i in range(len(sorted_ys)):
+        ids_of_video[sorted_ys[i]].append(idxs[i])
+    return (data, ids_of_video)

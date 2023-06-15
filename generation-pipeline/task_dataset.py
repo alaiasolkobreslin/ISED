@@ -18,7 +18,7 @@ class TaskDataset:
             unstructured_dataset = TaskDataset.get_unstructured_dataset(
                 input, train=train)
             structured_dataset = TaskDataset.get_structured_dataset(
-                input, unstructured_dataset)
+                input, self.dataset_size, unstructured_dataset)
             self.structured_datasets[name] = structured_dataset
         self.dataset = self.generate_task_dataset()
 
@@ -36,12 +36,12 @@ class TaskDataset:
         dataset = get_unstructured_dataset_static(config)
         return dataset(train=train)
 
-    def get_structured_dataset(config, unstructured_dataset):
+    def get_structured_dataset(config, dataset_size, unstructured_dataset):
         """
         Returns the structured dataset for `config` and `unstructured_dataset`
         """
         dataset = get_structured_dataset_static(config)
-        return dataset(config, unstructured_dataset)
+        return dataset(config, dataset_size, unstructured_dataset)
 
     def generate_datapoint(self):
         """

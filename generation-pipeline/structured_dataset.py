@@ -1,9 +1,16 @@
 import torch
 
+from functools import partial
+
 from constants import *
 import strategy
 import unstructured_dataset
 import preprocess
+import input
+
+
+def id(x):
+    return x
 
 
 class UnknownUnstructuredDataset(Exception):
@@ -25,9 +32,6 @@ class InvalidSampleStrategy(Exception):
 class StructuredDataset:
 
     def __len__(self):
-        pass
-
-    def __getitem__(self, index):
         pass
 
     def collate_fn(batch, config):
@@ -61,11 +65,15 @@ class StructuredDataset:
         s = self.config[PREPROCESS]
         if s not in allowed:
             raise InvalidPreprocessStrategy(
-                "Preprocess strategy {s} is invalid")
+                f"Preprocess strategy {s} is invalid")
         elif s == PREPROCESS_IDENTITY:
             strat = preprocess.PreprocessIdentity()
         elif s == PREPROCESS_SORT:
             strat = preprocess.PreprocessSort()
+        elif s == PREPROCESS_SUDOKU_BOARD:
+            strat = preprocess.PreprocessSudokuBoard()
+        elif s == PREPROCESS_PALINDROME:
+            strat = preprocess.PreprocessPalindrome()
         return strat
 
     def get_preprocess_strategy(self):
@@ -74,52 +82,32 @@ class StructuredDataset:
         specified in the configuration
         """
 
-    def generate_dataset(self):
+    def get_input_mapping(config):
         """
-        Returns a dataset of sampled datapoints
-        """
-        pass
-
-    def flatten(config, input):
-        """
-        Returns a flattened list of input distributions.
-        This is the format that is needed for the sampling algorithm to sample 
-        inputs
+        Returns the input mapping for the structured dataset
         """
         pass
 
-    def unflatten(config, samples, data, batch_item):
+    def distrs_to_input(distrs, x, config):
         """
-        Returns an unflattened list of inputs.
-        This is the format that is needed to pass the sampled inputs to a 
-        black-box function
-        """
-        pass
-
-    def n_unflatten(config):
-        """
-        Returns the length of each sublist of inputs to unflatten.
-        This number is used to split the list of sampled inputs into lists of a 
-        certain length. These lists are then unflattened to get a list of list
-        of inputs to pass to the black-box function.
+        Returns the distrs in a cleaner input format (such as ListInput), if
+        required. The original input `x` is also given in case input lengths
+        are needed such as in padded inputs.
         """
         pass
 
 
 class SingleDataset(StructuredDataset):
 
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return len(self.unstructured_dataset)
-
-    def __getitem__(self, index):
-        return self.dataset[index]
+        return self.dataset_size
 
     @staticmethod
     def collate_fn(batch, config):
@@ -145,45 +133,33 @@ class SingleDataset(StructuredDataset):
         allowed = [PREPROCESS_IDENTITY]
         return self.preprocess_from_allowed_strategies(allowed)
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        return input.DiscreteInputMapping(ud.input_mapping(ud), id)
 
-    def flatten(config, input):
-        return [input]
-
-    def unflatten(config, samples, data, batch_item):
-        return samples
-
-    def n_unflatten(config):
-        return 1
+    def distrs_to_input(distrs, x, config):
+        return distrs
 
 
 class IntDataset(StructuredDataset):
 
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return int(len(self.unstructured_dataset) / self.config[N_DIGITS])
-
-    def __getitem__(self, index):
-        return self.dataset[index]
+        return self.dataset_size
 
     @staticmethod
-    def collate_fn(batch, config):
-        imgs = [torch.stack([item[i] for item in batch])
-                for i in range(len(batch[0]))]
-        return imgs
+    def collate_fn(batch, _):
+        return torch.stack([torch.stack(item) for item in batch])
 
     def forward(net, x):
-        return [net(item) for item in x]
+        batch_size, length, _, _, _ = x.shape
+        return net(x.flatten(start_dim=0, end_dim=1)).view(batch_size, length, -1)
 
     def get_sample_strategy(self):
         n_digits = self.config[N_DIGITS]
@@ -206,57 +182,53 @@ class IntDataset(StructuredDataset):
         number = ''.join(str(n) for n in number_lst)
         return (imgs, int(number))
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
+    def combine(inputs):
+        return int("".join(str(s) for s in inputs))
 
-    def flatten(config, input):
-        return input
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        length = config[N_DIGITS]
+        element_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud), id)
+        return input.ListInputMapping(length, element_input_mapping, IntDataset.combine)
 
-    def unflatten(config, samples, data, batch_item):
-        number = ''
-        for i in samples:
-            number += str(i)
-        return [int(number)]
-
-    def n_unflatten(config):
-        return config[N_DIGITS]
+    def distrs_to_input(distrs, x, config):
+        length = config[N_DIGITS]
+        return input.ListInput(distrs, length)
 
 
 class SingleIntListDataset(StructuredDataset):
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return int(len(self.unstructured_dataset) / self.config[LENGTH])
-
-    def __getitem__(self, index):
-        return self.dataset[index]
+        return self.dataset_size
 
     @staticmethod
-    def collate_fn(batch, config):
-        imgs = [torch.stack([item[i] for item in batch])
-                for i in range(len(batch[0]))]
-        return imgs
+    def collate_fn(batch, _):
+        return torch.stack([torch.stack(item) for item in batch])
 
     def forward(net, x):
-        return [net(item) for item in x]
+        batch_size, length, _, _, _ = x.shape
+        return net(x.flatten(start_dim=0, end_dim=1)).view(batch_size, length, -1)
 
     def get_sample_strategy(self):
-        length = self.config[LENGTH]
         s = self.config[STRATEGY]
-        input_mapping = [i for i in range(10)]
-        if s == SIMPLE_LIST_STRATEGY:
+        if s == SINGLETON_STRATEGY:
+            input_mapping = [i for i in range(len(self.unstructured_dataset))]
+            strat = strategy.SingletonStrategy(
+                self.unstructured_dataset, input_mapping)
+        elif s == SIMPLE_LIST_STRATEGY:
+            length = self.config[LENGTH]
+            input_mapping = self.unstructured_dataset.input_mapping()
             strat = strategy.SimpleListStrategy(
                 self.unstructured_dataset, input_mapping, length)
         else:
-            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
 
     def get_preprocess_strategy(self):
@@ -267,44 +239,37 @@ class SingleIntListDataset(StructuredDataset):
         samples = self.preprocess.preprocess(self.strategy.sample())
         return zip(*samples)
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        length = config[LENGTH]
+        element_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud), id)
+        return input.ListInputMapping(length, element_input_mapping, id)
 
-    def flatten(config, input):
-        return input
-
-    def unflatten(config, samples, data, batch_item):
-        return [samples]
-
-    def n_unflatten(config):
-        return config[LENGTH]
+    def distrs_to_input(distrs, x, config):
+        length = config[LENGTH]
+        return input.ListInput(distrs, length)
 
 
 class IntListDataset(StructuredDataset):
 
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return int(len(self.unstructured_dataset) / (self.config[N_DIGITS] * self.config[LENGTH]))
-
-    def __getitem__(self, index):
-        return self.dataset[index]
+        return self.dataset_size
 
     @staticmethod
     def collate_fn(batch, config):
-        return [[torch.stack([item[i][j] for item in batch]) for j in range(
-            len(batch[0][0]))] for i in range(len(batch[0]))]
+        return torch.stack([torch.stack([torch.stack(i) for i in item]) for item in batch])
 
     def forward(net, x):
-        return [[net(i) for i in item] for item in x]
+        batch_size, length, n_digits, _, _, _ = x.shape
+        return net(x.flatten(start_dim=0, end_dim=2)).view(batch_size, length, n_digits, -1)
 
     def get_sample_strategy(self):
         n_digits = self.config[N_DIGITS]
@@ -331,119 +296,180 @@ class IntListDataset(StructuredDataset):
         lst = self.preprocess.preprocess(lst)
         return zip(*lst)
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
+    def combine(n_digits, input):
+        result = []
+        i = 0
+        current_int = ""
+        while i < len(input):
+            current_int += str(input[i])
+            i += 1
+            if i % n_digits == 0:
+                result.append(int(current_int))
+                current_int = ""
+        return result
 
-    def flatten(config, input):
-        return [item for i in input for item in i]
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        length = config[LENGTH]
+        n_digits = config[N_DIGITS]
+        digit_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud), id)
+        return input.ListInputMapping2D(length, n_digits, digit_input_mapping, partial(IntListDataset.combine, n_digits))
 
-    def unflatten(config, samples, data, batch_item):
-        result = [0] * config[LENGTH]
-        idx = 0
-        for i in range(config[LENGTH]):
-            number = ''
-            for _ in range(config[N_DIGITS]):
-                number += str(samples[idx])
-                idx += 1
-            result[i] = int(number)
-        return [result]
-
-    def n_unflatten(config):
-        return config[LENGTH] * config[N_DIGITS]
+    def distrs_to_input(distrs, x, config):
+        n_rows = config[LENGTH]
+        n_cols = config[N_DIGITS]
+        return input.ListInput2D(distrs, n_rows, n_cols)
 
 
 class SingleIntListListDataset(StructuredDataset):
-    pass
-
-
-class SingleIntGridDataset(StructuredDataset):
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return len(self.unstructured_dataset)
-
-    def __getitem__(self, index):
-        return self.dataset[index]
+        return self.dataset_size
 
     @staticmethod
     def collate_fn(batch, config):
-        return [[torch.stack([item[i][j] for item in batch]) for j in range(
-            len(batch[0][0]))] for i in range(len(batch[0]))]
+        return torch.stack([torch.stack([torch.stack(i) for i in item]) for item in batch])
 
     def forward(net, x):
-        return [[net(i) for i in item] for item in x]
+        batch_size, length, n_digits, _, _, _ = x.shape
+        return net(x.flatten(start_dim=0, end_dim=2)).view(batch_size, length, n_digits, -1)
 
     def get_sample_strategy(self):
-        length = self.config[LENGTH]
+        n_rows = self.config[N_ROWS]
+        n_cols = self.config[N_COLS]
         s = self.config[STRATEGY]
         input_mapping = [i for i in range(10)]
-        if s == SIMPLE_LIST_STRATEGY:
-            strat = strategy.SimpleListStrategy(
-                self.unstructured_dataset, input_mapping, length)
+        if s == LIST_2D:
+            strat = strategy.Simple2DListStrategy(
+                self.unstructured_dataset, input_mapping, n_rows, n_cols)
         else:
             raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
         return strat
 
     def get_preprocess_strategy(self):
-        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT]
+        allowed = [PREPROCESS_IDENTITY]
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
-        lst = [None] * self.config[LENGTH]
-        for i in range(self.config[LENGTH]):
-            samples = self.strategy.sample()
-            imgs, row = zip(*samples)
-            lst[i] = (imgs, list(row))
-        lst = self.preprocess.preprocess(lst)
-        return zip(*lst)
+        samples = self.strategy.sample()
+        samples = self.preprocess.preprocess(samples)
+        return zip(*samples)
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
+    def combine(length, input):
+        result = []
+        i = 0
+        current_row = []
+        while i < len(input):
+            current_row.append(input[i])
+            i += 1
+            if i % length == 0:
+                result.append(current_row)
+                current_row = []
+        return result
 
-    def flatten(config, input):
-        return [item for i in input for item in i]
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        n_rows = config[N_ROWS]
+        n_cols = config[N_COLS]
+        digit_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud), id)
+        return input.ListInputMapping2D(n_rows, n_cols, digit_input_mapping, partial(SingleIntListListDataset.combine, n_cols))
 
-    def unflatten(config, samples, data, batch_item):
-        n = config[LENGTH]
-        result = [0] * n
-        idx = 0
-        for i in range(n):
-            row = [0] * n
-            for j in range(n):
-                row[j] = samples[idx]
-                idx += 1
-            result[i] = row
-        return [result]
-
-    def n_unflatten(config):
-        return config[LENGTH] ** 2
+    def distrs_to_input(distrs, x, config):
+        n_rows = config[N_ROWS]
+        n_cols = config[N_COLS]
+        return input.ListInput2D(distrs, n_rows, n_cols)
 
 
-class PaddedStringDataset(StructuredDataset):
-
-    def __init__(self, config, unstructured_dataset):
+class SudokuDataset(StructuredDataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return len(self.unstructured_dataset)
+        return self.dataset_size
 
-    def __getitem__(self, index):
-        return self.dataset[index]
+    @staticmethod
+    def collate_fn(batch, config):
+        imgs = torch.stack([torch.stack([torch.stack(i)
+                           for (i, _) in item]) for item in batch])
+        selections = torch.stack(
+            [torch.stack([torch.tensor(s) for (_, s) in item]) for item in batch])
+        return (imgs, selections)
+
+    def forward(net, x):
+        (distrs, _) = x
+        batch_size, n_rows, n_cols, _, _, _ = distrs.shape
+        return net(distrs.flatten(start_dim=0, end_dim=2)).view(batch_size, n_rows, n_cols, -1)
+
+    def get_sample_strategy(self):
+        s = self.config[STRATEGY]
+        if s == SUDOKU_PROBLEM_STRATEGY:
+            strat = strategy.SudokuProblemStrategy(self.unstructured_dataset)
+        elif s == SUDOKU_RANDOM_STRATEGY:
+            strat = strategy.SudokuRandomStrategy(self.unstructured_dataset)
+        else:
+            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+        return strat
+
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_SUDOKU_BOARD]
+        return self.preprocess_from_allowed_strategies(allowed)
+
+    def generate_datapoint(self):
+        samples = self.strategy.sample()
+        (samples, bool_board) = self.preprocess.preprocess(samples)
+        samples = [((sample[0], bool_board[i]), sample[1])
+                   for i, sample in enumerate(samples)]
+        return zip(*samples)
+
+    def combine(length, input):
+        result = []
+        i = 0
+        current_row = []
+        while i < len(input):
+            current_row.append(input[i])
+            i += 1
+            if i % length == 0:
+                result.append(current_row)
+                current_row = []
+        return result
+
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        n_rows = config[N_ROWS]
+        n_cols = config[N_COLS]
+        digit_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud), id)
+        return input.ListInputMapping2DSudoku(n_rows, n_cols, digit_input_mapping, partial(SudokuDataset.combine, n_cols))
+
+    def distrs_to_input(distrs, x, config):
+        n_rows = config[N_ROWS]
+        n_cols = config[N_COLS]
+        return input.ListInput2DSudoku(distrs, x[1], n_rows, n_cols)
+
+
+class PaddedListDataset(StructuredDataset):
+
+    def __init__(self, config, dataset_size, unstructured_dataset):
+        self.config = config
+        self.dataset_size = dataset_size
+        self.unstructured_dataset = unstructured_dataset
+        self.strategy = self.get_sample_strategy()
+        self.preprocess = self.get_preprocess_strategy()
+
+    def __len__(self):
+        return self.dataset_size
 
     @staticmethod
     def collate_fn(batch, config):
@@ -464,12 +490,12 @@ class PaddedStringDataset(StructuredDataset):
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
-        input_mapping = [i for i in range(len(self.unstructured_dataset))]
-
         if s == SINGLETON_STRATEGY:
+            input_mapping = [i for i in range(len(self.unstructured_dataset))]
             strat = strategy.SingletonStrategy(
                 self.unstructured_dataset, input_mapping)
         elif s == SIMPLE_LIST_STRATEGY:
+            input_mapping = self.unstructured_dataset.input_mapping()
             strat = strategy.SimpleListStrategy(
                 self.unstructured_dataset, input_mapping, self.config[MAX_LENGTH]
             )
@@ -484,53 +510,43 @@ class PaddedStringDataset(StructuredDataset):
     def generate_datapoint(self):
         return self.preprocess.preprocess(self.strategy.sample())
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            imgs, string = self.generate_datapoint()
-            dataset[i] = ((imgs, len(string)), string)
-        return dataset
+    def string_combine(inputs):
+        return "".join(str(s) for s in inputs)
 
-    def flatten(config, input):
-        return [item for item in torch.transpose(input, 0, 1)]
-
-    def unflatten(config, samples, data, batch_item):
-        length = data[1][batch_item].item()
-        samples = samples[:length]
+    def get_input_mapping(config):
+        max_length = config[MAX_LENGTH]
         ud = get_unstructured_dataset_static(config)
-        input_mapping = ud.input_mapping(ud)
-        string = ''
-        for i in samples:
-            string += str(input_mapping[i])
-        return [string]
+        element_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud), id)
+        if ud == unstructured_dataset.HWFDataset:
+            combine = PaddedListDataset.string_combine
+        else:
+            raise Exception(f'invalid unstructured dataset: {ud}')
+        return input.PaddedListInputMapping(max_length, element_input_mapping, combine)
 
-    def n_unflatten(config):
-        return config[MAX_LENGTH]
+    def distrs_to_input(distrs, x, config):
+        lengths = [l.item() for l in x[1]]
+        return input.PaddedListInput(distrs, lengths)
 
 
 class StringDataset(StructuredDataset):
-    def __init__(self, config, unstructured_dataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
         self.config = config
+        self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
-        self.dataset = self.generate_dataset()
 
     def __len__(self):
-        return int(len(self.unstructured_dataset) / self.config[LENGTH])
-
-    def __getitem__(self, index):
-        return self.dataset[index]
+        return self.dataset_size
 
     @staticmethod
     def collate_fn(batch, config):
-        imgs = [torch.stack([item[i] for item in batch])
-                for i in range(len(batch[0]))]
-        return imgs
+        return torch.stack([torch.stack(item) for item in batch])
 
     def forward(net, x):
-        return [net(item) for item in x]
+        batch_size, length, _, _, _ = x.shape
+        return net(x.flatten(start_dim=0, end_dim=1)).view(batch_size, length, -1)
 
     def get_sample_strategy(self):
         length = self.config[LENGTH]
@@ -544,7 +560,7 @@ class StringDataset(StructuredDataset):
         return strat
 
     def get_preprocess_strategy(self):
-        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT]
+        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT, PREPROCESS_PALINDROME]
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
@@ -553,25 +569,73 @@ class StringDataset(StructuredDataset):
         string = ''.join(str(n) for n in string_list)
         return (imgs, string)
 
-    def generate_dataset(self):
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
+    def combine(inputs):
+        return "".join(str(s) for s in inputs)
 
-    def flatten(config, input):
-        return input
-
-    def unflatten(config, samples, data, batch_item):
+    def get_input_mapping(config):
+        length = config[LENGTH]
         ud = get_unstructured_dataset_static(config)
-        input_mapping = ud.input_mapping(ud)
-        string = ''
-        for i in samples:
-            string += str(input_mapping[i])
-        return [string]
+        element_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud), StringDataset.combine)
+        return input.ListInputMapping(length, element_input_mapping, StringDataset.combine)
 
-    def n_unflatten(config):
-        return config[LENGTH]
+    def distrs_to_input(distrs, x, config):
+        length = config[LENGTH]
+        return input.ListInput(distrs, length)
+
+
+class VideoDataset(StructuredDataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
+        self.config = config
+        self.dataset_size = dataset_size
+        self.unstructured_dataset = unstructured_dataset
+        self.strategy = self.get_sample_strategy()
+        self.preprocess = self.get_preprocess_strategy()
+
+    def __len__(self):
+        return self.dataset_size
+
+    @staticmethod
+    def collate_fn(batch, _):
+        return torch.stack(batch)
+
+    def forward(net, x):
+        return net(x)
+
+    def get_sample_strategy(self):
+        s = self.config[STRATEGY]
+        if s == SINGLETON_STRATEGY:
+            input_mapping = [i for i in range(len(self.unstructured_dataset))]
+            strat = strategy.SingletonStrategy(
+                self.unstructured_dataset, input_mapping)
+        elif s == SIMPLE_LIST_STRATEGY:
+            length = self.config[LENGTH]
+            input_mapping = self.unstructured_dataset.input_mapping()
+            strat = strategy.SimpleListStrategy(
+                self.unstructured_dataset, input_mapping, length)
+        else:
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
+        return strat
+
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT]
+        return self.preprocess_from_allowed_strategies(allowed)
+
+    def generate_datapoint(self):
+        samples = self.preprocess.preprocess(self.strategy.sample())
+        return samples
+
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        length = config[LENGTH]
+        element_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud), id)
+        return input.ListInputMapping(length, element_input_mapping, id)
+
+    # TODO: fix this to include other network predictions other than digit sequence
+    def distrs_to_input(distrs, x, config):
+        length = config[LENGTH]
+        return input.VideoInput(distrs[0], distrs[1], length)
 
 
 def get_unstructured_dataset_static(config):
@@ -600,17 +664,21 @@ def get_structured_dataset_static(config):
         return SingleDataset
     elif sd == INT_TYPE:
         return IntDataset
+    elif sd == SINGLE_INT_LIST_TYPE and MAX_LENGTH in config:
+        return PaddedListDataset
     elif sd == SINGLE_INT_LIST_TYPE:
         return SingleIntListDataset
     elif sd == SINGLE_INT_LIST_LIST_TYPE:
         return SingleIntListListDataset
-    elif sd == SINGLE_INT_GRID_TYPE:
-        return SingleIntGridDataset
     elif sd == INT_LIST_TYPE:
         return IntListDataset
     elif sd == STRING_TYPE and MAX_LENGTH in config:
-        return PaddedStringDataset
+        return PaddedListDataset
     elif sd == STRING_TYPE:
         return StringDataset
+    elif sd == SUDOKU_TYPE:
+        return SudokuDataset
+    elif sd == VIDEO_DIGIT_TYPE:
+        return VideoDataset
     else:
         raise UnknownStructuredDataset(f"Unknown dataset: {sd}")

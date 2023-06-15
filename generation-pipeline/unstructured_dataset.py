@@ -136,7 +136,7 @@ class HWFDataset(UnstructuredDataset):
         return HWF_dataset.HWFDataset.collate_fn(batch)
 
     def input_mapping(self):
-        return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/']
+        return [str(x) for x in range(10)] + ['+', '-', '*', '/']
 
     def sample_with_y(self, expr_id: int) -> int:
         expr = self.data.metadata[expr_id]['expr']
@@ -153,27 +153,30 @@ class HWFDataset(UnstructuredDataset):
 class MNISTVideoDataset(UnstructuredDataset):
 
     def __init__(self, train):
-        self.data = MNIST_video_dataset.get_data(train)
+        self.data, self.ids_of_video = MNIST_video_dataset.get_data(train)
 
     def __len__(self):
         return len(self.data)
 
     @staticmethod
     def collate_fn(batch):
-        pass
+        return MNIST_video_dataset.MNISTVideoDataset.collate_fn(batch)
 
     def input_mapping(self):
-        pass
+        return [i for i in range(10)]
 
-    def sample_with_y(self):
-        pass
+    def sample_with_y(self, video_id):
+        video = self.data[video_id]
+        key = tuple(video[1][0])
+        return self.ids_of_video[key][random.randrange(0, len(self.ids_of_video[key]))]
 
-    def get(self, index: int) -> Tuple[List[torch.Tensor], List[int]]:
-        video = self.data[index]
-        frames = video['frames_sg']
-        digits = [frame['digit'] for frame in frames]
-        # TODO: finish
-        return None
+    def get(self, index: int) -> Tuple[List[torch.Tensor], Tuple[Any]]:
+        video = self.data.metadata[index]
+        frames = [frame['digit'] for frame in video['frames_sg']]
+        imgs = self.data[index][0]
+        return (imgs, frames)
+        # frames =
+        # return [(img, video['frames_sg'][i]['digit']) for i, img in enumerate(self.data[index][0])]
 
     def net(self):
         return MNIST_video_net.MNISTVideoCNN()
