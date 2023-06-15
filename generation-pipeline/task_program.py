@@ -1,5 +1,6 @@
 from heapq import merge
 from typing import *
+import torch
 
 # Scallop programs
 
@@ -610,8 +611,12 @@ def grid_identity(x):
     return x
 
 
-def mnist_video_identity(x):
-    return x
+def mnist_video_digits(x):
+    digits, changes = x
+    indices_with_changes = changes.nonzero()
+    digits_with_changes = [digits[i[0]].nonzero().item()
+                           for i in indices_with_changes]
+    return digits_with_changes
 
 
 def palindrome_string(str):
@@ -673,7 +678,7 @@ dispatcher = {
     'sort_integer_list': sort_integer_list,
     'char_identity': char_identity,
     'grid_identity': grid_identity,
-    'mnist_video_identity': mnist_video_identity,
+    'mnist_video_digits': mnist_video_digits,
     'palindrome_string': palindrome_string,
 }
 
@@ -682,15 +687,4 @@ def dispatch(name, dispatch_args):
     """
     Returns the result of calling function `name` with arguments `dispatch_args`
     """
-    args = '('
-    for i, k in enumerate(dispatch_args):
-        arg = dispatch_args[k]
-        if type(arg) is str:
-            arg = "\'" + dispatch_args[k] + "\'"
-        next_str = k + '=' + str(arg)
-        if i != len(dispatch_args) - 1:
-            next_str += ', '
-        args += next_str
-    args += ')'
-    call = name + args
-    return eval(call, {'__builtins__': None}, dispatcher)
+    return dispatcher[name](*dispatch_args.values())

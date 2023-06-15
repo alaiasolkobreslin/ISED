@@ -101,6 +101,8 @@ class BlackBoxFunction(torch.nn.Module):
             return input.tensor.shape[0]
         elif type(input) == ListInput2DSudoku:
             return input.tensor.shape[0]
+        elif type(input) == VideoInput:
+            return input.tensor.shape[0]
         raise Exception("Unknown input type")
 
     def zip_batched_inputs(self, batched_inputs):

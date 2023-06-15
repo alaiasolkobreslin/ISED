@@ -1387,8 +1387,8 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
-  "mnist_video_identity": {
-    "py_func": "mnist_video_identity",
+  "mnist_video_digits": {
+    "py_func": "mnist_video_digits",
     "inputs": [
       {
         "name": "x",

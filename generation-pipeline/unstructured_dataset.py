@@ -171,12 +171,9 @@ class MNISTVideoDataset(UnstructuredDataset):
         return self.ids_of_video[key][random.randrange(0, len(self.ids_of_video[key]))]
 
     def get(self, index: int) -> Tuple[List[torch.Tensor], Tuple[Any]]:
-        video = self.data.metadata[index]
-        frames = [frame['digit'] for frame in video['frames_sg']]
         imgs = self.data[index][0]
-        return (imgs, frames)
-        # frames =
-        # return [(img, video['frames_sg'][i]['digit']) for i, img in enumerate(self.data[index][0])]
+        _, digits_tensor, change_tensor = self.data[index][1]
+        return (imgs, (digits_tensor, change_tensor))
 
     def net(self):
         return MNIST_video_net.MNISTVideoCNN()
