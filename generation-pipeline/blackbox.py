@@ -81,10 +81,12 @@ class BlackBoxFunction(torch.nn.Module):
         result_probs = torch.ones((batch_size, self.sample_count))
         for i in range(len(sampled_indices)):
             input_tensor = inputs[i]
-            input_permutations = self.get_permutations(sampled_indices, None)
-            # TODO: fix weights?
+            input_permutations = self.get_permutations(sampled_indices, inputs)
             proofs = [(1 if perm[i] == i else 0.25) * input_tensor.gather(
                 1, sampled_indices[perm[i]]) for perm in input_permutations]
+            # proofs = [input_tensor.gather(
+            #     1, sampled_indices[perm[i]]) for perm in input_permutations]
+            # proofs = [input_tensor.gather(1, sampled_indices[i])]
             result_probs *= sum(proofs)
 
         # Vectorize the results back into a tensor
@@ -138,11 +140,22 @@ class BlackBoxFunction(torch.nn.Module):
         self.__dict__.update(state)
 
     def get_permutations(self, idxs, inputs):
+        if self.inputs_permute and not random.randrange(0, 10):
+            # 1/10 chance that we check whether inputs permute
+            permutations = itertools.permutations(
+                [i for i in range(len(idxs))])
+            likely_inputs = [torch.argmax(input[0]).item() for input in inputs]
+            fn_input = [self.input_mappings[i].combine(
+                elt) for i, elt in enumerate(likely_inputs)]
+            original_output = self.function(*fn_input)
+            for perm in permutations:
+                permuted_inputs = [fn_input[i] for i in perm]
+                new_output = self.function(*permuted_inputs)
+                if new_output != original_output:
+                    self.inputs_permute = False
         if self.inputs_permute:
             permutations = itertools.permutations(
                 [i for i in range(len(idxs))])
-            # rand = random.randrange(0, 10)
-            # 1/10 chance that we check to make sure the function is symmetric?
             return permutations
         else:
             return [idxs]
