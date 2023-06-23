@@ -253,8 +253,10 @@ if __name__ == "__main__":
     parser = ArgumentParser("neuro-symbolic-dataset")
     parser.add_argument("--n-epochs", type=int, default=5)
     parser.add_argument("--seed", type=int, default=1234)
-    parser.add_argument("--n-samples", type=int, default=1000)
-    parser.add_argument("--difficulty", type=str, default="easy")
+    parser.add_argument("--n-samples", type=int, default=100)
+    parser.add_argument("--configuration", type=str,
+                        default="configuration.json")
+    parser.add_argument("--symmetry", type=bool, default=True)
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
 
@@ -264,7 +266,7 @@ if __name__ == "__main__":
     # Read json
     dir_path = os.path.dirname(os.path.realpath(__file__))
     configuration = json.load(
-        open(os.path.join(dir_path, "configuration.json")))
+        open(os.path.join(dir_path, args.configuration)))
 
     # Parameters
     n_epochs = args.n_epochs
