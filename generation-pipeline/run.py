@@ -18,8 +18,6 @@ import unstructured_dataset
 import structured_dataset
 import task_dataset
 import task_program
-import sample
-import input
 import output
 import blackbox
 import util
@@ -27,7 +25,10 @@ from constants import *
 
 
 class Dataset(torch.utils.data.Dataset):
-    def __init__(self, config, train):
+    def __init__(
+            self,
+            config: dict,
+            train: bool):
         self.dataset = task_dataset.TaskDataset(config, train)
 
     def __len__(self):
@@ -67,7 +68,15 @@ def train_test_loader(configuration, batch_size_train, batch_size_test):
 
 
 class TaskNet(nn.Module):
-    def __init__(self, unstructured_datasets, config, fn, output_mapping, sample_count, batch_size_train):
+    def __init__(
+            self,
+            unstructured_datasets: List[unstructured_dataset.UnstructuredDataset],
+            config: dict,
+            fn: Callable,
+            output_mapping: output.OutputMapping,
+            sample_count: int,
+            batch_size_train: int,
+            check_symmetry: bool):
         super(TaskNet, self).__init__()
 
         self.config = config
@@ -83,7 +92,7 @@ class TaskNet(nn.Module):
         input_mappings = tuple([sd.get_input_mapping(
             config[i]) for i, sd in enumerate(self.structured_datasets)])
         self.eval_formula = blackbox.BlackBoxFunction(
-            function=fn, input_mappings=input_mappings, output_mapping=output_mapping, batch_size=batch_size_train, sample_count=sample_count)
+            function=fn, input_mappings=input_mappings, output_mapping=output_mapping, batch_size=batch_size_train, check_symmetry=check_symmetry, sample_count=sample_count)
 
         self.pool = Pool(processes=batch_size_train)
 
@@ -138,9 +147,20 @@ class TaskNet(nn.Module):
 
 
 class Trainer():
-    def __init__(self, train_loader, test_loader, unstructured_datasets, learning_rate, config, fn, output_mapping, sample_count, batch_size_train):
+    def __init__(
+            self,
+            train_loader: torch.utils.data.DataLoader,
+            test_loader: torch.utils.data.DataLoader,
+            unstructured_datasets: List[unstructured_dataset.UnstructuredDataset],
+            learning_rate: float,
+            config: dict,
+            fn: Callable,
+            output_mapping: output.OutputMapping,
+            sample_count: int,
+            batch_size_train: int,
+            check_symmetry: bool):
         self.network = TaskNet(unstructured_datasets=unstructured_datasets,
-                               config=config, fn=fn, output_mapping=output_mapping, sample_count=sample_count, batch_size_train=batch_size_train)
+                               config=config, fn=fn, output_mapping=output_mapping, sample_count=sample_count, batch_size_train=batch_size_train, check_symmetry=check_symmetry)
         self.optimizers = [optim.Adam(
             net.parameters(), lr=learning_rate) for net in self.network.nets_dict.values()]
         self.train_loader = train_loader
@@ -253,7 +273,7 @@ if __name__ == "__main__":
     parser = ArgumentParser("neuro-symbolic-dataset")
     parser.add_argument("--n-epochs", type=int, default=5)
     parser.add_argument("--seed", type=int, default=1234)
-    parser.add_argument("--n-samples", type=int, default=100)
+    parser.add_argument("--n-samples", type=int, default=1000)
     parser.add_argument("--configuration", type=str,
                         default="configuration.json")
     parser.add_argument("--symmetry", type=bool, default=True)
@@ -307,5 +327,5 @@ if __name__ == "__main__":
         unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
             input, train=True) for input in task_config[INPUTS]]
         trainer = Trainer(train_loader=train_loader, test_loader=test_loader, unstructured_datasets=unstructured_datasets, learning_rate=learning_rate,
-                          config=config, fn=fn, output_mapping=om, sample_count=args.n_samples, batch_size_train=batch_size_train)
+                          config=config, fn=fn, output_mapping=om, sample_count=args.n_samples, batch_size_train=batch_size_train, check_symmetry=args.symmetry)
         trainer.train(n_epochs)

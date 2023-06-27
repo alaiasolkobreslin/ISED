@@ -42,6 +42,7 @@ class BlackBoxFunction(torch.nn.Module):
             input_mappings: Tuple[InputMapping],
             output_mapping: OutputMapping,
             batch_size: int,
+            check_symmetry: bool = True,
             sample_count: int = 100,
             timeout_seconds: int = 1):
         super(BlackBoxFunction, self).__init__()
@@ -51,7 +52,8 @@ class BlackBoxFunction(torch.nn.Module):
         self.output_mapping = output_mapping
         self.pool = Pool(processes=batch_size)
         self.sample_count = sample_count
-        self.inputs_permute = True
+        self.inputs_permute = True if check_symmetry and len(
+            input_mappings) > 1 else False
         # self.timeout_decorator = timeout(seconds=timeout_seconds)
 
     def forward(self, *inputs):
@@ -78,16 +80,21 @@ class BlackBoxFunction(torch.nn.Module):
         results = self.invoke_function_on_batched_inputs(to_compute_inputs)
 
         # Aggregate the probabilities
-        result_probs = torch.ones((batch_size, self.sample_count))
+        input_permutations = self.get_permutations(sampled_indices, inputs)
+        n_permutations = len([i for i in input_permutations])
+        result_probs = torch.ones(
+            (n_permutations, batch_size, self.sample_count))
         for i in range(len(sampled_indices)):
             input_tensor = inputs[i]
             input_permutations = self.get_permutations(sampled_indices, inputs)
-            proofs = [(1 if perm[i] == i else 0.25) * input_tensor.gather(
+            proofs = [(1 if perm[i] == i else 1) * input_tensor.gather(
                 1, sampled_indices[perm[i]]) for perm in input_permutations]
+            for (j, proof) in enumerate(proofs):
+                result_probs[j] *= proof
             # proofs = [input_tensor.gather(
             #     1, sampled_indices[perm[i]]) for perm in input_permutations]
             # proofs = [input_tensor.gather(1, sampled_indices[i])]
-            result_probs *= sum(proofs)
+        result_probs = torch.sum(result_probs, dim=0)
 
         # Vectorize the results back into a tensor
         return self.output_mapping.vectorize(results, result_probs)
@@ -158,4 +165,5 @@ class BlackBoxFunction(torch.nn.Module):
                 [i for i in range(len(idxs))])
             return permutations
         else:
-            return [idxs]
+            permutations = [i for i in range(len(idxs))]
+            return [permutations]
