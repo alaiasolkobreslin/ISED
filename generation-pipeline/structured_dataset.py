@@ -414,10 +414,14 @@ class SudokuDataset(StructuredDataset):
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
+        n_rows = self.config[N_ROWS]
+        n_cols = self.config[N_COLS]
         if s == SUDOKU_PROBLEM_STRATEGY:
-            strat = strategy.SudokuProblemStrategy(self.unstructured_dataset)
+            strat = strategy.SudokuProblemStrategy(
+                self.unstructured_dataset, n_rows, n_cols)
         elif s == SUDOKU_RANDOM_STRATEGY:
-            strat = strategy.SudokuRandomStrategy(self.unstructured_dataset)
+            strat = strategy.SudokuRandomStrategy(
+                self.unstructured_dataset, n_rows, n_cols)
         else:
             raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
         return strat

@@ -186,6 +186,124 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
+  "sum_5": {
+    "py_func": "sum_5",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      },
+      {
+        "name": "digit_2",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      },
+      {
+        "name": "digit_3",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      },
+      {
+        "name": "digit_4",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      },
+      {
+        "name": "digit_5",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "sum_6": {
+    "py_func": "sum_6",
+    "inputs": [
+      {
+        "name": "digit_1",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      },
+      {
+        "name": "digit_2",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      },
+      {
+        "name": "digit_3",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      },
+      {
+        "name": "digit_4",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      },
+      {
+        "name": "digit_5",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      },
+      {
+        "name": "digit_6",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
   "add_mod_3": {
     "py_func": "add_mod_3",
     "inputs": [
@@ -909,8 +1027,8 @@
         "type": "Sudoku",
         "strategy": "sudoku_probem_sample",
         "preprocess": "make_board",
-        "n_rows": 30,
-        "n_cols": 30,
+        "n_rows": 9,
+        "n_cols": 9,
         "dataset": "MNIST",
         "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
@@ -1529,6 +1647,56 @@
     ],
     "output": {
       "type": "bool",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "valid_mini_sudoku": {
+    "py_func": "valid_mini_sudoku",
+    "inputs": [
+      {
+        "name": "board",
+        "type": "Sudoku",
+        "strategy": "sudoku_random_sample",
+        "preprocess": "make_board",
+        "n_rows": 4,
+        "n_cols": 4,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
+      }
+    ],
+    "output": {
+      "type": "bool",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "mini_sudoku_solver": {
+    "py_func": "mini_sudoku_solver",
+    "inputs": [
+      {
+        "name": "board",
+        "type": "Sudoku",
+        "strategy": "sudoku_probem_sample",
+        "preprocess": "make_board",
+        "n_rows": 4,
+        "n_cols": 4,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
+      }
+    ],
+    "output": {
+      "type": "List[List[str]]",
       "output_mapping": "unknown",
       "fallback": 0
     },

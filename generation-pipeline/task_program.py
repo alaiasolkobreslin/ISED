@@ -17,6 +17,14 @@ def sum_4(digit_1, digit_2, digit_3, digit_4):
     return digit_1 + digit_2 + digit_3 + digit_4
 
 
+def sum_5(digit_1, digit_2, digit_3, digit_4, digit_5):
+    return digit_1 + digit_2 + digit_3 + digit_4 + digit_5
+
+
+def sum_6(digit_1, digit_2, digit_3, digit_4, digit_5, digit_6):
+    return digit_1 + digit_2 + digit_3 + digit_4 + digit_5 + digit_6
+
+
 def add_mod_3(digit_1, digit_2):
     return (digit_1 + digit_2) % 3
 
@@ -623,10 +631,83 @@ def palindrome_string(str):
     return str == str[::-1]
 
 
+def valid_mini_sudoku(board):
+    """
+    :type board: List[List[str]]
+    :rtype: bool
+    """
+    # Check rows
+    for i in range(4):
+        d = {}
+        for j in range(4):
+            if board[i][j] == '.':
+                pass
+            elif board[i][j] in d:
+                return False
+            else:
+                d[board[i][j]] = True
+    # Check columns
+    for j in range(4):
+        d = {}
+        for i in range(4):
+            if board[i][j] == '.':
+                pass
+            elif board[i][j] in d:
+                return False
+            else:
+                d[board[i][j]] = True
+    # Check sub-boxes
+    for m in range(0, 4, 2):
+        for n in range(0, 4, 2):
+            d = {}
+            for i in range(n, n + 2):
+                for j in range(m, m + 2):
+                    if board[i][j] == '.':
+                        pass
+                    elif board[i][j] in d:
+                        return False
+                    else:
+                        d[board[i][j]] = True
+    return True
+
+
+def mini_sudoku_solver(board):
+    def isValid(row: int, col: int, c: chr) -> bool:
+        for i in range(4):
+            if board[i][col] == c or \
+               board[row][i] == c or \
+               board[2 * (row // 2) + i // 2][2 * (col // 2) + i % 2] == c:
+                return False
+        return True
+
+    def solve(s: int) -> bool:
+        if s == 16:
+            return True
+
+        i = s // 4
+        j = s % 4
+
+        if board[i][j] != '.':
+            return solve(s + 1)
+
+        for c in '1234':
+            if isValid(i, j, c):
+                board[i][j] = c
+                if solve(s + 1):
+                    return True
+                board[i][j] = '.'
+
+        return False
+
+    solve(0)
+
+
 dispatcher = {
     'sum_2': sum_2,
     'sum_3': sum_3,
     'sum_4': sum_4,
+    'sum_5': sum_5,
+    'sum_6': sum_6,
     'add_mod_3': add_mod_3,
     'add_sub': add_sub,
     'eq_2': eq_2,
@@ -680,6 +761,8 @@ dispatcher = {
     'grid_identity': grid_identity,
     'mnist_video_digits': mnist_video_digits,
     'palindrome_string': palindrome_string,
+    'valid_mini_sudoku': valid_mini_sudoku,
+    'mini_sudoku_solver': mini_sudoku_solver,
 }
 
 
