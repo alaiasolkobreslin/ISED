@@ -132,7 +132,7 @@ class InputMapping:
     def sample(self, input: Any,
                sample_count: int) -> Tuple[torch.Tensor, List[Any]]: pass
 
-    def permute(self, inputs: List[Any]) -> List[Any]: pass
+    def permute(self) -> List[Any]: pass
 
 
 class PaddedListInputMapping(InputMapping):
@@ -169,13 +169,7 @@ class PaddedListInputMapping(InputMapping):
         return (sampled_indices, result_sampled_elements)
 
     def permute(self, inputs: List[Any]):
-        # TODO: do we need to account for the padding? I think not
-        if not self.does_permute:
-            return []
-        input_permute = itertools.permutations(inputs)
-        permutations = [[self.element_input_mapping.permute(
-            e) for e in p] for p in input_permute]
-        return permutations
+        pass
 
 
 class ListInputMapping(InputMapping):
@@ -212,14 +206,10 @@ class ListInputMapping(InputMapping):
         return (sampled_indices, result_sampled_elements)
 
     def permute(self):
-        if not self.does_permute:
-            return []
         idx_lst = [i for i in range(self.length)]
+        if not self.does_permute:
+            return [idx_lst]
         return [p for p in itertools.permutations(idx_lst)]
-        # input_permute = itertools.permutations(inputs)
-        # permutations = [[self.element_input_mapping.permute(
-        #     e) for e in p] for p in input_permute]
-        # return permutations
 
 
 class ListInputMapping2DSudoku(InputMapping):
@@ -310,13 +300,16 @@ class ListInputMapping2D(InputMapping):
 
         return (sampled_indices, result_sampled_elements)
 
-    def permute(self, inputs):
+    def permute(self):
         all_idxs = [i for i in range(self.n_rows * self.n_cols)]
+        if not self.does_permute:
+            return [[[all_idxs[i * (self.n_cols - 1) + j]
+                      for j in range(self.n_cols)] for i in range(self.n_rows)]]
         flat_permutations = itertools.permutations(all_idxs)
-        permutations = [[[p[i * (self.n_cols - 1) + j]
+        permutations = [[[p[i * self.n_cols + j]
                           for j in range(self.n_cols)] for i in range(self.n_rows)] for p in flat_permutations]
-        input_permutations = [[inputs[permutations[i][j]]
-                               for j in range(self.n_cols)] for i in range(self.n_rows)]
+        input_permutations = [[[all_idxs[p[i][j]]
+                               for j in range(self.n_cols)] for i in range(self.n_rows)] for p in permutations]
         return input_permutations
 
 
