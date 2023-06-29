@@ -45,10 +45,16 @@ class ListInput(Input):
         return torch.prod(result, dim=1)
 
     def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[Tuple]):
-        batch_size, _, samples = indices.shape
-        result = torch.ones(batch_size, samples)
-        for p in permutations:
-            pass
+        _, length, _ = indices.shape
+        proofs = []
+        tensor_lst = [i for i in torch.transpose(self.tensor, 0, 1)]
+        for perm in permutations:
+            permuted = torch.stack([tensor_lst[perm[i]]
+                                   for i in range(length)])
+            new_tensor = torch.transpose(permuted, 0, 1)
+            new_tensor_gathered = new_tensor.gather(dim+1, indices)
+            proofs.append(torch.prod(new_tensor_gathered, dim=1))
+        return proofs
 
 
 class PaddedListInput(Input):
@@ -63,6 +69,18 @@ class PaddedListInput(Input):
     def gather(self, dim: int, indices: torch.Tensor):
         result = self.tensor.gather(dim + 1, indices)
         return torch.prod(result, dim=1)
+
+    def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[Tuple]):
+        _, length, _ = indices.shape
+        proofs = []
+        tensor_lst = [i for i in torch.transpose(self.tensor, 0, 1)]
+        for perm in permutations:
+            permuted = torch.stack([tensor_lst[perm[i]]
+                                   for i in range(length)])
+            new_tensor = torch.transpose(permuted, 0, 1)
+            new_tensor_gathered = new_tensor.gather(dim+1, indices)
+            proofs.append(torch.prod(new_tensor_gathered, dim=1))
+        return proofs
 
 
 class ListInput2D(Input):
@@ -130,7 +148,7 @@ class PaddedListInputMapping(InputMapping):
         assert list_length == self.max_length, "inputs must have the same number of columns as the max length"
         flattened = list_input.tensor.reshape((batch_size * list_length, -1))
         sampled_indices, sampled_elements = self.element_input_mapping.sample(
-            flattened, sample_count)
+            SingleInput(flattened), sample_count)
 
         # Reshape the sampled elements
         result_sampled_elements = []
@@ -173,7 +191,7 @@ class ListInputMapping(InputMapping):
         assert list_length == self.length, "inputs must have the same number of columns as the length"
         flattened = list_input.tensor.reshape((batch_size * list_length, -1))
         sampled_indices, sampled_elements = self.element_input_mapping.sample(
-            flattened, sample_count)
+            SingleInput(flattened), sample_count)
 
         # Reshape the sampled elements
         result_sampled_elements = []
@@ -193,7 +211,7 @@ class ListInputMapping(InputMapping):
 
         return (sampled_indices, result_sampled_elements)
 
-    def permute(self, inputs: List[Any]):
+    def permute(self):
         if not self.does_permute:
             return []
         idx_lst = [i for i in range(self.length)]
@@ -222,7 +240,7 @@ class ListInputMapping2DSudoku(InputMapping):
         flattened = list_input.tensor.reshape(
             (batch_size * n_rows * n_cols, -1))
         sampled_indices, sampled_elements = self.element_input_mapping.sample(
-            flattened, sample_count)
+            SingleInput(flattened), sample_count)
 
         # Reshape the sampled elements
         result_sampled_elements = []
@@ -271,7 +289,7 @@ class ListInputMapping2D(InputMapping):
         flattened = list_input.tensor.reshape(
             (batch_size * n_rows * n_cols, -1))
         sampled_indices, sampled_elements = self.element_input_mapping.sample(
-            flattened, sample_count)
+            SingleInput(flattened), sample_count)
 
         # Reshape the sampled elements
         result_sampled_elements = []
