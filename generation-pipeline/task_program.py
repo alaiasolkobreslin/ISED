@@ -702,6 +702,10 @@ def mini_sudoku_solver(board):
     solve(0)
 
 
+def sum_grid(grid):
+    return sum(elt for row in grid for elt in row)
+
+
 dispatcher = {
     'sum_2': sum_2,
     'sum_3': sum_3,
@@ -763,6 +767,7 @@ dispatcher = {
     'palindrome_string': palindrome_string,
     'valid_mini_sudoku': valid_mini_sudoku,
     'mini_sudoku_solver': mini_sudoku_solver,
+    'sum_grid': sum_grid,
 }
 
 

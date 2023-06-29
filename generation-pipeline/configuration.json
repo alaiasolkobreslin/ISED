@@ -1705,5 +1705,30 @@
     "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
+  },
+  "sum_grid": {
+    "py_func": "sum_grid",
+    "inputs": [
+      {
+        "name": "grid",
+        "type": "List[List[digit]]",
+        "strategy": "2d_list",
+        "preprocess": "id",
+        "n_rows": 2,
+        "n_cols": 2,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   }
 }
