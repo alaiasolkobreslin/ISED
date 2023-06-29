@@ -138,7 +138,7 @@ class SingleDataset(StructuredDataset):
         return input.DiscreteInputMapping(ud.input_mapping(ud), id)
 
     def distrs_to_input(distrs, x, config):
-        return distrs
+        return input.SingleInput(distrs)
 
 
 class IntDataset(StructuredDataset):

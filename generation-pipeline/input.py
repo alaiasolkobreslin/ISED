@@ -1,30 +1,63 @@
 import itertools
+from typing import List, Tuple
 import torch
 
 from typing import *
 
 
-class ListInput:
+class Input:
+
+    def __init__(self, tensor: torch.Tensor):
+        self.tensor = tensor
+
+    def batch_size(self):
+        return self.tensor.shape[0]
+
+    def gather(self, dim: int, indices: torch.Tensor):
+        pass
+
+    def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[Tuple]):
+        pass
+
+
+class SingleInput(Input):
+    def __init__(self, tensor: torch.Tensor):
+        super(SingleInput, self).__init__(tensor)
+
+    def gather(self, dim: int, indices: torch.Tensor):
+        return self.tensor.gather(dim, indices)
+
+    def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[Tuple]):
+        return self.tensor.gather(dim, indices)
+
+
+class ListInput(Input):
     """
     The struct holding vectorized list input
     """
 
     def __init__(self, tensor: torch.Tensor, length: int):
-        self.tensor = tensor
+        super(ListInput, self).__init__(tensor)
         self.length = length
 
     def gather(self, dim: int, indices: torch.Tensor):
         result = self.tensor.gather(dim + 1, indices)
         return torch.prod(result, dim=1)
 
+    def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[Tuple]):
+        batch_size, _, samples = indices.shape
+        result = torch.ones(batch_size, samples)
+        for p in permutations:
+            pass
 
-class PaddedListInput:
+
+class PaddedListInput(Input):
     """
     The struct holding vectorized list input
     """
 
     def __init__(self, tensor: torch.Tensor, lengths: List[int]):
-        self.tensor = tensor
+        super(PaddedListInput, self).__init__(tensor)
         self.lengths = lengths
 
     def gather(self, dim: int, indices: torch.Tensor):
@@ -32,10 +65,10 @@ class PaddedListInput:
         return torch.prod(result, dim=1)
 
 
-class ListInput2D:
+class ListInput2D(Input):
 
     def __init__(self, tensor: torch.Tensor, n_rows: int, n_cols: int):
-        self.tensor = tensor
+        super(ListInput2D, self).__init__(tensor)
         self.n_rows = n_rows
         self.n_cols = n_cols
 
@@ -43,11 +76,14 @@ class ListInput2D:
         result = self.tensor.gather(dim + 2, indices)
         return torch.prod(torch.prod(result, dim=1), dim=1)
 
+    def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[Tuple]):
+        pass
 
-class ListInput2DSudoku:
+
+class ListInput2DSudoku(Input):
 
     def __init__(self, tensor: torch.Tensor, selected: torch.Tensor, n_rows: int, n_cols: int):
-        self.tensor = tensor
+        super(ListInput2DSudoku, self).__init__(tensor)
         self.selected = selected
         self.n_rows = n_rows
         self.n_cols = n_cols
@@ -56,19 +92,21 @@ class ListInput2DSudoku:
         result = self.tensor.gather(dim + 2, indices)
         return torch.prod(torch.prod(result, dim=1), dim=1)
 
-class VideoInput:
+
+class VideoInput(Input):
     """
     The struct holding vectorized list input
     """
 
     def __init__(self, tensor: torch.Tensor, change: torch.Tensor, length: int):
-        self.tensor = tensor
+        super(VideoInput, self).__init__(tensor)
         self.change = change
         self.length = length
 
     def gather(self, dim: int, indices: torch.Tensor):
         result = self.tensor.gather(dim + 1, indices)
         return torch.prod(result, dim=1)
+
 
 class InputMapping:
     def __init__(self): pass
@@ -113,6 +151,7 @@ class PaddedListInputMapping(InputMapping):
         return (sampled_indices, result_sampled_elements)
 
     def permute(self, inputs: List[Any]):
+        # TODO: do we need to account for the padding? I think not
         if not self.does_permute:
             return []
         input_permute = itertools.permutations(inputs)
@@ -157,10 +196,12 @@ class ListInputMapping(InputMapping):
     def permute(self, inputs: List[Any]):
         if not self.does_permute:
             return []
-        input_permute = itertools.permutations(inputs)
-        permutations = [[self.element_input_mapping.permute(
-            e) for e in p] for p in input_permute]
-        return permutations
+        idx_lst = [i for i in range(self.length)]
+        return [p for p in itertools.permutations(idx_lst)]
+        # input_permute = itertools.permutations(inputs)
+        # permutations = [[self.element_input_mapping.permute(
+        #     e) for e in p] for p in input_permute]
+        # return permutations
 
 
 class ListInputMapping2DSudoku(InputMapping):
@@ -209,7 +250,7 @@ class ListInputMapping2DSudoku(InputMapping):
         return (sampled_indices, result_sampled_elements)
 
     def permute(self, inputs):
-        pass
+        return [inputs]
 
 
 class ListInputMapping2D(InputMapping):
@@ -252,7 +293,13 @@ class ListInputMapping2D(InputMapping):
         return (sampled_indices, result_sampled_elements)
 
     def permute(self, inputs):
-        pass
+        all_idxs = [i for i in range(self.n_rows * self.n_cols)]
+        flat_permutations = itertools.permutations(all_idxs)
+        permutations = [[[p[i * (self.n_cols - 1) + j]
+                          for j in range(self.n_cols)] for i in range(self.n_rows)] for p in flat_permutations]
+        input_permutations = [[inputs[permutations[i][j]]
+                               for j in range(self.n_cols)] for i in range(self.n_rows)]
+        return input_permutations
 
 
 class DiscreteInputMapping(InputMapping):
@@ -260,11 +307,11 @@ class DiscreteInputMapping(InputMapping):
         self.elements = elements
         self.combine = combine
 
-    def sample(self, inputs: torch.Tensor, sample_count: int) -> Tuple[torch.Tensor, List[Any]]:
-        num_input_elements = inputs.shape[1]
+    def sample(self, inputs: SingleInput, sample_count: int) -> Tuple[torch.Tensor, List[Any]]:
+        num_input_elements = inputs.tensor.shape[1]
         assert num_input_elements == len(
             self.elements), "inputs must have the same number of columns as the number of elements"
-        distrs = torch.distributions.Categorical(probs=inputs)
+        distrs = torch.distributions.Categorical(probs=inputs.tensor)
         sampled_indices = distrs.sample((sample_count,)).transpose(0, 1)
         sampled_elements = [[self.elements[i] for i in sampled_indices_for_task_i]
                             for sampled_indices_for_task_i in sampled_indices]

@@ -62,10 +62,10 @@ class BlackBoxFunction(torch.nn.Module):
             self.input_mappings), "inputs and input_mappings must have the same length"
 
         # Get the batch size
-        batch_size = self.get_batch_size(inputs[0])
+        batch_size = inputs[0].batch_size()
         for i in range(1, num_inputs):
-            assert batch_size == self.get_batch_size(
-                inputs[i]), "all inputs must have the same batch size"
+            assert batch_size == inputs[i].batch_size(
+            ), "all inputs must have the same batch size"
 
         # Prepare the inputs to the black-box function
         to_compute_inputs, sampled_indices = [], []
@@ -87,32 +87,16 @@ class BlackBoxFunction(torch.nn.Module):
         for i in range(len(sampled_indices)):
             input_tensor = inputs[i]
             input_permutations = self.get_permutations(sampled_indices, inputs)
+            # individual_permutations = self.get_individual_permutations(
+            #     sampled_indices[i], inputs)
             proofs = [(1 if perm[i] == i else 1) * input_tensor.gather(
                 1, sampled_indices[perm[i]]) for perm in input_permutations]
             for (j, proof) in enumerate(proofs):
                 result_probs[j] *= proof
-            # proofs = [input_tensor.gather(
-            #     1, sampled_indices[perm[i]]) for perm in input_permutations]
-            # proofs = [input_tensor.gather(1, sampled_indices[i])]
         result_probs = torch.sum(result_probs, dim=0)
 
         # Vectorize the results back into a tensor
         return self.output_mapping.vectorize(results, result_probs)
-
-    def get_batch_size(self, input: Any):
-        if type(input) == torch.Tensor:
-            return input.shape[0]
-        elif type(input) == ListInput:
-            return input.tensor.shape[0]
-        elif type(input) == PaddedListInput:
-            return len(input.lengths)
-        elif type(input) == ListInput2D:
-            return input.tensor.shape[0]
-        elif type(input) == ListInput2DSudoku:
-            return input.tensor.shape[0]
-        elif type(input) == VideoInput:
-            return input.tensor.shape[0]
-        raise Exception("Unknown input type")
 
     def zip_batched_inputs(self, batched_inputs):
         result = [list(zip(*lists)) for lists in zip(*batched_inputs)]
@@ -163,7 +147,25 @@ class BlackBoxFunction(torch.nn.Module):
         if self.inputs_permute:
             permutations = itertools.permutations(
                 [i for i in range(len(idxs))])
-            return permutations
+            permutations_list = [p for p in permutations]
+            # TODO: This cutoff size is hardcoded. Fix this?
+            if len(permutations_list) > 120:
+                permutations_list = permutations_list[:120]
+            return permutations_list
         else:
             permutations = [i for i in range(len(idxs))]
             return [permutations]
+
+    # def get_individual_permutations(self, sampled_indices, inputs):
+
+    #     permutations = []
+    #     for i, input in enumerate(inputs):
+    #         p = self.input_mappings[i].permute(input)  # is it input or idx?
+    #         permutations.append(p)
+    #     return permutations
+
+        # permutations = []
+        # for i, input in enumerate(inputs):
+        #     im = self.input_mappings[i]
+        #     permutations.append(im.permute(input))
+        #     pass
