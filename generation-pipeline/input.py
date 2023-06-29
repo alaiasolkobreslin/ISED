@@ -95,7 +95,20 @@ class ListInput2D(Input):
         return torch.prod(torch.prod(result, dim=1), dim=1)
 
     def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[Tuple]):
-        pass
+        batch_size, rows, cols, _ = indices.shape
+        proofs = []
+        once_transposed = torch.transpose(self.tensor, 0, 1)
+        twice_transposed = torch.transpose(once_transposed, 1, 2)
+        tensor_lst = [i for j in twice_transposed for i in j]
+        for perm in permutations:
+            permuted = torch.stack([tensor_lst[perm[i]]
+                                   for i in range(rows * cols)]).view(rows, cols, batch_size, -1)
+            new_tensor_transposed = torch.transpose(permuted, 1, 2)
+            new_tensor = torch.transpose(new_tensor_transposed, 0, 1)
+            new_tensor_gathered = new_tensor.gather(dim+2, indices)
+            proofs.append(torch.prod(torch.prod(
+                new_tensor_gathered, dim=1), dim=1))
+        return proofs
 
 
 class ListInput2DSudoku(Input):
@@ -168,7 +181,7 @@ class PaddedListInputMapping(InputMapping):
 
         return (sampled_indices, result_sampled_elements)
 
-    def permute(self, inputs: List[Any]):
+    def permute(self, inputs: List[Tuple]):
         pass
 
 
@@ -303,14 +316,9 @@ class ListInputMapping2D(InputMapping):
     def permute(self):
         all_idxs = [i for i in range(self.n_rows * self.n_cols)]
         if not self.does_permute:
-            return [[[all_idxs[i * (self.n_cols - 1) + j]
-                      for j in range(self.n_cols)] for i in range(self.n_rows)]]
-        flat_permutations = itertools.permutations(all_idxs)
-        permutations = [[[p[i * self.n_cols + j]
-                          for j in range(self.n_cols)] for i in range(self.n_rows)] for p in flat_permutations]
-        input_permutations = [[[all_idxs[p[i][j]]
-                               for j in range(self.n_cols)] for i in range(self.n_rows)] for p in permutations]
-        return input_permutations
+            return [all_idxs]
+        permutations = itertools.permutations(all_idxs)
+        return [p for p in permutations]
 
 
 class DiscreteInputMapping(InputMapping):
