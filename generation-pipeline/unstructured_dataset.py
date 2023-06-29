@@ -1,6 +1,10 @@
 
 from typing import *
 import random
+import torchvision
+
+from sklearn.metrics import confusion_matrix
+import numpy
 
 import torch
 
@@ -46,6 +50,30 @@ class UnstructuredDataset:
         """
         pass
 
+    def confusion_matrix(self, network):
+        """
+        Plots the confusion matrix
+        """
+        pass
+
+    def plot_confusion_matrix(self, network, dataset):
+        loader = torch.utils.data.DataLoader(
+            dataset, batch_size=64)
+
+        network.eval()
+
+        y_true, y_pred = [], []
+        with torch.no_grad():
+            for (imgs, gt) in loader:
+                preds = numpy.argmax(network(imgs), axis=1)
+                y_true += [d.item() for d in gt]
+                y_pred += [d.item() for d in preds]
+
+        # Compute confusion matrix
+        cm = confusion_matrix(y_true, y_pred)
+
+        print(cm)
+
 
 class MNISTDataset(UnstructuredDataset):
 
@@ -72,6 +100,10 @@ class MNISTDataset(UnstructuredDataset):
     def net(self):
         return MNIST_net.MNISTNet()
 
+    def confusion_matrix(self, network):
+        mnist_dataset, _ = MNIST_dataset.get_data(train=False)
+        self.plot_confusion_matrix(network=network, dataset=mnist_dataset)
+
 
 class EMNISTDataset(UnstructuredDataset):
     def __init__(self, train):
@@ -97,6 +129,10 @@ class EMNISTDataset(UnstructuredDataset):
     def net(self):
         return EMNIST_net.EMNISTNet()
 
+    def confusion_matrix(self, network):
+        emnist_dataset, _ = EMNIST_dataset.get_data(train=False)
+        self.plot_confusion_matrix(network=network, dataset=emnist_dataset)
+
 
 class SVHNDataset(UnstructuredDataset):
     def __init__(self, train):
@@ -108,7 +144,7 @@ class SVHNDataset(UnstructuredDataset):
 
     @staticmethod
     def collate_fn(batch):
-        return MNIST_dataset.MNISTDataset.collate_fn(batch)
+        return SVHN_dataset.SVHNDataset.collate_fn(batch)
 
     def input_mapping(self):
         return [i for i in range(10)]
@@ -121,6 +157,10 @@ class SVHNDataset(UnstructuredDataset):
 
     def net(self):
         return SVHN_net.SVHNNet()
+
+    def confusion_matrix(self, network):
+        svhn_dataset, _ = SVHN_dataset.get_data(train=False)
+        self.plot_confusion_matrix(network=network, dataset=svhn_dataset)
 
 
 class HWFDataset(UnstructuredDataset):
@@ -148,6 +188,9 @@ class HWFDataset(UnstructuredDataset):
 
     def net(self):
         return HWF_symbol_net.SymbolNet()
+
+    def confusion_matrix(self, network):
+        pass
 
 
 class MNISTVideoDataset(UnstructuredDataset):
@@ -178,6 +221,9 @@ class MNISTVideoDataset(UnstructuredDataset):
     def net(self):
         return MNIST_video_net.MNISTVideoCNN()
 
+    def confusion_matrix(self, network):
+        pass
+
 
 class MNISTGridDataset(UnstructuredDataset):
 
@@ -201,4 +247,7 @@ class MNISTGridDataset(UnstructuredDataset):
         pass
 
     def net(self):
+        pass
+
+    def confusion_matrix(self, network):
         pass
