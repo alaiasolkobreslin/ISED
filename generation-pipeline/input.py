@@ -70,6 +70,20 @@ class PaddedListInput(Input):
         result = self.tensor.gather(dim + 1, indices)
         return torch.prod(result, dim=1)
 
+    # def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[List[Tuple]]):
+    #     batch_size, max_length, _ = indices.shape
+    #     proofs = []
+    #     tensor_lst = [i for i in torch.transpose(self.tensor, 0, 1)]
+    #     for i in range(batch_size):
+    #         length = self.lengths[i]
+    #         for perm in permutations[length-1]:
+    #             permuted = torch.stack([tensor_lst[perm[j]]
+    #                                     for j in range(length)])
+    #             new_tensor = torch.transpose(permuted, 0, 1)
+    #             new_tensor_gathered = new_tensor.gather(dim+1, indices)
+    #             proofs.append(torch.prod(new_tensor_gathered, dim=1))
+    #     return proofs
+
     def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[Tuple]):
         _, length, _ = indices.shape
         proofs = []
@@ -181,8 +195,24 @@ class PaddedListInputMapping(InputMapping):
 
         return (sampled_indices, result_sampled_elements)
 
-    def permute(self, inputs: List[Tuple]):
-        pass
+    def permute(self):
+        idx_lst = [i for i in range(self.max_length)]
+        if not self.does_permute:
+            return [idx_lst]
+        return [p for p in itertools.permutations(idx_lst)]
+
+    # def permute(self):
+    #     permutations = []
+    #     if not self.does_permute:
+    #         for i in range(self.max_length):
+    #             idx_lst = [j for j in range(i)]
+    #             permutations.append([idx_lst])
+    #     else:
+    #         for i in range(self.max_length):
+    #             idx_lst = [j for j in range(i+1)]
+    #             permutations.append(
+    #                 [p for p in itertools.permutations(idx_lst)])
+    #     return permutations
 
 
 class ListInputMapping(InputMapping):
@@ -270,8 +300,8 @@ class ListInputMapping2DSudoku(InputMapping):
 
         return (sampled_indices, result_sampled_elements)
 
-    def permute(self, inputs):
-        return [inputs]
+    def permute(self):
+        return []
 
 
 class ListInputMapping2D(InputMapping):
@@ -336,5 +366,5 @@ class DiscreteInputMapping(InputMapping):
                             for sampled_indices_for_task_i in sampled_indices]
         return (sampled_indices, sampled_elements)
 
-    def permute(self, inputs):
-        return [inputs]
+    def permute(self):
+        return []
