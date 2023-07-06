@@ -78,8 +78,10 @@ class UnstructuredDataset:
 class MNISTDataset(UnstructuredDataset):
 
     def __init__(self, train):
+        self.name = MNIST
+        digits = [i for i in range(10)]
         self.data, self.ids_of_digit = MNIST_dataset.get_data(
-            train)
+            train=train, digits=digits)
 
     def __len__(self):
         return len(self.data)
@@ -101,12 +103,48 @@ class MNISTDataset(UnstructuredDataset):
         return MNIST_net.MNISTNet(n_preds=10)
 
     def confusion_matrix(self, network):
-        mnist_dataset, _ = MNIST_dataset.get_data(train=False)
+        digits = [i for i in range(10)]
+        mnist_dataset, _ = MNIST_dataset.get_data(train=False, digits=digits)
+        self.plot_confusion_matrix(network=network, dataset=mnist_dataset)
+
+
+class MNISTDataset_0to4(UnstructuredDataset):
+
+    def __init__(self, train):
+        self.name = MNIST_0TO4
+        self.digits = [i for i in range(0, 5)]
+        self.data, self.ids_of_digit = MNIST_dataset.get_data(
+            train=train, digits=self.digits)
+
+    def __len__(self):
+        return len(self.data)
+
+    @staticmethod
+    def collate_fn(batch):
+        return MNIST_dataset.MNISTDataset.collate_fn(batch)
+
+    def input_mapping(self):
+        return [i for i in range(1, 5)]
+
+    def sample_with_y(self, digit: int) -> int:
+        # TODO: known bug: sample with y does not return the correct index
+        return self.ids_of_digit[digit][random.randrange(0, len(self.ids_of_digit[digit]))]
+
+    def get(self, index: int) -> Tuple[torch.Tensor, int]:
+        return self.data[index]
+
+    def net(self):
+        return MNIST_net.MNISTNet(n_preds=4)
+
+    def confusion_matrix(self, network):
+        mnist_dataset, _ = MNIST_dataset.get_data(
+            train=False, digits=self.digits)
         self.plot_confusion_matrix(network=network, dataset=mnist_dataset)
 
 
 class EMNISTDataset(UnstructuredDataset):
     def __init__(self, train):
+        self.name = EMNIST
         self.data, self.ids_of_character = EMNIST_dataset.get_data(
             train)
 
@@ -136,6 +174,7 @@ class EMNISTDataset(UnstructuredDataset):
 
 class SVHNDataset(UnstructuredDataset):
     def __init__(self, train):
+        self.name = SVHN
         self.data, self.ids_of_digit = SVHN_dataset.get_data(
             train)
 
@@ -166,6 +205,7 @@ class SVHNDataset(UnstructuredDataset):
 class HWFDataset(UnstructuredDataset):
 
     def __init__(self, train):
+        self.name = HWF_SYMBOL
         self.data, self.ids_of_expr = HWF_dataset.get_data(train)
 
     def __len__(self):
@@ -196,6 +236,7 @@ class HWFDataset(UnstructuredDataset):
 class MNISTVideoDataset(UnstructuredDataset):
 
     def __init__(self, train):
+        self.name = MNIST_VIDEO
         self.data, self.ids_of_video = MNIST_video_dataset.get_data(train)
 
     def __len__(self):
@@ -228,6 +269,7 @@ class MNISTVideoDataset(UnstructuredDataset):
 class MNISTGridDataset(UnstructuredDataset):
 
     def __init__(self, train):
+        self.name = MNIST_GRID
         pass
 
     def __len__(self):

@@ -104,21 +104,7 @@ class TaskNet(nn.Module):
                 self.nets_dict[ud_name] = ud.net()
             nets.append(self.nets_dict[ud_name])
         for ud in self.unstructured_datasets:
-            if type(ud) is unstructured_dataset.MNISTDataset:
-                add_net(MNIST, ud)
-            elif type(ud) is unstructured_dataset.EMNISTDataset:
-                add_net(EMNIST, ud)
-            elif type(ud) is unstructured_dataset.SVHNDataset:
-                add_net(SVHN, ud)
-            elif type(ud) is unstructured_dataset.HWFDataset:
-                add_net(HWF_SYMBOL, ud)
-            elif type(ud) is unstructured_dataset.MNISTVideoDataset:
-                add_net(MNIST_VIDEO, ud)
-            elif type(ud) is unstructured_dataset.MNISTGridDataset:
-                add_net(MNIST_GRID, ud)
-            else:
-                raise structured_dataset.UnknownUnstructuredDataset(
-                    f"Unknown dataset: {ud}")
+            add_net(ud.name, ud)
         return nets
 
     def parameters(self):

@@ -1689,7 +1689,7 @@
         "preprocess": "make_board",
         "n_rows": 4,
         "n_cols": 4,
-        "dataset": "MNIST",
+        "dataset": "MNIST_0TO4",
         "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
     ],
@@ -1714,7 +1714,7 @@
         "preprocess": "make_board",
         "n_rows": 4,
         "n_cols": 4,
-        "dataset": "MNIST",
+        "dataset": "MNIST_0TO4",
         "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
     ],

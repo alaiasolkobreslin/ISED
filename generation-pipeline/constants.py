@@ -42,6 +42,7 @@ SVHN = "SVHN"
 HWF_SYMBOL = "HWF"
 MNIST_VIDEO = "MNIST_VIDEO"
 MNIST_GRID = "MNIST_GRID"
+MNIST_0TO4 = "MNIST_0TO4"
 
 # Dataset generation strategies
 STRATEGY = "strategy"

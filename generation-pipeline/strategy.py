@@ -83,8 +83,9 @@ class SudokuProblemStrategy(Strategy):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         sudoku_path = os.path.join(dir_path, self.file)
 
-        quizzes = np.zeros((1000000, 81), np.int32)
-        solutions = np.zeros((1000000, 81), np.int32)
+        total_squares = self.n_rows * self.n_cols
+        quizzes = np.zeros((1000000, total_squares), np.int32)
+        solutions = np.zeros((1000000, total_squares), np.int32)
         for i, line in enumerate(open(sudoku_path, 'r').read().splitlines()[1:]):
             quiz, solution = line.split(",")
             for j, q_s in enumerate(zip(quiz, solution)):
@@ -96,7 +97,8 @@ class SudokuProblemStrategy(Strategy):
         return quizzes, solutions
 
     def sample(self):
-        sampled_problem = self.quizzes[random.randrange(0, self.n_problems)]
+        problem_sample = random.randrange(0, self.n_problems)
+        sampled_problem = self.quizzes[problem_sample]
         samples = []
         for i in range(self.n_rows):
             row_img = []

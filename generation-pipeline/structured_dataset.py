@@ -656,6 +656,8 @@ def get_unstructured_dataset_static(config):
         return unstructured_dataset.MNISTVideoDataset
     elif ud == MNIST_GRID:
         return unstructured_dataset.MNISTGridDataset
+    elif ud == MNIST_0TO4:
+        return unstructured_dataset.MNISTDataset_0to4
     else:
         raise UnknownUnstructuredDataset(f"Unknown dataset: {ud}")
 

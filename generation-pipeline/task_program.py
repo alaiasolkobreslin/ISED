@@ -644,10 +644,6 @@ def valid_mini_sudoku(board):
     :type board: List[List[str]]
     :rtype: bool
     """
-    for row in board:
-        for item in row:
-            if item not in ['.', '1', '2', '3', '4']:
-                return False
     # Check rows
     for i in range(4):
         d = {}
@@ -712,6 +708,7 @@ def mini_sudoku_solver(board):
         return False
 
     solve(0)
+    return board
 
 
 def sum_grid(grid):
