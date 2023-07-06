@@ -3,12 +3,12 @@ import torch.nn.functional as F
 
 
 class MNISTNet(nn.Module):
-    def __init__(self):
+    def __init__(self, n_preds):
         super(MNISTNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
         self.fc1 = nn.Linear(1024, 1024)
-        self.fc2 = nn.Linear(1024, 10)
+        self.fc2 = nn.Linear(1024, n_preds)
 
     def forward(self, x):
         x = F.max_pool2d(self.conv1(x), 2)

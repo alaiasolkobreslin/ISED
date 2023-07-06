@@ -98,7 +98,7 @@ class MNISTDataset(UnstructuredDataset):
         return self.data[index]
 
     def net(self):
-        return MNIST_net.MNISTNet()
+        return MNIST_net.MNISTNet(n_preds=10)
 
     def confusion_matrix(self, network):
         mnist_dataset, _ = MNIST_dataset.get_data(train=False)

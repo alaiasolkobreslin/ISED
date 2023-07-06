@@ -254,6 +254,10 @@ def valid_sudoku(board):
     :type board: List[List[str]]
     :rtype: bool
     """
+    for row in board:
+        for item in row:
+            if item not in ['.', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+                return False
     # Check rows
     for i in range(9):
         d = {}
@@ -619,6 +623,10 @@ def grid_identity(x):
     return x
 
 
+def svhn_identity(x):
+    return x
+
+
 def mnist_video_digits(x):
     digits, changes = x
     indices_with_changes = changes.nonzero()
@@ -636,6 +644,10 @@ def valid_mini_sudoku(board):
     :type board: List[List[str]]
     :rtype: bool
     """
+    for row in board:
+        for item in row:
+            if item not in ['.', '1', '2', '3', '4']:
+                return False
     # Check rows
     for i in range(4):
         d = {}
@@ -706,6 +718,12 @@ def sum_grid(grid):
     return sum(elt for row in grid for elt in row)
 
 
+def how_many_3_two_lists(l1, l2):
+    s1 = sum((n == 3) for n in l1)
+    s2 = sum((n == 3) for n in l2)
+    return s1 + s2
+
+
 dispatcher = {
     'sum_2': sum_2,
     'sum_3': sum_3,
@@ -763,11 +781,13 @@ dispatcher = {
     'sort_integer_list': sort_integer_list,
     'char_identity': char_identity,
     'grid_identity': grid_identity,
+    'svhn_identity': svhn_identity,
     'mnist_video_digits': mnist_video_digits,
     'palindrome_string': palindrome_string,
     'valid_mini_sudoku': valid_mini_sudoku,
     'mini_sudoku_solver': mini_sudoku_solver,
     'sum_grid': sum_grid,
+    'how_many_3_two_lists': how_many_3_two_lists,
 }
 
 

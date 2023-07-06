@@ -1632,6 +1632,29 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
+  "svhn_identity": {
+    "py_func": "svhn_identity",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "digit",
+        "strategy": "singleton",
+        "preprocess": "id",
+        "dataset": "SVHN",
+        "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
   "palindrome_string": {
     "py_func": "palindrome_string",
     "inputs": [
@@ -1718,6 +1741,39 @@
         "n_cols": 2,
         "dataset": "MNIST",
         "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "how_many_3_two_lists": {
+    "py_func": "how_many_3_two_lists",
+    "inputs": [
+      {
+        "name": "l1",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      },
+      {
+        "name": "l2",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {

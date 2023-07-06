@@ -145,6 +145,11 @@ class TaskNet(nn.Module):
     def close(self):
         self.pool.close()
 
+    def confusion_matrix(self):
+        # for i, ud in enumerate(self.unstructured_datasets):
+        #     ud.confusion_matrix(self.nets[i])
+        self.unstructured_datasets[0].confusion_matrix(self.nets[0])
+
 
 class Trainer():
     def __init__(
@@ -260,6 +265,8 @@ class Trainer():
                 iter.set_description(
                     f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
 
+        self.network.confusion_matrix()
+
     def train(self, n_epochs):
         # self.test_epoch(0)
         for epoch in range(1, n_epochs + 1):
@@ -271,12 +278,12 @@ class Trainer():
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("neuro-symbolic-dataset")
-    parser.add_argument("--n-epochs", type=int, default=5)
+    parser.add_argument("--n-epochs", type=int, default=10)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--n-samples", type=int, default=1000)
     parser.add_argument("--configuration", type=str,
                         default="configuration.json")
-    parser.add_argument("--symmetry", type=bool, default=True)
+    parser.add_argument("--symmetry", type=bool, default=False)
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
 
