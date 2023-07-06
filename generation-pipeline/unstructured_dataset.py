@@ -127,7 +127,6 @@ class MNISTDataset_0to4(UnstructuredDataset):
         return [i for i in range(1, 5)]
 
     def sample_with_y(self, digit: int) -> int:
-        # TODO: known bug: sample with y does not return the correct index
         return self.ids_of_digit[digit][random.randrange(0, len(self.ids_of_digit[digit]))]
 
     def get(self, index: int) -> Tuple[torch.Tensor, int]:
