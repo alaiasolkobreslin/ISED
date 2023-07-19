@@ -1,6 +1,7 @@
 from heapq import merge
 from typing import *
 import torch
+import numpy as np
 
 # Scallop programs
 
@@ -721,6 +722,24 @@ def how_many_3_two_lists(l1, l2):
     return s1 + s2
 
 
+def sort_list_indices(x):
+    return np.argsort(x).tolist()
+
+
+def coffee_leaf_severity(quantiles, areas):
+    total_area = sum(areas)
+    if total_area < quantiles['Q1']:
+        return 1
+    elif total_area < quantiles['Q2']:
+        return 2
+    elif total_area < quantiles['Q3']:
+        return 3
+    elif total_area < quantiles['Q4']:
+        return 4
+    else:
+        return 5
+
+
 dispatcher = {
     'sum_2': sum_2,
     'sum_3': sum_3,
@@ -785,6 +804,8 @@ dispatcher = {
     'mini_sudoku_solver': mini_sudoku_solver,
     'sum_grid': sum_grid,
     'how_many_3_two_lists': how_many_3_two_lists,
+    'sort_list_indices': sort_list_indices,
+    'coffee_leaf_severity': coffee_leaf_severity,
 }
 
 

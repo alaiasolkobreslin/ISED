@@ -74,6 +74,8 @@ class StructuredDataset:
             strat = preprocess.PreprocessSudokuBoard()
         elif s == PREPROCESS_PALINDROME:
             strat = preprocess.PreprocessPalindrome()
+        elif s == PREPROCESS_COFFEE:
+            strat = preprocess.PreprocessCoffee()
         return strat
 
     def get_preprocess_strategy(self):
@@ -173,7 +175,7 @@ class IntDataset(StructuredDataset):
         return strat
 
     def get_preprocess_strategy(self):
-        allowed = [PREPROCESS_IDENTITY]
+        allowed = [PREPROCESS_IDENTITY, PREPROCESS_PALINDROME]
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):

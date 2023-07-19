@@ -43,6 +43,7 @@ HWF_SYMBOL = "HWF"
 MNIST_VIDEO = "MNIST_VIDEO"
 MNIST_GRID = "MNIST_GRID"
 MNIST_0TO4 = "MNIST_0TO4"
+COFFEE_LEAF = "COFFEE_LEAF"
 
 # Dataset generation strategies
 STRATEGY = "strategy"
@@ -58,6 +59,7 @@ PREPROCESS_IDENTITY = "id"
 PREPROCESS_SORT = "sort"
 PREPROCESS_SUDOKU_BOARD = 'make_board'
 PREPROCESS_PALINDROME = 'palindrome'
+PREPROCESS_COFFEE = 'preprocess_coffee'
 
 # Output
 OUTPUT = "output"

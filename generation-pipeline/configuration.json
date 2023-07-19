@@ -847,7 +847,7 @@
       {
         "name": "x",
         "type": "int",
-        "num_digits": 3,
+        "num_digits": 5,
         "strategy": "list",
         "preprocess": "palindrome",
         "dataset": "MNIST",
@@ -1786,5 +1786,52 @@
     "batch_size_test": 16,
     "dataset_size_train": 5000,
     "dataset_size_test": 500
+  },
+  "sort_list_indices": {
+    "py_func": "sort_list_indices",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 2,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "coffee_leaf_severity": {
+    "py_func": "coffee_leaf_severity",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "leaf_area",
+        "strategy": "singleton",
+        "preprocess": "preprocess_coffee",
+        "dataset": "COFFEE_LEAF",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 1000,
+    "dataset_size_test": 100
   }
 }

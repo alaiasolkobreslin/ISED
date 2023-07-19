@@ -50,3 +50,9 @@ class PreprocessPalindrome(Preprocess):
             half_to_append = input[:(len(input) // 2)]
             half_to_return = input[:self.ceildiv(len(input), 2)]
             return half_to_return + list(reversed(half_to_append))
+
+
+class PreprocessCoffee(Preprocess):
+
+    def preprocess(self, input):
+        pass
