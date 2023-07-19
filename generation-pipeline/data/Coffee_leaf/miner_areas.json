@@ -260,5 +260,10 @@
     "bicho_mineiro56": 217543,
     "bicho_mineiro194": 1058008
   },
-  "train_quantiles": {}
+  "train_quantiles": {
+    "Q1": 354227.0,
+    "Q2": 498202.4,
+    "Q3": 620841.6,
+    "Q4": 812283.6
+  }
 }
