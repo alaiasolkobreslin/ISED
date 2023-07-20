@@ -15,7 +15,8 @@ def configure_sam(args):
         if "sam_checkpoint" in args:
             _CHECKPOINT = args.sam_checkpoint
         else:
-            _CHECKPOINT = os.getenv("SAM_CHECKPOINT")
+            # _CHECKPOINT = os.getenv("SAM_CHECKPOINT")
+            _CHECKPOINT = '/workspace/neuro-symbolic-dataset/generation-pipeline/data/SAM/sam_vit_h_4b8939.pth'
         if _CHECKPOINT is None:
             return
     except:
