@@ -6,20 +6,6 @@ from collections import defaultdict
 import torch
 from PIL import Image
 from torchvision import transforms
-from torchvision.transforms import functional
-
-
-class BBox:
-    def __init__(self, xmin, xmax, ymin, ymax):
-        self.xmin = xmin
-        self.xmax = xmax
-        self.ymin = ymin
-        self.ymax = ymax
-
-    def crop_image(self, img):
-        area = (self.xmin, self.ymin, self.xmax, self.ymax)
-        cropped_img = img.crop(area)
-        return cropped_img
 
 
 class CoffeeLeafDataset(torch.utils.data.Dataset):
@@ -50,7 +36,6 @@ class CoffeeLeafDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         leaf = self.metadata[index]
-        print(f"leaf: {leaf}")
         leaf_path = os.path.join(
             self.root, f"Coffee_leaf/{self.img_dir}/{leaf}")
         img_full_path = leaf_path + ".jpg"
