@@ -1817,7 +1817,7 @@
       {
         "name": "x",
         "type": "leaf_area",
-        "max_legnth": 44,
+        "max_length": 44,
         "strategy": "single_sample",
         "preprocess": "preprocess_coffee",
         "dataset": "COFFEE_LEAF_RUST",
@@ -1841,7 +1841,7 @@
       {
         "name": "x",
         "type": "leaf_area",
-        "max_length": 44,
+        "max_length": 46,
         "strategy": "single_sample",
         "preprocess": "preprocess_coffee",
         "dataset": "COFFEE_LEAF_MINER",
