@@ -14,7 +14,7 @@ class Strategy:
         pass
 
 
-class SingletonStrategy(Strategy):
+class SingleSampleStrategy(Strategy):
     def __init__(self, unstructured_dataset, input_mapping):
         self.unstructured_dataset = unstructured_dataset
         self.input_mapping = input_mapping

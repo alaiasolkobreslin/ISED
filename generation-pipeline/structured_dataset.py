@@ -125,8 +125,8 @@ class SingleDataset(StructuredDataset):
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
         input_mapping = self.unstructured_dataset.input_mapping()
-        if s == SINGLETON_STRATEGY:
-            strat = strategy.SingletonStrategy(
+        if s == SINGLE_SAMPLE_STRATEGY:
+            strat = strategy.SingleSampleStrategy(
                 self.unstructured_dataset, input_mapping)
         else:
             raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
@@ -223,9 +223,9 @@ class SingleIntListDataset(StructuredDataset):
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
-        if s == SINGLETON_STRATEGY:
+        if s == SINGLE_SAMPLE_STRATEGY:
             input_mapping = [i for i in range(len(self.unstructured_dataset))]
-            strat = strategy.SingletonStrategy(
+            strat = strategy.SingleSampleStrategy(
                 self.unstructured_dataset, input_mapping)
         elif s == SIMPLE_LIST_STRATEGY:
             length = self.config[LENGTH]
@@ -503,9 +503,9 @@ class PaddedListDataset(StructuredDataset):
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
-        if s == SINGLETON_STRATEGY:
+        if s == SINGLE_SAMPLE_STRATEGY:
             input_mapping = [i for i in range(len(self.unstructured_dataset))]
-            strat = strategy.SingletonStrategy(
+            strat = strategy.SingleSampleStrategy(
                 self.unstructured_dataset, input_mapping)
         elif s == SIMPLE_LIST_STRATEGY:
             input_mapping = self.unstructured_dataset.input_mapping()
@@ -619,9 +619,9 @@ class VideoDataset(StructuredDataset):
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
-        if s == SINGLETON_STRATEGY:
+        if s == SINGLE_SAMPLE_STRATEGY:
             input_mapping = [i for i in range(len(self.unstructured_dataset))]
-            strat = strategy.SingletonStrategy(
+            strat = strategy.SingleSampleStrategy(
                 self.unstructured_dataset, input_mapping)
         elif s == SIMPLE_LIST_STRATEGY:
             length = self.config[LENGTH]
@@ -674,10 +674,10 @@ class CoffeeLeafDataset(StructuredDataset):
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
-        if s == SINGLETON_STRATEGY:
+        if s == SINGLE_SAMPLE_STRATEGY:
             # input_mapping = [i for i in range(len(self.unstructured_dataset))]
             input_mapping = [i for i in range(1, 6)]
-            strat = strategy.SingletonStrategy(
+            strat = strategy.SingleSampleStrategy(
                 self.unstructured_dataset, input_mapping)
         else:
             raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")

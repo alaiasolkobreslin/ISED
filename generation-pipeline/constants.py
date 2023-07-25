@@ -48,7 +48,7 @@ COFFEE_LEAF_RUST = "COFFEE_LEAF_RUST"
 
 # Dataset generation strategies
 STRATEGY = "strategy"
-SINGLETON_STRATEGY = "singleton"
+SINGLE_SAMPLE_STRATEGY = "single_sample"
 SIMPLE_LIST_STRATEGY = "list"
 LIST_2D = "2d_list"
 SUDOKU_PROBLEM_STRATEGY = "sudoku_probem_sample"
