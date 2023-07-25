@@ -647,7 +647,6 @@ class VideoDataset(StructuredDataset):
             ud.input_mapping(ud), id)
         return input.ListInputMapping(length, element_input_mapping, id)
 
-    # TODO: fix this to include other network predictions other than digit sequence
     def distrs_to_input(distrs, x, config):
         length = config[LENGTH]
         return input.VideoInput(distrs[0], distrs[1], length)
@@ -666,11 +665,25 @@ class CoffeeLeafDataset(StructuredDataset):
         return self.dataset_size
 
     @staticmethod
-    def collate_fn(batch, _):
-        return torch.stack(batch)
+    def collate_fn(batch, config):
+        max_len = config[MAX_LENGTH]
+        zero_img = torch.zeros_like(batch[0][0][0])
+
+        def pad_zero(img_seq): return img_seq + \
+            [zero_img] * (max_len - len(img_seq))
+        def pad_zero_areas(areas): return areas + \
+            [0] * (max_len - len(areas))
+        img_seqs = torch.stack([torch.stack(pad_zero(img_seq))
+                               for (img_seq, _) in batch])
+        area_seqs = torch.stack(
+            [torch.Tensor(pad_zero_areas(areas)) for (_, areas) in batch])
+        img_seq_len = torch.stack(
+            [torch.tensor(len(areas)).long() for (_, areas) in batch])
+        return (img_seqs, area_seqs, img_seq_len)
 
     def forward(net, x):
-        return net(x)
+        (distrs, _, _) = x
+        return net(distrs)
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
@@ -692,15 +705,15 @@ class CoffeeLeafDataset(StructuredDataset):
         return samples
 
     def get_input_mapping(config):
-        ud = get_unstructured_dataset_static(config)
         max_length = config[MAX_LENGTH]
         element_input_mapping = input.DiscreteInputMapping(
-            ud.input_mapping(ud), id)
-        return input.PaddedListInputMapping(max_length, element_input_mapping, id)
+            [0, 1], id)
+        return input.PaddedListInputMappingCoffee(max_length, element_input_mapping, id)
 
     def distrs_to_input(distrs, x, _):
-        lengths = [l.item() for l in x[1]]
-        return input.PaddedListInput(distrs, lengths)
+        lengths = [l.item() for l in x[2]]
+        areas = [[int(a.item()) for a in area] for area in x[1]]
+        return input.CoffeeInput(distrs, lengths, areas)
 
 
 def get_unstructured_dataset_static(config):

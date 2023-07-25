@@ -57,6 +57,17 @@ class ListInput(Input):
         return proofs
 
 
+class CoffeeInput(Input):
+    def __init__(self, tensor: torch.Tensor, lengths: List[int], areas: List[List[int]]):
+        super(CoffeeInput, self).__init__(tensor)
+        self.lengths = lengths
+        self.areas = areas
+
+    def gather(self, dim: int, indices: torch.Tensor):
+        result = self.tensor.gather(dim + 1, indices)
+        return torch.prod(result, dim=1)
+
+
 class PaddedListInput(Input):
     """
     The struct holding vectorized list input
@@ -69,6 +80,18 @@ class PaddedListInput(Input):
     def gather(self, dim: int, indices: torch.Tensor):
         result = self.tensor.gather(dim + 1, indices)
         return torch.prod(result, dim=1)
+
+        # # _, _, samples = indices.shape
+        # result = self.tensor.gather(dim + 1, indices)
+        # final_results = []
+        # for i, batch in enumerate(result):
+        #     length_i = self.lengths[i]
+        #     # collected = batch.view(length_i, samples)
+        #     collected = batch[:length_i]
+        #     final_results.append(torch.prod(collected, dim=0))
+        # return torch.stack(final_results)
+        # # result = self.tensor.gather(dim + 1, indices)
+        # # return torch.prod(result, dim=1)
 
     # def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[List[Tuple]]):
     #     batch_size, max_length, _ = indices.shape
@@ -134,8 +157,18 @@ class ListInput2DSudoku(Input):
         self.n_cols = n_cols
 
     def gather(self, dim: int, indices: torch.Tensor):
+        _, _, _, samples = indices.shape
         result = self.tensor.gather(dim + 2, indices)
-        return torch.prod(torch.prod(result, dim=1), dim=1)
+        final_results = []
+        for i, batch in enumerate(result):
+            selected_i = self.selected[i]
+            collected = torch.ones(samples)
+            for j, row in enumerate(selected_i):
+                for k, col in enumerate(row):
+                    if col:
+                        collected *= batch[j][k]
+            final_results.append(collected)
+        return torch.stack(final_results)
 
 
 class VideoInput(Input):
@@ -160,6 +193,41 @@ class InputMapping:
                sample_count: int) -> Tuple[torch.Tensor, List[Any]]: pass
 
     def permute(self) -> List[Any]: pass
+
+
+class PaddedListInputMappingCoffee(InputMapping):
+    def __init__(self, max_length: int, element_input_mapping: InputMapping, combine: Callable):
+        self.max_length = max_length
+        self.element_input_mapping = element_input_mapping
+        self.combine = combine
+        self.does_permute = True
+
+    def sample(self, list_input: CoffeeInput, sample_count: int) -> Tuple[torch.Tensor, List[List[Any]]]:
+        # Sample the elements
+        batch_size, list_length = list_input.tensor.shape[0], list_input.tensor.shape[1]
+        assert list_length == self.max_length, "inputs must have the same number of columns as the max length"
+        flattened = list_input.tensor.reshape((batch_size * list_length, -1))
+        sampled_indices, sampled_elements = self.element_input_mapping.sample(
+            SingleInput(flattened), sample_count)
+
+        # Reshape the sampled elements
+        result_sampled_elements = []
+        for i in range(batch_size):
+            curr_batch_selected = []
+            for j in range(sample_count):
+                curr_elem_selected = []
+                for k in range(list_input.lengths[i]):
+                    curr_elem_selected.append((
+                        sampled_elements[i * list_length + k][j], list_input.areas[i][k]))
+                curr_batch_selected.append(curr_elem_selected)
+            result_sampled_elements.append(curr_batch_selected)
+
+        # Reshape the sampled indices
+        sampled_indices_original_shape = tuple(sampled_indices.shape[1:])
+        sampled_indices = sampled_indices.reshape(
+            batch_size, list_length, *sampled_indices_original_shape)
+
+        return (sampled_indices, result_sampled_elements)
 
 
 class PaddedListInputMapping(InputMapping):

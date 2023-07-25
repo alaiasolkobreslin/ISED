@@ -1812,7 +1812,7 @@
     "dataset_size_test": 500
   },
   "rust_coffee_leaf_severity": {
-    "py_func": "coffee_leaf_severity",
+    "py_func": "rust_coffee_leaf_severity",
     "inputs": [
       {
         "name": "x",
@@ -1832,11 +1832,11 @@
     "learning_rate": 0.0001,
     "batch_size_train": 16,
     "batch_size_test": 16,
-    "dataset_size_train": 10,
-    "dataset_size_test": 1
+    "dataset_size_train": 1000,
+    "dataset_size_test": 100
   },
   "miner_coffee_leaf_severity": {
-    "py_func": "coffee_leaf_severity",
+    "py_func": "miner_coffee_leaf_severity",
     "inputs": [
       {
         "name": "x",
@@ -1856,7 +1856,7 @@
     "learning_rate": 0.0001,
     "batch_size_train": 16,
     "batch_size_test": 16,
-    "dataset_size_train": 10,
-    "dataset_size_test": 1
+    "dataset_size_train": 1000,
+    "dataset_size_test": 100
   }
 }

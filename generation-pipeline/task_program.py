@@ -726,8 +726,40 @@ def sort_list_indices(x):
     return np.argsort(x).tolist()
 
 
-def coffee_leaf_severity(quantiles, areas, selected):
-    total_area = sum(areas)
+def rust_coffee_leaf_severity(selected, areas):
+    quantiles = {
+        "Q1": 37526.200000000004,
+        "Q2": 63953.00000000001,
+        "Q3": 100673.2,
+        "Q4": 164972.80000000002
+    }
+    total_area = 0
+    for i, s in enumerate(selected):
+        if s:
+            total_area += areas[i]
+    if total_area < quantiles['Q1']:
+        return 1
+    elif total_area < quantiles['Q2']:
+        return 2
+    elif total_area < quantiles['Q3']:
+        return 3
+    elif total_area < quantiles['Q4']:
+        return 4
+    else:
+        return 5
+
+
+def miner_coffee_leaf_severity(selected_areas):
+    quantiles = {
+        "Q1": 354227.0,
+        "Q2": 498202.4,
+        "Q3": 620841.6,
+        "Q4": 812283.6
+    }
+    total_area = 0
+    for (selected, area) in selected_areas:
+        if selected:
+            total_area += area
     if total_area < quantiles['Q1']:
         return 1
     elif total_area < quantiles['Q2']:
@@ -805,7 +837,8 @@ dispatcher = {
     'sum_grid': sum_grid,
     'how_many_3_two_lists': how_many_3_two_lists,
     'sort_list_indices': sort_list_indices,
-    'coffee_leaf_severity': coffee_leaf_severity,
+    'rust_coffee_leaf_severity': rust_coffee_leaf_severity,
+    'miner_coffee_leaf_severity': miner_coffee_leaf_severity
 }
 
 
