@@ -8,9 +8,9 @@ from PIL import Image
 from torchvision import transforms
 
 
-class CoffeeLeafDataset(torch.utils.data.Dataset):
+class COFFEE_dataset(torch.utils.data.Dataset):
     def __init__(self, root: str, prefix: str, train: bool):
-        super(CoffeeLeafDataset, self).__init__()
+        super(COFFEE_dataset, self).__init__()
         self.img_dir = 'miner_img_xml' if prefix == 'miner' else 'rust_xml_image'
         self.root = root
         self.split = 'train_leaves' if train else 'test_leaves'
@@ -71,7 +71,7 @@ class CoffeeLeafDataset(torch.utils.data.Dataset):
 def get_data(prefix: str, train: bool):
     data_dir = os.path.abspath(os.path.join(
         os.path.abspath(__file__), "../../data"))
-    data = CoffeeLeafDataset(data_dir, prefix, train)
+    data = COFFEE_dataset(data_dir, prefix, train)
 
     ys = [severity for (_, severity) in data]
     sorted_ys = sorted(ys)
@@ -80,6 +80,3 @@ def get_data(prefix: str, train: bool):
     for i in range(len(sorted_ys)):
         ids_of_severity[sorted_ys[i]].append(idxs[i])
     return (data, ids_of_severity)
-
-
-get_data(prefix='rust', train=True)

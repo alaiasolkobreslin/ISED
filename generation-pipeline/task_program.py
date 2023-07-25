@@ -726,7 +726,7 @@ def sort_list_indices(x):
     return np.argsort(x).tolist()
 
 
-def coffee_leaf_severity(quantiles, areas):
+def coffee_leaf_severity(quantiles, areas, selected):
     total_area = sum(areas)
     if total_area < quantiles['Q1']:
         return 1

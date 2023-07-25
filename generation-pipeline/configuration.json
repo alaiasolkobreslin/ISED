@@ -1811,15 +1811,16 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
-  "coffee_leaf_severity": {
+  "rust_coffee_leaf_severity": {
     "py_func": "coffee_leaf_severity",
     "inputs": [
       {
         "name": "x",
         "type": "leaf_area",
+        "max_legnth": 44,
         "strategy": "singleton",
         "preprocess": "preprocess_coffee",
-        "dataset": "COFFEE_LEAF",
+        "dataset": "COFFEE_LEAF_RUST",
         "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
@@ -1831,7 +1832,31 @@
     "learning_rate": 0.0001,
     "batch_size_train": 16,
     "batch_size_test": 16,
-    "dataset_size_train": 1000,
-    "dataset_size_test": 100
+    "dataset_size_train": 10,
+    "dataset_size_test": 1
+  },
+  "miner_coffee_leaf_severity": {
+    "py_func": "coffee_leaf_severity",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "leaf_area",
+        "max_length": 44,
+        "strategy": "singleton",
+        "preprocess": "preprocess_coffee",
+        "dataset": "COFFEE_LEAF_MINER",
+        "unstructured_input_type": "Tensor[1 x 28 x 28]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "fallback": 0
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 10,
+    "dataset_size_test": 1
   }
 }

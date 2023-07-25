@@ -62,7 +62,10 @@ class TaskDataset:
             imgs[name] = unstructured
             dispatch_args[name] = structured
 
-        result = task_program.dispatch(prog, dispatch_args)
+        if self.structured_datasets[name].call_black_box_for_gt:
+            result = task_program.dispatch(prog, dispatch_args)
+        else:
+            result = structured
         return (imgs, self.config[INPUTS], result)
 
     def generate_task_dataset(self):

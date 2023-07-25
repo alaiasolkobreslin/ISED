@@ -19,6 +19,8 @@ from unstructured import HWF_dataset
 from unstructured import HWF_symbol_net
 from unstructured import MNIST_video_dataset
 from unstructured import MNIST_video_net
+from unstructured import COFFEE_dataset
+from unstructured import COFFEE_net
 
 
 class UnstructuredDataset:
@@ -265,30 +267,64 @@ class MNISTVideoDataset(UnstructuredDataset):
         pass
 
 
-class MNISTGridDataset(UnstructuredDataset):
+class CoffeeLeafMinerDataset(UnstructuredDataset):
 
     def __init__(self, train):
-        self.name = MNIST_GRID
-        pass
+        self.name = COFFEE_LEAF_MINER
+        self.data, self.ids_of_severity = COFFEE_dataset.get_data(
+            prefix='miner', train=train)
 
     def __len__(self):
-        pass
+        return len(self.data)
 
     @staticmethod
     def collate_fn(batch):
-        pass
+        return COFFEE_dataset.collate_fn(batch)
 
     def input_mapping(self):
-        pass
+        return [i for i in range(1, 6)]
 
-    def sample_with_y(self):
-        pass
+    def sample_with_y(self, severity):
+        return self.ids_of_severity[severity + 1][random.randrange(0, len(self.ids_of_severity[severity + 1]))]
 
-    def get(self):
-        pass
+    def get(self, index: int) -> Tuple[Tuple[List[torch.Tensor], List[int]], int]:
+        return self.data[index]
 
     def net(self):
-        pass
+        return COFFEE_net.COFFEE_net()
 
     def confusion_matrix(self, network):
-        pass
+        coffee_dataset, _ = COFFEE_dataset.get_data(
+            prefix='miner', train=False)
+        self.plot_confusion_matrix(network=network, dataset=coffee_dataset)
+
+
+class CoffeeLeafRustDataset(UnstructuredDataset):
+
+    def __init__(self, train):
+        self.name = COFFEE_LEAF_RUST
+        self.data, self.ids_of_severity = COFFEE_dataset.get_data(
+            prefix='rust', train=train)
+
+    def __len__(self):
+        return len(self.data)
+
+    @staticmethod
+    def collate_fn(batch):
+        return COFFEE_dataset.collate_fn(batch)
+
+    def input_mapping(self):
+        return [i for i in range(1, 6)]
+
+    def sample_with_y(self, severity):
+        return self.ids_of_severity[severity + 1][random.randrange(0, len(self.ids_of_severity[severity + 1]))]
+
+    def get(self, index: int) -> Tuple[Tuple[List[torch.Tensor], List[int]], int]:
+        return self.data[index]
+
+    def net(self):
+        return COFFEE_net.COFFEE_net()
+
+    def confusion_matrix(self, network):
+        coffee_dataset, _ = COFFEE_dataset.get_data(prefix='rust', train=False)
+        self.plot_confusion_matrix(network=network, dataset=coffee_dataset)

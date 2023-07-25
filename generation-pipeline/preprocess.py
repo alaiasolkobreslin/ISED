@@ -55,4 +55,4 @@ class PreprocessPalindrome(Preprocess):
 class PreprocessCoffee(Preprocess):
 
     def preprocess(self, input):
-        pass
+        return input

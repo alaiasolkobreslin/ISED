@@ -33,6 +33,7 @@ INT_LIST_LIST_TYPE = "List[List[int]]"
 STRING_TYPE = "str"
 SUDOKU_TYPE = "Sudoku"
 VIDEO_DIGIT_TYPE = "Video[digit]"
+LEAF_AREA_TYPE = "leaf_area"
 
 # Datasets
 DATASET = "dataset"
@@ -41,9 +42,9 @@ EMNIST = "EMNIST"
 SVHN = "SVHN"
 HWF_SYMBOL = "HWF"
 MNIST_VIDEO = "MNIST_VIDEO"
-MNIST_GRID = "MNIST_GRID"
 MNIST_0TO4 = "MNIST_0TO4"
-COFFEE_LEAF = "COFFEE_LEAF"
+COFFEE_LEAF_MINER = "COFFEE_LEAF_MINER"
+COFFEE_LEAF_RUST = "COFFEE_LEAF_RUST"
 
 # Dataset generation strategies
 STRATEGY = "strategy"
