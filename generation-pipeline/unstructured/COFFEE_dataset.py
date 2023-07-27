@@ -56,7 +56,7 @@ class COFFEE_dataset(torch.utils.data.Dataset):
             box = bbox['bbox']
             crop_area = (box['xmin'], box['ymin'],
                          box['xmax'], box['ymax'])
-            cropped_img = img.crop(crop_area)
+            cropped_img = img.rotate(180).crop(crop_area)
             resized_img = cropped_img.resize((28, 28))
             images[i] = transform(resized_img)
         return ((images, areas), severity)
