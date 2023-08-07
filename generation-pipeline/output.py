@@ -101,13 +101,58 @@ class SudokuOutputMapping(OutputMapping):
 
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
-        pass
+
+        result_tensor = torch.zeros((batch_size, 4, 4, 4))
+        for i, result in enumerate(results):
+            for j, r in enumerate(result):
+                result_prob = result_probs[i][j]
+                for row in range(4):
+                    for col in range(4):
+                        elt = r[row][col]
+                        if elt in ['1', '2', '3', '4']:
+                            idx = int(elt) - 1
+                            result_tensor[i][row][col][idx] += result_prob
+
+        result_tensor = torch.nn.functional.normalize(result_tensor, dim=2)
+
+        elements = list(
+            set([(util.get_hashable_elem(elem)) for batch in results for elem in batch if elem != RESERVED_FAILURE]))
+        element_indices = {e: i for (i, e) in enumerate(elements)}
+
+        # If there is no element being derived...
+        if len(elements) == 0:
+            # We return a single fallback value, while the probability of result being fallback are all 0
+            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True))
+
+        # Vectorize the results
+        result_tensor_old = torch.zeros((batch_size, len(elements)))
+        for i in range(batch_size):
+            for j in range(sample_count):
+                if results[i][j] != RESERVED_FAILURE:
+                    idx = util.get_hashable_elem(results[i][j])
+                    result_tensor_old[i, element_indices[idx]
+                                      ] += result_probs[i, j]
+        result_tensor_old = torch.nn.functional.normalize(
+            result_tensor_old, dim=1)
+
+        # Return the elements mapping and also the result probability tensor
+        return (elements, result_tensor, result_tensor_old)
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
-        batch_size, _ = y_pred.shape
-        y = torch.tensor([1.0 if self.eval_result_eq(
+        batch_size = y_pred.shape[0]
+        y = torch.zeros((batch_size, 4, 4, 4))
+        for i, l in enumerate(target):
+            for row in range(4):
+                for col in range(4):
+                    elt = l[row][col]
+                    if elt in ['1', '2', '3', '4']:
+                        idx = int(elt) - 1
+                        y[i][row][col][idx] = 1.0
+
+        old_norm_label = torch.tensor([1.0 if self.eval_result_eq(
             util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
-        return y
+
+        return y, old_norm_label
 
 
 def get_output_mapping(output_config):
