@@ -681,6 +681,9 @@ def valid_mini_sudoku(board):
 
 
 def mini_sudoku_solver(board):
+    if not valid_mini_sudoku(board):
+        return board
+
     def isValid(row: int, col: int, c: chr) -> bool:
         for i in range(4):
             if board[i][col] == c or \

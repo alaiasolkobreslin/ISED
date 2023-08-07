@@ -20,7 +20,6 @@ import task_dataset
 import task_program
 import output
 import blackbox
-import util
 from constants import *
 
 
@@ -152,22 +151,12 @@ class Trainer():
             check_symmetry: bool):
         self.network = TaskNet(unstructured_datasets=unstructured_datasets,
                                config=config, fn=fn, output_mapping=output_mapping, sample_count=sample_count, batch_size_train=batch_size_train, check_symmetry=check_symmetry)
+        self.output_mapping = output_mapping
         self.optimizers = [optim.Adam(
             net.parameters(), lr=learning_rate) for net in self.network.nets_dict.values()]
         self.train_loader = train_loader
         self.test_loader = test_loader
         self.loss_fn = F.binary_cross_entropy
-
-    def eval_result_eq(self, a, b, threshold=0.01):
-        if type(a) is float or type(b) is float:
-            result = abs(a - b) < threshold
-        elif type(a) is tuple and type(b) is tuple:
-            result = True
-            for i in range(len(a)):
-                result = result and self.eval_result_eq(a[i], b[i], threshold)
-        else:
-            result = a == b
-        return result
 
     def train_epoch(self, epoch):
         self.network.train()
@@ -180,8 +169,8 @@ class Trainer():
 
             # Normalize label format
             batch_size, num_outputs = y_pred.shape
-            y = torch.tensor([1.0 if self.eval_result_eq(
-                util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+            y = self.output_mapping.get_normalized_labels(
+                y_pred, target, output_mapping)
 
             # Compute loss
             loss = self.loss_fn(y_pred, y)
@@ -224,8 +213,8 @@ class Trainer():
 
                 # Normalize label format
                 batch_size, num_outputs = y_pred.shape
-                y = torch.tensor([1.0 if self.eval_result_eq(
-                    util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+                y = self.output_mapping.get_normalized_labels(
+                    y_pred, target, output_mapping)
 
                 # Compute loss
                 loss = self.loss_fn(y_pred, y)
@@ -251,7 +240,7 @@ class Trainer():
                 iter.set_description(
                     f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
 
-        self.network.confusion_matrix()
+        # self.network.confusion_matrix()
 
     def train(self, n_epochs):
         # self.test_epoch(0)
@@ -300,17 +289,17 @@ if __name__ == "__main__":
 
         # Set the output mapping
         output_config = task_config[OUTPUT]
-        output_mapping = output_config[OUTPUT_MAPPING]
-        if output_mapping == UNKNOWN:
-            om = output.UnknownDiscreteOutputMapping(
-                fallback=output_config[FALLBACK])
-        elif output_mapping == RANGE:
-            start = output_config[OUTPUT_MAPPING_RANGE][START]
-            end = output_config[OUTPUT_MAPPING_RANGE][END]
-            elements = [i for i in range(start, end)]
-            om = output.DiscreteOutputMapping(elements=elements)
-        else:
-            raise Exception("unknown output mapping")
+        # output_mapping = output_config[OUTPUT_MAPPING]
+        # if output_mapping == UNKNOWN:
+        om = output.UnknownDiscreteOutputMapping(
+            fallback=0)
+        # elif output_mapping == RANGE:
+        #     start = output_config[OUTPUT_MAPPING_RANGE][START]
+        #     end = output_config[OUTPUT_MAPPING_RANGE][END]
+        #     elements = [i for i in range(start, end)]
+        #     om = output.DiscreteOutputMapping(elements=elements)
+        # else:
+        #     raise Exception("unknown output mapping")
 
         # Create trainer and train
         py_func = task_config[PY_PROGRAM]

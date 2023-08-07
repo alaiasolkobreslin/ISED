@@ -15,6 +15,26 @@ class OutputMapping:
         """
         pass
 
+    def get_normalized_labels(self, y_pred, target, output_mapping):
+        """
+        Return the normalized labels to be used in the loss function
+        """
+        pass
+
+    def eval_result_eq(self, a, b, threshold=0.01):
+        """
+        Returns True if two results are equal and False otherwise
+        """
+        if type(a) is float or type(b) is float:
+            result = abs(a - b) < threshold
+        elif type(a) is tuple and type(b) is tuple:
+            result = True
+            for i in range(len(a)):
+                result = result and self.eval_result_eq(a[i], b[i], threshold)
+        else:
+            result = a == b
+        return result
+
 
 class DiscreteOutputMapping(OutputMapping):
     def __init__(self, elements: List[Any]):
@@ -30,6 +50,12 @@ class DiscreteOutputMapping(OutputMapping):
                     result_tensor[i, self.element_indices[results[i]
                                                           [j]]] += result_probs[i, j]
         return (self.element_indices, torch.nn.functional.normalize(result_tensor, dim=1))
+
+    def get_normalized_labels(self, y_pred, target, output_mapping):
+        batch_size, _ = y_pred.shape
+        y = torch.tensor([1.0 if self.eval_result_eq(
+            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+        return y
 
 
 class UnknownDiscreteOutputMapping(OutputMapping):
@@ -61,3 +87,24 @@ class UnknownDiscreteOutputMapping(OutputMapping):
 
         # Return the elements mapping and also the result probability tensor
         return (elements, result_tensor)
+
+    def get_normalized_labels(self, y_pred, target, output_mapping):
+        batch_size, _ = y_pred.shape
+        y = torch.tensor([1.0 if self.eval_result_eq(
+            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+        return y
+
+
+class SudokuOutputMapping(OutputMapping):
+    def __init__(self, fallback):
+        self.fallback = fallback
+
+    def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
+        batch_size, sample_count = result_probs.shape
+        pass
+
+    def get_normalized_labels(self, y_pred, target, output_mapping):
+        batch_size, _ = y_pred.shape
+        y = torch.tensor([1.0 if self.eval_result_eq(
+            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+        return y

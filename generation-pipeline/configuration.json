@@ -20,9 +20,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -51,9 +49,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -90,9 +86,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -129,9 +123,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -176,9 +168,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -231,9 +221,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -294,9 +282,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -325,9 +311,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -364,9 +348,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -395,9 +377,7 @@
       }
     ],
     "output": {
-      "type": "bool",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "bool"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -419,9 +399,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -443,9 +421,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -467,9 +443,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -491,9 +465,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -514,9 +486,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -545,9 +515,7 @@
       }
     ],
     "output": {
-      "type": "bool",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "bool"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -576,9 +544,7 @@
       }
     ],
     "output": {
-      "type": "bool",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "bool"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -607,9 +573,7 @@
       }
     ],
     "output": {
-      "type": "bool",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "bool"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -638,9 +602,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -669,9 +631,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -693,9 +653,7 @@
       }
     ],
     "output": {
-      "type": "float",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "float"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -726,9 +684,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -750,9 +706,7 @@
       }
     ],
     "output": {
-      "type": "str",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "str"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -783,9 +737,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -807,9 +759,7 @@
       }
     ],
     "output": {
-      "type": "str",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "str"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -831,9 +781,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -855,9 +803,7 @@
       }
     ],
     "output": {
-      "type": "bool",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "bool"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -879,9 +825,7 @@
       }
     ],
     "output": {
-      "type": "str",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "str"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -903,9 +847,7 @@
       }
     ],
     "output": {
-      "type": "str",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "str"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -927,9 +869,7 @@
       }
     ],
     "output": {
-      "type": "List[str]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[str]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -960,9 +900,7 @@
       }
     ],
     "output": {
-      "type": "List[int]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[int]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -984,9 +922,7 @@
       }
     ],
     "output": {
-      "type": "List[int]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[int]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1009,9 +945,7 @@
       }
     ],
     "output": {
-      "type": "bool",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "bool"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1034,9 +968,7 @@
       }
     ],
     "output": {
-      "type": "List[List[str]]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[List[str]]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1058,9 +990,7 @@
       }
     ],
     "output": {
-      "type": "List[int]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[int]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1083,9 +1013,7 @@
       }
     ],
     "output": {
-      "type": "List[List[int]]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[List[int]]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1107,9 +1035,7 @@
       }
     ],
     "output": {
-      "type": "List[List[str]]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[List[str]]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1131,9 +1057,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1156,9 +1080,7 @@
       }
     ],
     "output": {
-      "type": "List[int]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[int]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1180,9 +1102,7 @@
       }
     ],
     "output": {
-      "type": "bool",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "bool"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1203,9 +1123,7 @@
       }
     ],
     "output": {
-      "type": "List[List[int]]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[List[int]]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1228,9 +1146,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1252,9 +1168,7 @@
       }
     ],
     "output": {
-      "type": "List[int]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[int]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1275,9 +1189,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1308,9 +1220,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1339,9 +1249,7 @@
       }
     ],
     "output": {
-      "type": "List[List[int]]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[List[int]]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1363,9 +1271,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1387,9 +1293,7 @@
       }
     ],
     "output": {
-      "type": "List[List[int]]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[List[int]]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1411,9 +1315,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1453,9 +1355,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1477,9 +1377,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1501,9 +1399,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1525,9 +1421,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1550,9 +1444,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1573,9 +1465,7 @@
       }
     ],
     "output": {
-      "type": "char",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "char"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1597,9 +1487,7 @@
       }
     ],
     "output": {
-      "type": "List[int]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[int]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1622,9 +1510,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1645,9 +1531,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1669,9 +1553,7 @@
       }
     ],
     "output": {
-      "type": "bool",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "bool"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1694,9 +1576,7 @@
       }
     ],
     "output": {
-      "type": "bool",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "bool"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1719,9 +1599,7 @@
       }
     ],
     "output": {
-      "type": "List[List[str]]",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "List[List[str]]"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1744,9 +1622,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1777,9 +1653,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1795,15 +1669,13 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 2,
+        "length": 4,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1825,9 +1697,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1849,9 +1719,7 @@
       }
     ],
     "output": {
-      "type": "int",
-      "output_mapping": "unknown",
-      "fallback": 0
+      "type": "int"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
