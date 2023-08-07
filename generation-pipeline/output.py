@@ -108,3 +108,14 @@ class SudokuOutputMapping(OutputMapping):
         y = torch.tensor([1.0 if self.eval_result_eq(
             util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
         return y
+
+
+def get_output_mapping(output_config):
+    om = output_config[OUTPUT_MAPPING]
+    if om == UNKNOWN:
+        return UnknownDiscreteOutputMapping(
+            fallback=0)
+    elif om == SUDOKU_OUTPUT_MAPPING:
+        return SudokuOutputMapping(fallback=0)
+    else:
+        raise Exception(f"Unknown output mapping {om}")
