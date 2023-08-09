@@ -9,17 +9,27 @@ import util
 class OutputMapping:
     def __init__(self): pass
 
-    def vectorize(self, results: List, result_probs: torch.Tensor):
+    def vectorize(self, elements, element_indices: dict, results: List, result_probs: torch.Tensor):
         """
         An output mapping should implement this function to vectorize the results and result probabilities
         """
-        pass
+        batch_size, sample_count = result_probs.shape
+        result_tensor = torch.zeros((batch_size, len(elements)))
+        for i in range(batch_size):
+            for j in range(sample_count):
+                if results[i][j] != RESERVED_FAILURE:
+                    result_tensor[i, element_indices[results[i]
+                                                     [j]]] += result_probs[i, j]
+        return (element_indices, torch.nn.functional.normalize(result_tensor, dim=1))
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         """
         Return the normalized labels to be used in the loss function
         """
-        pass
+        batch_size = y_pred.shape[0]
+        y = torch.tensor([1.0 if self.eval_result_eq(
+            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+        return y
 
     def eval_result_eq(self, a, b, threshold=0.01):
         """
@@ -42,20 +52,10 @@ class DiscreteOutputMapping(OutputMapping):
         self.element_indices = {e: i for (i, e) in enumerate(elements)}
 
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
-        batch_size, sample_count = result_probs.shape
-        result_tensor = torch.zeros((batch_size, len(self.elements)))
-        for i in range(batch_size):
-            for j in range(sample_count):
-                if results[i][j] != RESERVED_FAILURE:
-                    result_tensor[i, self.element_indices[results[i]
-                                                          [j]]] += result_probs[i, j]
-        return (self.element_indices, torch.nn.functional.normalize(result_tensor, dim=1))
+        return super().vectorize(self, self.elements, self.element_indices, results, result_probs)
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
-        batch_size, _ = y_pred.shape
-        y = torch.tensor([1.0 if self.eval_result_eq(
-            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
-        return y
+        return super().get_normalized_labels(y_pred, target, output_mapping)
 
 
 class UnknownDiscreteOutputMapping(OutputMapping):
@@ -63,30 +63,12 @@ class UnknownDiscreteOutputMapping(OutputMapping):
         self.fallback = fallback
 
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
-        batch_size, sample_count = result_probs.shape
-
         # Get the unique elements
         elements = list(
             set([(util.get_hashable_elem(elem)) for batch in results for elem in batch if elem != RESERVED_FAILURE]))
         element_indices = {e: i for (i, e) in enumerate(elements)}
 
-        # If there is no element being derived...
-        if len(elements) == 0:
-            # We return a single fallback value, while the probability of result being fallback are all 0
-            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True))
-
-        # Vectorize the results
-        result_tensor = torch.zeros((batch_size, len(elements)))
-        for i in range(batch_size):
-            for j in range(sample_count):
-                if results[i][j] != RESERVED_FAILURE:
-                    idx = util.get_hashable_elem(results[i][j])
-                    result_tensor[i, element_indices[idx]
-                                  ] += result_probs[i, j]
-        result_tensor = torch.nn.functional.normalize(result_tensor, dim=1)
-
-        # Return the elements mapping and also the result probability tensor
-        return (elements, result_tensor)
+        return super().vectorize(elements, element_indices, results, result_probs)
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         batch_size, _ = y_pred.shape
@@ -95,13 +77,19 @@ class UnknownDiscreteOutputMapping(OutputMapping):
         return y
 
 
-class ListOutputMapping(OutputMapping):
+class IntOutputMapping(OutputMapping):
     def __init__(self, length, fallback):
         self.length = length
         self.fallback = fallback
 
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
-        batch_size, sample_count = result_probs.shape
+        batch_size, _ = result_probs.shape
+
+        elements = list(
+            set([(util.get_hashable_elem(elem)) for batch in results for elem in batch if elem != RESERVED_FAILURE]))
+        element_indices = {e: i for (i, e) in enumerate(elements)}
+        if len(elements) == 0:
+            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True))
 
         result_tensor = torch.zeros((batch_size, self.length, 10))
         for i, result in enumerate(results):
@@ -114,25 +102,9 @@ class ListOutputMapping(OutputMapping):
 
         result_tensor = torch.nn.functional.normalize(result_tensor, dim=2)
 
-        elements = list(
-            set([(util.get_hashable_elem(elem)) for batch in results for elem in batch if elem != RESERVED_FAILURE]))
-        element_indices = {e: i for (i, e) in enumerate(elements)}
-
-        # If there is no element being derived...
-        if len(elements) == 0:
-            # We return a single fallback value, while the probability of result being fallback are all 0
-            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True))
-
         # Vectorize the results
-        result_tensor_old = torch.zeros((batch_size, len(elements)))
-        for i in range(batch_size):
-            for j in range(sample_count):
-                if results[i][j] != RESERVED_FAILURE:
-                    idx = util.get_hashable_elem(results[i][j])
-                    result_tensor_old[i, element_indices[idx]
-                                      ] += result_probs[i, j]
-        result_tensor_old = torch.nn.functional.normalize(
-            result_tensor_old, dim=1)
+        _, result_tensor_old = super().vectorize(
+            elements, element_indices, results, result_probs)
 
         # Return the elements mapping and also the result probability tensor
         return (elements, result_tensor, result_tensor_old)
@@ -146,8 +118,52 @@ class ListOutputMapping(OutputMapping):
                 elt = int(l[idx])
                 y[i][idx][elt] = 1.0
 
-        old_norm_label = torch.tensor([1.0 if self.eval_result_eq(
-            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+        old_norm_label = super().get_normalized_labels(y_pred, target, output_mapping)
+
+        return y, old_norm_label
+
+
+class ListOutputMapping(OutputMapping):
+    def __init__(self, length, fallback):
+        self.length = length
+        self.fallback = fallback
+
+    def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
+        batch_size, _ = result_probs.shape
+
+        elements = list(
+            set([(util.get_hashable_elem(elem)) for batch in results for elem in batch if elem != RESERVED_FAILURE]))
+        element_indices = {e: i for (i, e) in enumerate(elements)}
+        if len(elements) == 0:
+            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True))
+
+        result_tensor = torch.zeros((batch_size, self.length, 10))
+        for i, result in enumerate(results):
+            for j, r in enumerate(result):
+                result_prob = result_probs[i][j]
+                for idx in range(self.length):
+                    elt = r[idx]
+                    result_tensor[i][idx][elt] += result_prob
+
+        result_tensor = torch.nn.functional.normalize(result_tensor, dim=2)
+
+        # Vectorize the results
+        _, result_tensor_old = super().vectorize(
+            elements, element_indices, results, result_probs)
+
+        # Return the elements mapping and also the result probability tensor
+        return (elements, result_tensor, result_tensor_old)
+
+    def get_normalized_labels(self, y_pred, target, output_mapping):
+        batch_size = y_pred.shape[0]
+        y = torch.zeros((batch_size, self.length, 10))
+        for i, l in enumerate(target):
+            l = str(l).rjust(self.length, "0")
+            for idx in range(self.length):
+                elt = int(l[idx])
+                y[i][idx][elt] = 1.0
+
+        old_norm_label = super().get_normalized_labels(y_pred, target, output_mapping)
 
         return y, old_norm_label
 
@@ -219,6 +235,9 @@ def get_output_mapping(output_config):
     om = output_config[OUTPUT_MAPPING]
     if om == UNKNOWN:
         return UnknownDiscreteOutputMapping(fallback=0)
+    elif om == INT_OUTPUT_MAPPING:
+        length = output_config[LENGTH]
+        return IntOutputMapping(length=length, fallback=0)
     elif om == LIST_OUTPUT_MAPPING:
         length = output_config[LENGTH]
         return ListOutputMapping(length=length, fallback=0)
