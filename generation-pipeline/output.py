@@ -18,8 +18,9 @@ class OutputMapping:
         for i in range(batch_size):
             for j in range(sample_count):
                 if results[i][j] != RESERVED_FAILURE:
-                    result_tensor[i, element_indices[results[i]
-                                                     [j]]] += result_probs[i, j]
+                    idx = util.get_hashable_elem(results[i][j])
+                    result_tensor[i, element_indices[idx]
+                                  ] += result_probs[i, j]
         return (element_indices, torch.nn.functional.normalize(result_tensor, dim=1))
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
@@ -52,7 +53,14 @@ class DiscreteOutputMapping(OutputMapping):
         self.element_indices = {e: i for (i, e) in enumerate(elements)}
 
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
-        return super().vectorize(self, self.elements, self.element_indices, results, result_probs)
+        batch_size, sample_count = result_probs.shape
+        result_tensor = torch.zeros((batch_size, len(self.elements)))
+        for i in range(batch_size):
+            for j in range(sample_count):
+                if results[i][j] != RESERVED_FAILURE:
+                    result_tensor[i, self.element_indices[results[i]
+                                                          [j]]] += result_probs[i, j]
+        return (self.element_indices, torch.nn.functional.normalize(result_tensor, dim=1))
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         return super().get_normalized_labels(y_pred, target, output_mapping)
@@ -158,13 +166,10 @@ class ListOutputMapping(OutputMapping):
         batch_size = y_pred.shape[0]
         y = torch.zeros((batch_size, self.length, 10))
         for i, l in enumerate(target):
-            l = str(l).rjust(self.length, "0")
             for idx in range(self.length):
                 elt = int(l[idx])
                 y[i][idx][elt] = 1.0
-
         old_norm_label = super().get_normalized_labels(y_pred, target, output_mapping)
-
         return y, old_norm_label
 
 

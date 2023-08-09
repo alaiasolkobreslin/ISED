@@ -807,7 +807,7 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "list_output_mapping",
+      "output_mapping": "int_output_mapping",
       "length": 5
     },
     "learning_rate": 0.0001,
@@ -1744,7 +1744,8 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "list_output_mapping",
+      "length": 4
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,

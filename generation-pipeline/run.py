@@ -166,6 +166,7 @@ class Trainer():
         iter = tqdm(self.train_loader, total=len(self.train_loader))
         for (i, (data, target)) in enumerate(iter):
             (output_mapping, y_pred, result_tensor_old) = self.network(data)
+            # (output_mapping, y_pred) = self.network(data)
 
             # Normalize label format
             # batch_size, num_outputs = y_pred.shape
@@ -261,7 +262,7 @@ if __name__ == "__main__":
     parser = ArgumentParser("neuro-symbolic-dataset")
     parser.add_argument("--n-epochs", type=int, default=10)
     parser.add_argument("--seed", type=int, default=1234)
-    parser.add_argument("--n-samples", type=int, default=1000)
+    parser.add_argument("--n-samples", type=int, default=100)
     parser.add_argument("--configuration", type=str,
                         default="configuration.json")
     parser.add_argument("--symmetry", type=bool, default=False)
@@ -284,6 +285,9 @@ if __name__ == "__main__":
     # Dataloaders
     for task in configuration:
         print('Task: {}'.format(task))
+
+        if task != 'sort_list_indices':
+            continue
 
         task_config = configuration[task]
 
