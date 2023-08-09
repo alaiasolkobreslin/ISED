@@ -102,12 +102,12 @@ class ListOutputMapping(OutputMapping):
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
 
-        result_tensor = torch.zeros((batch_size, 2, 10))
+        result_tensor = torch.zeros((batch_size, 5, 10))
         for i, result in enumerate(results):
             for j, r in enumerate(result):
-                r = str(r).rjust(2, "0")
+                r = str(r).rjust(5, "0")
                 result_prob = result_probs[i][j]
-                for idx in range(2):
+                for idx in range(5):
                     elt = int(r[idx])
                     result_tensor[i][idx][elt] += result_prob
 
@@ -138,10 +138,10 @@ class ListOutputMapping(OutputMapping):
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         batch_size = y_pred.shape[0]
-        y = torch.zeros((batch_size, 2, 10))
+        y = torch.zeros((batch_size, 5, 10))
         for i, l in enumerate(target):
-            l = str(l).rjust(2, "0")
-            for idx in range(2):
+            l = str(l).rjust(5, "0")
+            for idx in range(5):
                 elt = int(l[idx])
                 y[i][idx][elt] = 1.0
 
