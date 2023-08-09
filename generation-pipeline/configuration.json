@@ -1739,7 +1739,8 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "unknown",
+      "length": 4
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,

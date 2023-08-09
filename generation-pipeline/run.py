@@ -255,7 +255,7 @@ if __name__ == "__main__":
     parser = ArgumentParser("neuro-symbolic-dataset")
     parser.add_argument("--n-epochs", type=int, default=10)
     parser.add_argument("--seed", type=int, default=1234)
-    parser.add_argument("--n-samples", type=int, default=1000)
+    parser.add_argument("--n-samples", type=int, default=100)
     parser.add_argument("--configuration", type=str,
                         default="configuration.json")
     parser.add_argument("--symmetry", type=bool, default=False)
