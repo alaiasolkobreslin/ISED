@@ -96,18 +96,19 @@ class UnknownDiscreteOutputMapping(OutputMapping):
 
 
 class ListOutputMapping(OutputMapping):
-    def __init__(self, fallback):
+    def __init__(self, length, fallback):
+        self.length = length
         self.fallback = fallback
 
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
 
-        result_tensor = torch.zeros((batch_size, 5, 10))
+        result_tensor = torch.zeros((batch_size, self.length, 10))
         for i, result in enumerate(results):
             for j, r in enumerate(result):
-                r = str(r).rjust(5, "0")
+                r = str(r).rjust(self.length, "0")
                 result_prob = result_probs[i][j]
-                for idx in range(5):
+                for idx in range(self.length):
                     elt = int(r[idx])
                     result_tensor[i][idx][elt] += result_prob
 
@@ -138,10 +139,10 @@ class ListOutputMapping(OutputMapping):
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         batch_size = y_pred.shape[0]
-        y = torch.zeros((batch_size, 5, 10))
+        y = torch.zeros((batch_size, self.length, 10))
         for i, l in enumerate(target):
-            l = str(l).rjust(5, "0")
-            for idx in range(5):
+            l = str(l).rjust(self.length, "0")
+            for idx in range(self.length):
                 elt = int(l[idx])
                 y[i][idx][elt] = 1.0
 
@@ -152,20 +153,23 @@ class ListOutputMapping(OutputMapping):
 
 
 class SudokuOutputMapping(OutputMapping):
-    def __init__(self, fallback):
+    def __init__(self, size, fallback):
+        self.size = size
+        self.num_options = [str(i+1) for i in range(self.size)]
         self.fallback = fallback
 
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
 
-        result_tensor = torch.zeros((batch_size, 4, 4, 4))
+        result_tensor = torch.zeros(
+            (batch_size, self.size, self.size, self.size))
         for i, result in enumerate(results):
             for j, r in enumerate(result):
                 result_prob = result_probs[i][j]
-                for row in range(4):
-                    for col in range(4):
+                for row in range(self.size):
+                    for col in range(self.size):
                         elt = r[row][col]
-                        if elt in ['1', '2', '3', '4']:
+                        if elt in self.num_options:
                             idx = int(elt) - 1
                             result_tensor[i][row][col][idx] += result_prob
 
@@ -196,12 +200,12 @@ class SudokuOutputMapping(OutputMapping):
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         batch_size = y_pred.shape[0]
-        y = torch.zeros((batch_size, 4, 4, 4))
+        y = torch.zeros((batch_size, self.size, self.size, self.size))
         for i, l in enumerate(target):
-            for row in range(4):
-                for col in range(4):
+            for row in range(self.size):
+                for col in range(self.size):
                     elt = l[row][col]
-                    if elt in ['1', '2', '3', '4']:
+                    if elt in self.num_options:
                         idx = int(elt) - 1
                         y[i][row][col][idx] = 1.0
 
@@ -214,10 +218,12 @@ class SudokuOutputMapping(OutputMapping):
 def get_output_mapping(output_config):
     om = output_config[OUTPUT_MAPPING]
     if om == UNKNOWN:
-        # return UnknownDiscreteOutputMapping(
-        #     fallback=0)
-        return ListOutputMapping(fallback=0)
+        return UnknownDiscreteOutputMapping(fallback=0)
+    elif om == LIST_OUTPUT_MAPPING:
+        length = output_config[LENGTH]
+        return ListOutputMapping(length=length, fallback=0)
     elif om == SUDOKU_OUTPUT_MAPPING:
-        return SudokuOutputMapping(fallback=0)
+        size = output_config[N_ROWS]
+        return SudokuOutputMapping(size=size, fallback=0)
     else:
         raise Exception(f"Unknown output mapping {om}")
