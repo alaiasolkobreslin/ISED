@@ -775,6 +775,10 @@ def miner_coffee_leaf_severity(selected_areas):
         return 5
 
 
+def bio_tagging():
+    pass
+
+
 dispatcher = {
     'sum_2': sum_2,
     'sum_3': sum_3,
@@ -841,7 +845,8 @@ dispatcher = {
     'how_many_3_two_lists': how_many_3_two_lists,
     'sort_list_indices': sort_list_indices,
     'rust_coffee_leaf_severity': rust_coffee_leaf_severity,
-    'miner_coffee_leaf_severity': miner_coffee_leaf_severity
+    'miner_coffee_leaf_severity': miner_coffee_leaf_severity,
+    'bio_tagging': bio_tagging,
 }
 
 

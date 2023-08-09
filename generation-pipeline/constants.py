@@ -65,6 +65,7 @@ PREPROCESS_COFFEE = 'preprocess_coffee'
 # Output
 OUTPUT = "output"
 OUTPUT_MAPPING = "output_mapping"
+SUDOKU_OUTPUT_MAPPING = "sudoku_output_mapping"
 RANGE = "range"
 OUTPUT_MAPPING_RANGE = "output_mapping_range"
 START = "start"
