@@ -165,18 +165,17 @@ class Trainer():
         total_correct = 0
         iter = tqdm(self.train_loader, total=len(self.train_loader))
         for (i, (data, target)) in enumerate(iter):
-            (output_mapping, y_pred, result_tensor_old) = self.network(data)
-            # (output_mapping, y_pred) = self.network(data)
+            (output_mapping, y_pred_sim, y_pred) = self.network(data)
 
             # Normalize label format
             # batch_size, num_outputs = y_pred.shape
-            batch_size = y_pred.shape[0]
+            batch_size = y_pred_sim.shape[0]
             num_outputs = 1
             norm_label, y = self.output_mapping.get_normalized_labels(
-                y_pred, target, output_mapping)
+                y_pred_sim, target, output_mapping)
 
             # Compute loss
-            loss = self.loss_fn(y_pred, norm_label)
+            loss = self.loss_fn(y_pred_sim, norm_label)
             for optimizer in self.optimizers:
                 optimizer.zero_grad()
             loss.backward()
@@ -188,7 +187,7 @@ class Trainer():
             # Collect index and compute accuracy
             if num_outputs > 0:
                 y_index = torch.argmax(y, dim=1)
-                y_pred_index = torch.argmax(result_tensor_old, dim=1)
+                y_pred_index = torch.argmax(y_pred, dim=1)
                 correct_count = torch.sum(torch.where(torch.sum(
                     y, dim=1) > 0, y_index == y_pred_index, torch.zeros(batch_size).bool())).item()
             else:
@@ -212,18 +211,18 @@ class Trainer():
         with torch.no_grad():
             iter = tqdm(self.test_loader, total=len(self.test_loader))
             for i, (data, target) in enumerate(iter):
-                (output_mapping, y_pred, result_tensor_old) = self.network(data)
+                (output_mapping, y_pred_sim, y_pred) = self.network(data)
 
                 # Normalize label format
                 # batch_size, num_outputs = y_pred.shape
-                batch_size = y_pred.shape[0]
+                batch_size = y_pred_sim.shape[0]
                 num_outputs = 1
 
                 norm_label, y = self.output_mapping.get_normalized_labels(
-                    y_pred, target, output_mapping)
+                    y_pred_sim, target, output_mapping)
 
                 # Compute loss
-                loss = self.loss_fn(y_pred, norm_label)
+                loss = self.loss_fn(y_pred_sim, norm_label)
                 if not math.isnan(loss.item()):
                     test_loss += loss.item()
 
@@ -231,7 +230,7 @@ class Trainer():
                 if num_outputs > 0:
                     y_index = torch.argmax(y, dim=1)
                     y_pred_index = torch.argmax(
-                        result_tensor_old, dim=1)
+                        y_pred, dim=1)
                     correct_count = torch.sum(torch.where(torch.sum(
                         y, dim=1) > 0, y_index == y_pred_index, torch.zeros(batch_size).bool())).item()
                 else:
@@ -285,9 +284,6 @@ if __name__ == "__main__":
     # Dataloaders
     for task in configuration:
         print('Task: {}'.format(task))
-
-        if task != 'sort_list_indices':
-            continue
 
         task_config = configuration[task]
 
