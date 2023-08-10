@@ -165,15 +165,17 @@ class Trainer():
         total_correct = 0
         iter = tqdm(self.train_loader, total=len(self.train_loader))
         for (i, (data, target)) in enumerate(iter):
-            (output_mapping, y_pred) = self.network(data)
+            (output_mapping, y_pred_sim, y_pred) = self.network(data)
 
             # Normalize label format
-            batch_size, num_outputs = y_pred.shape
-            y = self.output_mapping.get_normalized_labels(
-                y_pred, target, output_mapping)
+            # batch_size, num_outputs = y_pred.shape
+            batch_size = y_pred_sim.shape[0]
+            num_outputs = 1
+            norm_label, y = self.output_mapping.get_normalized_labels(
+                y_pred_sim, target, output_mapping)
 
             # Compute loss
-            loss = self.loss_fn(y_pred, y)
+            loss = self.loss_fn(y_pred_sim, norm_label)
             for optimizer in self.optimizers:
                 optimizer.zero_grad()
             loss.backward()
@@ -209,22 +211,26 @@ class Trainer():
         with torch.no_grad():
             iter = tqdm(self.test_loader, total=len(self.test_loader))
             for i, (data, target) in enumerate(iter):
-                (output_mapping, y_pred) = self.network(data)
+                (output_mapping, y_pred_sim, y_pred) = self.network(data)
 
                 # Normalize label format
-                batch_size, num_outputs = y_pred.shape
-                y = self.output_mapping.get_normalized_labels(
-                    y_pred, target, output_mapping)
+                # batch_size, num_outputs = y_pred.shape
+                batch_size = y_pred_sim.shape[0]
+                num_outputs = 1
+
+                norm_label, y = self.output_mapping.get_normalized_labels(
+                    y_pred_sim, target, output_mapping)
 
                 # Compute loss
-                loss = self.loss_fn(y_pred, y)
+                loss = self.loss_fn(y_pred_sim, norm_label)
                 if not math.isnan(loss.item()):
                     test_loss += loss.item()
 
                 # Collect index and compute accuracy
                 if num_outputs > 0:
                     y_index = torch.argmax(y, dim=1)
-                    y_pred_index = torch.argmax(y_pred, dim=1)
+                    y_pred_index = torch.argmax(
+                        y_pred, dim=1)
                     correct_count = torch.sum(torch.where(torch.sum(
                         y, dim=1) > 0, y_index == y_pred_index, torch.zeros(batch_size).bool())).item()
                 else:
@@ -291,8 +297,7 @@ if __name__ == "__main__":
         output_config = task_config[OUTPUT]
         # output_mapping = output_config[OUTPUT_MAPPING]
         # if output_mapping == UNKNOWN:
-        om = output.UnknownDiscreteOutputMapping(
-            fallback=0)
+        om = output.get_output_mapping(output_config)
         # elif output_mapping == RANGE:
         #     start = output_config[OUTPUT_MAPPING_RANGE][START]
         #     end = output_config[OUTPUT_MAPPING_RANGE][END]

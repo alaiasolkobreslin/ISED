@@ -807,7 +807,8 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "int_output_mapping",
+      "length": 5
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -978,7 +979,7 @@
     ],
     "output": {
       "type": "bool",
-      "output_mapping": "sudoku_output_mapping"
+      "output_mapping": "unknown"
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1002,7 +1003,9 @@
     ],
     "output": {
       "type": "List[List[str]]",
-      "output_mapping": "sudoku_output_mapping"
+      "output_mapping": "sudoku_output_mapping",
+      "n_rows": 9,
+      "n_cols": 9
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1660,7 +1663,9 @@
     ],
     "output": {
       "type": "List[List[str]]",
-      "output_mapping": "sudoku_output_mapping"
+      "output_mapping": "sudoku_output_mapping",
+      "n_rows": 4,
+      "n_cols": 4
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
