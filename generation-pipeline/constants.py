@@ -72,6 +72,9 @@ START = "start"
 END = "end"
 UNKNOWN = "unknown"
 FALLBACK = "fallback"
+SUDOKU_OUTPUT_MAPPING = "sudoku_output_mapping"
+LIST_OUTPUT_MAPPING = "list_output_mapping"
+INT_OUTPUT_MAPPING = 'int_output_mapping'
 
 # Reserved failure
 RESERVED_FAILURE = "__RESERVED_FAILURE__"
