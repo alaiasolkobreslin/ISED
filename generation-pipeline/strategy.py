@@ -99,18 +99,17 @@ class SudokuProblemStrategy(Strategy):
     def sample(self):
         problem_sample = random.randrange(0, self.n_problems)
         sampled_problem = self.quizzes[problem_sample]
+        bool_board = np.copy(sampled_problem)
+        bool_board[bool_board != 0] = 1
         samples = []
         for i in range(self.n_rows):
-            row_img = []
-            row_value = []
             for j in range(self.n_cols):
                 sample = sampled_problem[i][j]
-                idx = self.unstructured_dataset.sample_with_y(sample)
-                (img, value) = self.unstructured_dataset.get(idx)
-                row_img.append(img)
-                row_value.append(value)
-            samples.append((row_img, row_value))
-        return samples
+                if sample != 0:
+                    idx = self.unstructured_dataset.sample_with_y(sample)
+                    (img, value) = self.unstructured_dataset.get(idx)
+                    samples.append((img, value))
+        return (samples, bool_board)
 
 
 class SudokuRandomStrategy(Strategy):

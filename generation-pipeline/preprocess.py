@@ -24,17 +24,19 @@ class PreprocessSort(Preprocess):
 
 class PreprocessSudokuBoard(Preprocess):
 
-    def preprocess(self, input):
-        length = len(input)
-        bool_board = [[0 for _ in range(length)] for _ in range(length)]
-        for i in range(length):
-            for j in range(length):
-                curr_digit = input[i][1][j]
-                if curr_digit:
-                    input[i][1][j] = str(curr_digit)
-                    bool_board[i][j] = 1
-                else:
-                    input[i][1][j] = '.'
+    def preprocess(self, input, bool_board):
+        # length = len(input)
+        # (rows, cols) = bool_board.shape
+        # # bool_board = [[0 for _ in range(length)] for _ in range(length)]
+        # for i in range(length):
+        #     for j in range(length):
+        #         curr_digit = input[i][1][j]
+        #         if curr_digit:
+        #             input[i][1][j] = str(curr_digit)
+        #             bool_board[i][j] = 1
+        #         else:
+        #             input[i][1][j] = '.'
+        # return (input, bool_board)
         return (input, bool_board)
 
 

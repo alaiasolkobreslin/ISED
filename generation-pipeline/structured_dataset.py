@@ -409,6 +409,7 @@ class SudokuDataset(StructuredDataset):
 
     @staticmethod
     def collate_fn(batch, config):
+        max_blanks = config[MAX_BLANKS]
         imgs = torch.stack([torch.stack([torch.stack(i)
                            for (i, _) in item]) for item in batch])
         selections = torch.stack(
@@ -439,11 +440,12 @@ class SudokuDataset(StructuredDataset):
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
-        samples = self.strategy.sample()
-        (samples, bool_board) = self.preprocess.preprocess(samples)
-        samples = [((sample[0], bool_board[i]), sample[1])
-                   for i, sample in enumerate(samples)]
-        return zip(*samples)
+        samples, bool_board = self.strategy.sample()
+        # (samples, bool_board) = self.preprocess.preprocess(samples)
+        # samples = self.preprocess.preprocess(samples, bool_board)
+        # samples = [((sample[0], bool_board[i]), sample[1])
+        #            for i, sample in enumerate(samples)]
+        return (zip(*samples), bool_board)
 
     def combine(length, input):
         result = []
