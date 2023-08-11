@@ -324,9 +324,10 @@ class ListInputMapping(InputMapping):
 
 
 class ListInputMapping2DSudoku(InputMapping):
-    def __init__(self, n_rows: int, n_cols, element_input_mapping: InputMapping, combine: Callable):
+    def __init__(self, n_rows: int, n_cols: int, max_length: int, element_input_mapping: InputMapping, combine: Callable):
         self.n_rows = n_rows
         self.n_cols = n_cols
+        self.max_length = max_length
         self.element_input_mapping = element_input_mapping
         self.combine = combine
         self.does_permute = True
@@ -334,12 +335,10 @@ class ListInputMapping2DSudoku(InputMapping):
     def sample(self, list_input: ListInput2DSudoku, sample_count: int) -> Tuple[torch.Tensor, List[List[Any]]]:
         # Sample the elements
         batch_size = list_input.tensor.shape[0]
-        n_rows = list_input.tensor.shape[1]
-        n_cols = list_input.tensor.shape[2]
-        assert (n_rows == self.n_rows and n_cols ==
-                self.n_cols), "inputs dimensions must match n_rows and n_cols"
+        length = list_input.tensor.shape[1]
+        assert (length == self.max_length), "inputs dimensions must match max length"
         flattened = list_input.tensor.reshape(
-            (batch_size * n_rows * n_cols, -1))
+            (batch_size * length, -1))
         sampled_indices, sampled_elements = self.element_input_mapping.sample(
             SingleInput(flattened), sample_count)
 

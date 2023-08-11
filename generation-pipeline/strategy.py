@@ -109,7 +109,7 @@ class SudokuProblemStrategy(Strategy):
                     idx = self.unstructured_dataset.sample_with_y(sample)
                     (img, value) = self.unstructured_dataset.get(idx)
                     samples.append((img, value))
-        return (samples, bool_board)
+        return (samples, len(samples), bool_board)
 
 
 class SudokuRandomStrategy(Strategy):

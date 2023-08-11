@@ -25,19 +25,20 @@ class PreprocessSort(Preprocess):
 class PreprocessSudokuBoard(Preprocess):
 
     def preprocess(self, input, bool_board):
-        # length = len(input)
-        # (rows, cols) = bool_board.shape
-        # # bool_board = [[0 for _ in range(length)] for _ in range(length)]
-        # for i in range(length):
-        #     for j in range(length):
-        #         curr_digit = input[i][1][j]
-        #         if curr_digit:
-        #             input[i][1][j] = str(curr_digit)
-        #             bool_board[i][j] = 1
-        #         else:
-        #             input[i][1][j] = '.'
-        # return (input, bool_board)
-        return (input, bool_board)
+        length = bool_board.shape[0]
+        board = []
+        # board = [['.'] * length] * length
+        idx = 0
+        for i in range(length):
+            row = []
+            for j in range(length):
+                if bool_board[i][j]:
+                    row.append(str(input[idx][1]))
+                    idx += 1
+                else:
+                    row.append('.')
+            board.append(row)
+        return (input, board)
 
 
 class PreprocessPalindrome(Preprocess):
