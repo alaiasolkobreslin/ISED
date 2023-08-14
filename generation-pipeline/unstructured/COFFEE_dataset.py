@@ -49,16 +49,23 @@ class COFFEE_dataset(torch.utils.data.Dataset):
         # get SAM generated bboxes
         transform = transforms.PILToTensor()
         bboxes = self.sam_bboxes[leaf]
-        areas = [0] * len(bboxes)
-        images = [None] * len(bboxes)
+        areas = []
+        images = []
         for i, bbox in enumerate(bboxes):
-            areas[i] = bbox['area']
             box = bbox['bbox']
+
+            # First, we want to discard sections that are too large
+            crop_img_area = (box['xmax'] - box['xmin']) * \
+                (box['ymax'] - box['ymin'])
+            if crop_img_area > 2500000:
+                continue
+
+            areas.append(bbox['area'])
             crop_area = (box['xmin'], box['ymin'],
                          box['xmax'], box['ymax'])
             cropped_img = img.rotate(180).crop(crop_area)
             resized_img = cropped_img.resize((28, 28))
-            images[i] = transform(resized_img)
+            images.append(transform(resized_img))
         return ((images, areas), severity)
 
     def __len__(self):
