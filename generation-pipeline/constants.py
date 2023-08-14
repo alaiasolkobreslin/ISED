@@ -60,7 +60,6 @@ PREPROCESS_IDENTITY = "id"
 PREPROCESS_SORT = "sort"
 PREPROCESS_SUDOKU_BOARD = 'make_board'
 PREPROCESS_PALINDROME = 'palindrome'
-PREPROCESS_COFFEE = 'preprocess_coffee'
 
 # Output
 OUTPUT = "output"

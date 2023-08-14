@@ -1761,7 +1761,7 @@
         "type": "leaf_area",
         "max_length": 44,
         "strategy": "single_sample",
-        "preprocess": "preprocess_coffee",
+        "preprocess": "id",
         "dataset": "COFFEE_LEAF_RUST",
         "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
@@ -1784,7 +1784,7 @@
         "type": "leaf_area",
         "max_length": 46,
         "strategy": "single_sample",
-        "preprocess": "preprocess_coffee",
+        "preprocess": "id",
         "dataset": "COFFEE_LEAF_MINER",
         "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }

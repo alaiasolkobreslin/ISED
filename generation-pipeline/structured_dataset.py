@@ -697,7 +697,7 @@ class CoffeeLeafDataset(StructuredDataset):
         return strat
 
     def get_preprocess_strategy(self):
-        allowed = [PREPROCESS_COFFEE]
+        allowed = [PREPROCESS_IDENTITY]
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
