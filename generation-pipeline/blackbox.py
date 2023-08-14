@@ -74,11 +74,10 @@ class BlackBoxFunction(torch.nn.Module):
                 input_i, sample_count=self.sample_count)
             input_for_pooling = input_i.get_input_for_pooling()
             if input_for_pooling:
-                to_compute = [(i,) for i in zip(sampled_elements_i, input_for_pooling)]
+                to_compute = [[(s, input_for_pooling[idx]) for s in sampled_element]
+                              for idx, sampled_element in enumerate(sampled_elements_i)]
             else:
                 to_compute = sampled_elements_i
-            # to_compute_inputs.append(
-            #     zip(sampled_elements_i, input_for_pooling))
             to_compute_inputs.append(to_compute)
             sampled_indices.append(sampled_indices_i)
         to_compute_inputs = self.zip_batched_inputs(to_compute_inputs)

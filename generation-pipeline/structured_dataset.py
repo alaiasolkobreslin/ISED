@@ -452,27 +452,31 @@ class SudokuDataset(StructuredDataset):
     def generate_datapoint(self):
         samples, length, bool_board = self.strategy.sample()
         (samples, board) = self.preprocess.preprocess(samples, bool_board)
-        return ((zip(*samples), length, bool_board), board)
+        s = [z for z in zip(*samples)]
+        return ((s, length, bool_board), board)
 
-    def combine(length, input):
+    def combine(input):
+        input, bool_board = input
+        n_rows, n_cols = bool_board.shape
         result = []
-        i = 0
-        current_row = []
-        while i < len(input):
-            current_row.append(input[i])
-            i += 1
-            if i % length == 0:
-                result.append(current_row)
-                current_row = []
+        idx = 0
+        for r in range(n_rows):
+            current_row = []
+            for c in range(n_cols):
+                if bool_board[r][c]:
+                    current_row.append(str(input[idx]))
+                    idx += 1
+                else:
+                    current_row.append('.')
+            result.append(current_row)
         return result
 
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
-        n_cols = config[N_COLS]
         max_length = config[MAX_BLANKS]
         digit_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
-        return input.PaddedListInputMappingSudoku(max_length, digit_input_mapping, partial(SudokuDataset.combine, n_cols))
+        return input.PaddedListInputMappingSudoku(max_length, digit_input_mapping, SudokuDataset.combine)
 
     def distrs_to_input(distrs, x, config):
         lengths = [l.item() for l in x[1]]
