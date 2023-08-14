@@ -472,11 +472,11 @@ class SudokuDataset(StructuredDataset):
         max_length = config[MAX_BLANKS]
         digit_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
-        return input.PaddedListInputMapping(max_length, digit_input_mapping, partial(SudokuDataset.combine, n_cols))
+        return input.PaddedListInputMappingSudoku(max_length, digit_input_mapping, partial(SudokuDataset.combine, n_cols))
 
     def distrs_to_input(distrs, x, config):
         lengths = [l.item() for l in x[1]]
-        return input.PaddedListInput(distrs, lengths)
+        return input.PaddedListInputSudoku(distrs, lengths, x[2])
 
 
 class PaddedListDataset(StructuredDataset):
