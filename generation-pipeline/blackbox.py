@@ -43,6 +43,7 @@ class BlackBoxFunction(torch.nn.Module):
             output_mapping: OutputMapping,
             batch_size: int,
             check_symmetry: bool = True,
+            caching: bool = True,
             sample_count: int = 100,
             timeout_seconds: int = 1):
         super(BlackBoxFunction, self).__init__()
@@ -52,6 +53,8 @@ class BlackBoxFunction(torch.nn.Module):
         self.output_mapping = output_mapping
         self.pool = Pool(processes=batch_size)
         self.sample_count = sample_count
+        self.caching = caching
+        self.fn_cache = {}
         self.inputs_permute = True if check_symmetry and len(
             input_mappings) > 1 else False
         # self.timeout_decorator = timeout(seconds=timeout_seconds)
@@ -117,8 +120,16 @@ class BlackBoxFunction(torch.nn.Module):
             try:
                 fn_input = (self.input_mappings[i].combine(
                     elt) for i, elt in enumerate(r))
-                y = self.function(*fn_input)
-                yield y
+                if not self.caching:
+                    yield self.function(*fn_input)
+                else:
+                    hashable_fn_input = util.get_hashable_elem(fn_input)
+                    if hashable_fn_input in self.fn_cache:
+                        yield self.fn_cache[hashable_fn_input]
+                    else:
+                        y = self.function(*fn_input)
+                        self.fn_cache[hashable_fn_input] = y
+                        yield y
             except:
                 yield RESERVED_FAILURE
 

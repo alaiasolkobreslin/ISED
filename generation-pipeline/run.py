@@ -75,7 +75,8 @@ class TaskNet(nn.Module):
             output_mapping: output.OutputMapping,
             sample_count: int,
             batch_size_train: int,
-            check_symmetry: bool):
+            check_symmetry: bool,
+            caching: bool):
         super(TaskNet, self).__init__()
 
         self.config = config
@@ -90,8 +91,14 @@ class TaskNet(nn.Module):
                             for i, sd in enumerate(self.structured_datasets)]
         input_mappings = tuple([sd.get_input_mapping(
             config[i]) for i, sd in enumerate(self.structured_datasets)])
-        self.eval_formula = blackbox.BlackBoxFunction(
-            function=fn, input_mappings=input_mappings, output_mapping=output_mapping, batch_size=batch_size_train, check_symmetry=check_symmetry, sample_count=sample_count)
+        self.eval_formula = \
+            blackbox.BlackBoxFunction(function=fn,
+                                      input_mappings=input_mappings,
+                                      output_mapping=output_mapping,
+                                      batch_size=batch_size_train,
+                                      check_symmetry=check_symmetry,
+                                      caching=caching,
+                                      sample_count=sample_count)
 
         self.pool = Pool(processes=batch_size_train)
 
@@ -148,9 +155,16 @@ class Trainer():
             output_mapping: output.OutputMapping,
             sample_count: int,
             batch_size_train: int,
-            check_symmetry: bool):
+            check_symmetry: bool,
+            caching: bool):
         self.network = TaskNet(unstructured_datasets=unstructured_datasets,
-                               config=config, fn=fn, output_mapping=output_mapping, sample_count=sample_count, batch_size_train=batch_size_train, check_symmetry=check_symmetry)
+                               config=config,
+                               fn=fn,
+                               output_mapping=output_mapping,
+                               sample_count=sample_count,
+                               batch_size_train=batch_size_train,
+                               check_symmetry=check_symmetry,
+                               caching=caching)
         self.output_mapping = output_mapping
         self.optimizers = [optim.Adam(
             net.parameters(), lr=learning_rate) for net in self.network.nets_dict.values()]
@@ -265,6 +279,7 @@ if __name__ == "__main__":
     parser.add_argument("--configuration", type=str,
                         default="configuration.json")
     parser.add_argument("--symmetry", type=bool, default=False)
+    parser.add_argument("--caching", type=bool, default=True)
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
 
@@ -313,6 +328,15 @@ if __name__ == "__main__":
         config = task_config[INPUTS]
         unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
             input, train=True) for input in task_config[INPUTS]]
-        trainer = Trainer(train_loader=train_loader, test_loader=test_loader, unstructured_datasets=unstructured_datasets, learning_rate=learning_rate,
-                          config=config, fn=fn, output_mapping=om, sample_count=args.n_samples, batch_size_train=batch_size_train, check_symmetry=args.symmetry)
+        trainer = Trainer(train_loader=train_loader,
+                          test_loader=test_loader,
+                          unstructured_datasets=unstructured_datasets,
+                          learning_rate=learning_rate,
+                          config=config,
+                          fn=fn,
+                          output_mapping=om,
+                          sample_count=args.n_samples,
+                          batch_size_train=batch_size_train,
+                          check_symmetry=args.symmetry,
+                          caching=args.caching)
         trainer.train(n_epochs)

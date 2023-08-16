@@ -22,4 +22,5 @@ TODO:
 - CoNLL2003
   * Finish implementing this.
 - Other
-  * Implement caching
+  * ~~Implement caching~~
+  * Add timeout back
