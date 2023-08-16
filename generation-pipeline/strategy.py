@@ -127,18 +127,29 @@ class SudokuRandomStrategy(Strategy):
             return self.problem_strategy.sample()
         else:
             # the other half should be randomly generated (likely invalid)
+            flag = True
+            while flag:
+                problem = []
+                for _ in range(self.n_rows):
+                    problem_row = []
+                    for _ in range(self.n_cols):
+                        if random.randint(1, 81) < 30:
+                            sample = random.randrange(1, 1 + self.n_rows)
+                            flag = False
+                        else:
+                            sample = 0
+                        problem_row.append(sample)
+                    problem.append(problem_row)
+            problem = np.array(problem)
+            bool_board = np.copy(problem)
+            bool_board[bool_board != 0] = 1
+
             samples = []
-            for _ in range(self.n_rows):
-                row_img = []
-                row_value = []
-                for _ in range(self.n_cols):
-                    if random.randint(1, 81) < 30:
-                        sample = random.randrange(1, 1 + self.n_rows)
-                    else:
-                        sample = 0
-                    idx = self.unstructured_dataset.sample_with_y(sample)
-                    (img, value) = self.unstructured_dataset.get(idx)
-                    row_img.append(img)
-                    row_value.append(value)
-                samples.append((row_img, row_value))
-            return samples
+            for i in range(self.n_rows):
+                for j in range(self.n_cols):
+                    sample = problem[i][j]
+                    if sample != 0:
+                        idx = self.unstructured_dataset.sample_with_y(sample)
+                        (img, value) = self.unstructured_dataset.get(idx)
+                        samples.append((img, value))
+            return (samples, len(samples), bool_board)
