@@ -12,10 +12,12 @@ TODO:
   * Clean up dataset by removing masks that are overlaping.
   * Fix severity score calculation to calculate ratio of rust to total leaf area.
 - Sudoku
-  * Fix dataset to stop blanks/MNIST 0s from ever being forwarded through the CNN.
+  * ~~Fix dataset to stop blanks/MNIST 0s from ever being forwarded through the CNN.~~
   * Run at high sample count for many epochs.
-  * Replace current solver with a SAT-based solver to improve speed.
+  * ~~Replace current solver with a SAT-based solver to improve speed.~~
   * Find a dataset with a proper license or generate our own.
   * Question: is it ok for the solver function to return the input board (with no blanks filled in) when there is no solution? This is what I have implemented and I believe that it helps when we use similarity checking in the loss.
 - CoNLL2003
   * Finish implementing this.
+- Other
+  * Implement caching

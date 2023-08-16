@@ -1,6 +1,7 @@
 from heapq import merge
 from typing import *
 import torch
+import pycosat
 import numpy as np
 
 # Scallop programs
@@ -680,39 +681,81 @@ def valid_mini_sudoku(board):
     return True
 
 
-def mini_sudoku_solver(board):
-    if not valid_mini_sudoku(board):
+def solve_sudoku(length, root_length, boxes, board):
+
+    def lit(i, j, d):
+        return (length ** 2) * (i - 1) + length * (j - 1) + d
+
+    clauses = []
+    for i in range(1, length + 1):
+        for j in range(1, length + 1):
+            n = board[i-1][j-1]
+            if n in [str(i) for i in range(1, length + 1)]:
+                # add known values to clauses
+                clauses.append([lit(i, j, int(n))])
+
+    for i in range(1, length + 1):
+        for j in range(1, length + 1):
+            # each cell contains a value
+            clauses.append([lit(i, j, d) for d in range(1, length + 1)])
+            for d in range(1, length + 1):
+                for n in range(d + 1, length + 1):
+                    # no two values occupy the same cell
+                    clauses.append([-lit(i, j, d), -lit(i, j, n)])
+
+    def valid(cells):
+        for i, xi in enumerate(cells):
+            for j, xj in enumerate(cells):
+                if i < j:
+                    for d in range(1, length + 1):
+                        clauses.append(
+                            [-lit(xi[0], xi[1], d), -lit(xj[0], xj[1], d)])
+
+    for i in range(1, length + 1):
+        # check that rows contain no conflicts
+        valid([(i, j) for j in range(1, length + 1)])
+        # chceck that columns contain no conflicts
+        valid([(j, i) for j in range(1, length + 1)])
+
+    # check that boxes contain no conflicts
+    for i in boxes:
+        for j in boxes:
+            valid([(i + k % root_length, j + k // root_length)
+                  for k in range(length)])
+
+    solved = pycosat.solve(clauses)
+    if solved == 'UNSAT':
         return board
+    sol = set(solved)
 
-    def isValid(row: int, col: int, c: chr) -> bool:
-        for i in range(4):
-            if board[i][col] == c or \
-               board[row][i] == c or \
-               board[2 * (row // 2) + i // 2][2 * (col // 2) + i % 2] == c:
-                return False
-        return True
+    def read_cell(i, j):
+        # return the digit of cell i, j according to the solution
+        for d in range(1, length + 1):
+            if lit(i, j, d) in sol:
+                return d
 
-    def solve(s: int) -> bool:
-        if s == 16:
-            return True
+    solution = []
+    for i in range(1, length + 1):
+        solution_row = []
+        for j in range(1, length + 1):
+            solution_row.append(str(read_cell(i, j)))
+        solution.append(solution_row)
 
-        i = s // 4
-        j = s % 4
+    return solution
 
-        if board[i][j] != '.':
-            return solve(s + 1)
 
-        for c in '1234':
-            if isValid(i, j, c):
-                board[i][j] = c
-                if solve(s + 1):
-                    return True
-                board[i][j] = '.'
+def mini_sudoku_solver(board):
+    length = 4
+    root_length = 2
+    boxes = (1, 3)
+    return solve_sudoku(length, root_length, boxes, board)
 
-        return False
 
-    solve(0)
-    return board
+def sudoku_solver(board):
+    length = 9
+    root_length = 3
+    boxes = (1, 4, 7)
+    return solve_sudoku(length, root_length, boxes, board)
 
 
 def sum_grid(grid):
