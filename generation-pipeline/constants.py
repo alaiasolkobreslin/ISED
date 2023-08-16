@@ -21,6 +21,7 @@ LENGTH = "length"
 MAX_LENGTH = "max_length"
 N_ROWS = 'n_rows'
 N_COLS = 'n_cols'
+MAX_BLANKS = 'max_blanks'
 
 # Types
 DIGIT_TYPE = "digit"

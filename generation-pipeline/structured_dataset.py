@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 from functools import partial
 
@@ -409,16 +410,26 @@ class SudokuDataset(StructuredDataset):
 
     @staticmethod
     def collate_fn(batch, config):
-        imgs = torch.stack([torch.stack([torch.stack(i)
-                           for (i, _) in item]) for item in batch])
-        selections = torch.stack(
-            [torch.stack([torch.tensor(s) for (_, s) in item]) for item in batch])
-        return (imgs, selections)
+        batch = [(list(z), l, b) for (z, l, b) in batch]
+        max_blanks = config[MAX_BLANKS]
+        zero_img = torch.zeros_like(batch[0][0][0][0])
+
+        def pad_zero(img_seq):
+            img_seq = list(img_seq)
+            return img_seq + [zero_img] * (max_blanks - len(img_seq))
+        img_seqs = torch.stack([torch.stack(pad_zero(list(img_seq)[0]))
+                               for (img_seq, _, _) in batch])
+        img_seq_len = torch.stack(
+            [torch.tensor(img_seq_len).long() for (_, img_seq_len, _) in batch])
+        bool_boards = torch.stack([torch.from_numpy(bool_board)
+                                  for (_, _, bool_board) in batch])
+
+        return (img_seqs, img_seq_len, bool_boards)
 
     def forward(net, x):
-        (distrs, _) = x
-        batch_size, n_rows, n_cols, _, _, _ = distrs.shape
-        return net(distrs.flatten(start_dim=0, end_dim=2)).view(batch_size, n_rows, n_cols, -1)
+        (distrs, _, _) = x
+        batch_size, length, _, _, _ = distrs.shape
+        return net(distrs.flatten(start_dim=0, end_dim=1)).view(batch_size, length, -1)
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
@@ -439,36 +450,37 @@ class SudokuDataset(StructuredDataset):
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
-        samples = self.strategy.sample()
-        (samples, bool_board) = self.preprocess.preprocess(samples)
-        samples = [((sample[0], bool_board[i]), sample[1])
-                   for i, sample in enumerate(samples)]
-        return zip(*samples)
+        samples, length, bool_board = self.strategy.sample()
+        (samples, board) = self.preprocess.preprocess(samples, bool_board)
+        s = [z for z in zip(*samples)]
+        return ((s, length, bool_board), board)
 
-    def combine(length, input):
+    def combine(input):
+        input, bool_board = input
+        n_rows, n_cols = bool_board.shape
         result = []
-        i = 0
-        current_row = []
-        while i < len(input):
-            current_row.append(input[i])
-            i += 1
-            if i % length == 0:
-                result.append(current_row)
-                current_row = []
+        idx = 0
+        for r in range(n_rows):
+            current_row = []
+            for c in range(n_cols):
+                if bool_board[r][c]:
+                    current_row.append(str(input[idx]))
+                    idx += 1
+                else:
+                    current_row.append('.')
+            result.append(current_row)
         return result
 
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
-        n_rows = config[N_ROWS]
-        n_cols = config[N_COLS]
+        max_length = config[MAX_BLANKS]
         digit_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
-        return input.ListInputMapping2DSudoku(n_rows, n_cols, digit_input_mapping, partial(SudokuDataset.combine, n_cols))
+        return input.PaddedListInputMappingSudoku(max_length, digit_input_mapping, SudokuDataset.combine)
 
     def distrs_to_input(distrs, x, config):
-        n_rows = config[N_ROWS]
-        n_cols = config[N_COLS]
-        return input.ListInput2DSudoku(distrs, x[1], n_rows, n_cols)
+        lengths = [l.item() for l in x[1]]
+        return input.PaddedListInputSudoku(distrs, lengths, x[2])
 
 
 class PaddedListDataset(StructuredDataset):

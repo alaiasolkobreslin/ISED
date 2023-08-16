@@ -72,7 +72,13 @@ class BlackBoxFunction(torch.nn.Module):
         for (input_i, input_mapping_i) in zip(inputs, self.input_mappings):
             sampled_indices_i, sampled_elements_i = input_mapping_i.sample(
                 input_i, sample_count=self.sample_count)
-            to_compute_inputs.append(sampled_elements_i)
+            input_for_pooling = input_i.get_input_for_pooling()
+            if input_for_pooling:
+                to_compute = [[(s, input_for_pooling[idx]) for s in sampled_element]
+                              for idx, sampled_element in enumerate(sampled_elements_i)]
+            else:
+                to_compute = sampled_elements_i
+            to_compute_inputs.append(to_compute)
             sampled_indices.append(sampled_indices_i)
         to_compute_inputs = self.zip_batched_inputs(to_compute_inputs)
 
@@ -102,12 +108,12 @@ class BlackBoxFunction(torch.nn.Module):
         result = [list(zip(*lists)) for lists in zip(*batched_inputs)]
         return result
 
-    def invoke_function_on_inputs(self, inputs):
+    def invoke_function_on_inputs(self, input_args):
         """
         Given a list of inputs, invoke the black-box function on each of them.
         Note that function may fail on some inputs, and we skip those.
         """
-        for r in inputs:
+        for r in input_args:
             try:
                 fn_input = (self.input_mappings[i].combine(
                     elt) for i, elt in enumerate(r))

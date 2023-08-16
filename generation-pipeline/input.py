@@ -19,6 +19,9 @@ class Input:
     def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[Tuple]):
         pass
 
+    def get_input_for_pooling(self):
+        pass
+
 
 class SingleInput(Input):
     def __init__(self, tensor: torch.Tensor):
@@ -107,17 +110,23 @@ class PaddedListInput(Input):
     #             proofs.append(torch.prod(new_tensor_gathered, dim=1))
     #     return proofs
 
-    def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[Tuple]):
-        _, length, _ = indices.shape
-        proofs = []
-        tensor_lst = [i for i in torch.transpose(self.tensor, 0, 1)]
-        for perm in permutations:
-            permuted = torch.stack([tensor_lst[perm[i]]
-                                   for i in range(length)])
-            new_tensor = torch.transpose(permuted, 0, 1)
-            new_tensor_gathered = new_tensor.gather(dim+1, indices)
-            proofs.append(torch.prod(new_tensor_gathered, dim=1))
-        return proofs
+
+class PaddedListInputSudoku(Input):
+    """
+    The struct holding vectorized list input
+    """
+
+    def __init__(self, tensor: torch.Tensor, lengths: List[int], bool_boards=torch.Tensor):
+        super(PaddedListInputSudoku, self).__init__(tensor)
+        self.lengths = lengths
+        self.bool_boards = bool_boards
+
+    def gather(self, dim: int, indices: torch.Tensor):
+        result = self.tensor.gather(dim + 1, indices)
+        return torch.prod(result, dim=1)
+
+    def get_input_for_pooling(self):
+        return [b for b in self.bool_boards]
 
 
 class ListInput2D(Input):
@@ -269,6 +278,40 @@ class PaddedListInputMapping(InputMapping):
             return [idx_lst]
         return [p for p in itertools.permutations(idx_lst)]
 
+
+class PaddedListInputMappingSudoku(InputMapping):
+    def __init__(self, max_length: int, element_input_mapping: InputMapping, combine: Callable):
+        self.max_length = max_length
+        self.element_input_mapping = element_input_mapping
+        self.combine = combine
+        self.does_permute = True
+
+    def sample(self, list_input: PaddedListInputSudoku, sample_count: int) -> Tuple[torch.Tensor, List[List[Any]]]:
+        # Sample the elements
+        batch_size, list_length = list_input.tensor.shape[0], list_input.tensor.shape[1]
+        assert list_length == self.max_length, "inputs must have the same number of columns as the max length"
+        flattened = list_input.tensor.reshape((batch_size * list_length, -1))
+        sampled_indices, sampled_elements = self.element_input_mapping.sample(
+            SingleInput(flattened), sample_count)
+
+        # Reshape the sampled elements
+        result_sampled_elements = []
+        for i in range(batch_size):
+            curr_batch = []
+            for j in range(sample_count):
+                curr_elem = []
+                for k in range(list_input.lengths[i]):
+                    curr_elem.append(sampled_elements[i * list_length + k][j])
+                curr_batch.append(curr_elem)
+            result_sampled_elements.append(curr_batch)
+
+        # Reshape the sampled indices
+        sampled_indices_original_shape = tuple(sampled_indices.shape[1:])
+        sampled_indices = sampled_indices.reshape(
+            batch_size, list_length, *sampled_indices_original_shape)
+
+        return (sampled_indices, result_sampled_elements)
+
     # def permute(self):
     #     permutations = []
     #     if not self.does_permute:
@@ -324,9 +367,10 @@ class ListInputMapping(InputMapping):
 
 
 class ListInputMapping2DSudoku(InputMapping):
-    def __init__(self, n_rows: int, n_cols, element_input_mapping: InputMapping, combine: Callable):
+    def __init__(self, n_rows: int, n_cols: int, max_length: int, element_input_mapping: InputMapping, combine: Callable):
         self.n_rows = n_rows
         self.n_cols = n_cols
+        self.max_length = max_length
         self.element_input_mapping = element_input_mapping
         self.combine = combine
         self.does_permute = True
@@ -334,12 +378,10 @@ class ListInputMapping2DSudoku(InputMapping):
     def sample(self, list_input: ListInput2DSudoku, sample_count: int) -> Tuple[torch.Tensor, List[List[Any]]]:
         # Sample the elements
         batch_size = list_input.tensor.shape[0]
-        n_rows = list_input.tensor.shape[1]
-        n_cols = list_input.tensor.shape[2]
-        assert (n_rows == self.n_rows and n_cols ==
-                self.n_cols), "inputs dimensions must match n_rows and n_cols"
+        length = list_input.tensor.shape[1]
+        assert (length == self.max_length), "inputs dimensions must match max length"
         flattened = list_input.tensor.reshape(
-            (batch_size * n_rows * n_cols, -1))
+            (batch_size * length, -1))
         sampled_indices, sampled_elements = self.element_input_mapping.sample(
             SingleInput(flattened), sample_count)
 

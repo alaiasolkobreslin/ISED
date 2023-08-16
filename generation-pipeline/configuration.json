@@ -973,6 +973,7 @@
         "preprocess": "make_board",
         "n_rows": 9,
         "n_cols": 9,
+        "max_blanks": 52,
         "dataset": "MNIST",
         "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
@@ -997,6 +998,7 @@
         "preprocess": "make_board",
         "n_rows": 9,
         "n_cols": 9,
+        "max_blanks": 52,
         "dataset": "MNIST",
         "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
@@ -1633,6 +1635,7 @@
         "preprocess": "make_board",
         "n_rows": 4,
         "n_cols": 4,
+        "max_blanks": 12,
         "dataset": "MNIST_0TO4",
         "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
@@ -1657,6 +1660,7 @@
         "preprocess": "make_board",
         "n_rows": 4,
         "n_cols": 4,
+        "max_blanks": 12,
         "dataset": "MNIST_0TO4",
         "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }
