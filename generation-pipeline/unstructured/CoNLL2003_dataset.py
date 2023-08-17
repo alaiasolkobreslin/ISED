@@ -44,11 +44,14 @@ class DataSequence(torch.utils.data.Dataset):
 
     def __init__(self, dataset):
         labels = [sentence['ner_tags'] for sentence in dataset]
-        unique_labels = set()
+        self.unique_labels = set()
         for lb in labels:
-            [unique_labels.add(i) for i in lb if i not in unique_labels]
-        labels_to_ids = {k: v for v, k in enumerate(sorted(unique_labels))}
-        ids_to_labels = {v: k for v, k in enumerate(sorted(unique_labels))}
+            [self.unique_labels.add(i)
+             for i in lb if i not in self.unique_labels]
+        labels_to_ids = {k: v for v, k in enumerate(
+            sorted(self.unique_labels))}
+        ids_to_labels = {v: k for v, k in enumerate(
+            sorted(self.unique_labels))}
         aligner = Aligner(labels_to_ids)
         txt = [sentence['tokens'] for sentence in dataset]
         self.texts = [aligner.tokenizer(str(i),
@@ -75,7 +78,10 @@ class DataSequence(torch.utils.data.Dataset):
         return batch_data, batch_labels
 
 
-dataset = load_dataset("conll2003")
-train_data = dataset['train']
-data_sequence = DataSequence(train_data)
-print(data_sequence[0])
+def get_data(train: bool):
+    dataset = load_dataset("conll2003")
+    split = 'train' if train else 'test'
+    data = dataset[split]
+    data_sequence = DataSequence(data)
+
+    return data_sequence

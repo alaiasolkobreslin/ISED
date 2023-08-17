@@ -21,6 +21,8 @@ from unstructured import MNIST_video_dataset
 from unstructured import MNIST_video_net
 from unstructured import COFFEE_dataset
 from unstructured import COFFEE_net
+from unstructured import CoNLL2003_dataset
+from unstructured import CoNLL2003_net
 
 
 class UnstructuredDataset:
@@ -328,3 +330,32 @@ class CoffeeLeafRustDataset(UnstructuredDataset):
     def confusion_matrix(self, network):
         coffee_dataset, _ = COFFEE_dataset.get_data(prefix='rust', train=False)
         self.plot_confusion_matrix(network=network, dataset=coffee_dataset)
+
+
+class CoNLL2003Dataset(UnstructuredDataset):
+
+    def __init__(self, train):
+        self.name = CONLL2003
+        self.data = CoNLL2003Dataset.get_data(train=train)
+
+    def __len__(self):
+        return len(self.data)
+
+    @staticmethod
+    def collate_fn(batch):
+        pass
+
+    def input_mapping(self):
+        return [i for i in range(0)]
+
+    def sample_with_y(self, sequence_id: int) -> int:
+        return sequence_id
+
+    def get(self, index: int):  # -> Tuple[torch.Tensor, int]:
+        return self.data[index]
+
+    def net(self):
+        return CoNLL2003_net.BertModel(self.data.unique_labels)
+
+    def confusion_matrix(self, network):
+        pass

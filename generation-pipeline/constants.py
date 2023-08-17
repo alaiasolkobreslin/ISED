@@ -35,6 +35,7 @@ STRING_TYPE = "str"
 SUDOKU_TYPE = "Sudoku"
 VIDEO_DIGIT_TYPE = "Video[digit]"
 LEAF_AREA_TYPE = "leaf_area"
+TOKEN_SEQUENCE_TYPE = "token_sequence"
 
 # Datasets
 DATASET = "dataset"
@@ -46,6 +47,7 @@ MNIST_VIDEO = "MNIST_VIDEO"
 MNIST_0TO4 = "MNIST_0TO4"
 COFFEE_LEAF_MINER = "COFFEE_LEAF_MINER"
 COFFEE_LEAF_RUST = "COFFEE_LEAF_RUST"
+CONLL2003 = "CoNLL2003"
 
 # Dataset generation strategies
 STRATEGY = "strategy"

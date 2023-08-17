@@ -32,6 +32,14 @@ class InvalidSampleStrategy(Exception):
 
 class StructuredDataset:
 
+    def __init__(self, config, dataset_size, unstructured_dataset, call_black_box_for_gt):
+        self.config = config
+        self.dataset_size = dataset_size
+        self.unstructured_dataset = unstructured_dataset
+        self.strategy = self.get_sample_strategy()
+        self.preprocess = self.get_preprocess_strategy()
+        self.call_black_box_for_gt = call_black_box_for_gt
+
     def __len__(self):
         pass
 
@@ -75,8 +83,6 @@ class StructuredDataset:
             strat = preprocess.PreprocessSudokuBoard()
         elif s == PREPROCESS_PALINDROME:
             strat = preprocess.PreprocessPalindrome()
-        elif s == PREPROCESS_COFFEE:
-            strat = preprocess.PreprocessCoffee()
         return strat
 
     def get_preprocess_strategy(self):
@@ -103,12 +109,10 @@ class StructuredDataset:
 class SingleDataset(StructuredDataset):
 
     def __init__(self, config, dataset_size, unstructured_dataset):
-        self.config = config
-        self.dataset_size = dataset_size
-        self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_sample_strategy()
-        self.preprocess = self.get_preprocess_strategy()
-        self.call_black_box_for_gt = True
+        super().__init__(config=config,
+                         dataset_size=dataset_size,
+                         unstructured_dataset=unstructured_dataset,
+                         call_black_box_for_gt=True)
 
     def __len__(self):
         return self.dataset_size
@@ -148,12 +152,10 @@ class SingleDataset(StructuredDataset):
 class IntDataset(StructuredDataset):
 
     def __init__(self, config, dataset_size, unstructured_dataset):
-        self.config = config
-        self.dataset_size = dataset_size
-        self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_sample_strategy()
-        self.preprocess = self.get_preprocess_strategy()
-        self.call_black_box_for_gt = True
+        super().__init__(config=config,
+                         dataset_size=dataset_size,
+                         unstructured_dataset=unstructured_dataset,
+                         call_black_box_for_gt=True)
 
     def __len__(self):
         return self.dataset_size
@@ -204,12 +206,10 @@ class IntDataset(StructuredDataset):
 
 class SingleIntListDataset(StructuredDataset):
     def __init__(self, config, dataset_size, unstructured_dataset):
-        self.config = config
-        self.dataset_size = dataset_size
-        self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_sample_strategy()
-        self.preprocess = self.get_preprocess_strategy()
-        self.call_black_box_for_gt = True
+        super().__init__(config=config,
+                         dataset_size=dataset_size,
+                         unstructured_dataset=unstructured_dataset,
+                         call_black_box_for_gt=True)
 
     def __len__(self):
         return self.dataset_size
@@ -260,12 +260,10 @@ class SingleIntListDataset(StructuredDataset):
 class IntListDataset(StructuredDataset):
 
     def __init__(self, config, dataset_size, unstructured_dataset):
-        self.config = config
-        self.dataset_size = dataset_size
-        self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_sample_strategy()
-        self.preprocess = self.get_preprocess_strategy()
-        self.call_black_box_for_gt = True
+        super().__init__(config=config,
+                         dataset_size=dataset_size,
+                         unstructured_dataset=unstructured_dataset,
+                         call_black_box_for_gt=True)
 
     def __len__(self):
         return self.dataset_size
@@ -331,12 +329,10 @@ class IntListDataset(StructuredDataset):
 
 class SingleIntListListDataset(StructuredDataset):
     def __init__(self, config, dataset_size, unstructured_dataset):
-        self.config = config
-        self.dataset_size = dataset_size
-        self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_sample_strategy()
-        self.preprocess = self.get_preprocess_strategy()
-        self.call_black_box_for_gt = True
+        super().__init__(config=config,
+                         dataset_size=dataset_size,
+                         unstructured_dataset=unstructured_dataset,
+                         call_black_box_for_gt=True)
 
     def __len__(self):
         return self.dataset_size
@@ -398,12 +394,10 @@ class SingleIntListListDataset(StructuredDataset):
 
 class SudokuDataset(StructuredDataset):
     def __init__(self, config, dataset_size, unstructured_dataset):
-        self.config = config
-        self.dataset_size = dataset_size
-        self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_sample_strategy()
-        self.preprocess = self.get_preprocess_strategy()
-        self.call_black_box_for_gt = True
+        super().__init__(config=config,
+                         dataset_size=dataset_size,
+                         unstructured_dataset=unstructured_dataset,
+                         call_black_box_for_gt=True)
 
     def __len__(self):
         return self.dataset_size
@@ -486,12 +480,10 @@ class SudokuDataset(StructuredDataset):
 class PaddedListDataset(StructuredDataset):
 
     def __init__(self, config, dataset_size, unstructured_dataset):
-        self.config = config
-        self.dataset_size = dataset_size
-        self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_sample_strategy()
-        self.preprocess = self.get_preprocess_strategy()
-        self.call_black_box_for_gt = True
+        super().__init__(config=config,
+                         dataset_size=dataset_size,
+                         unstructured_dataset=unstructured_dataset,
+                         call_black_box_for_gt=True)
 
     def __len__(self):
         return self.dataset_size
@@ -556,12 +548,10 @@ class PaddedListDataset(StructuredDataset):
 
 class StringDataset(StructuredDataset):
     def __init__(self, config, dataset_size, unstructured_dataset):
-        self.config = config
-        self.dataset_size = dataset_size
-        self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_sample_strategy()
-        self.preprocess = self.get_preprocess_strategy()
-        self.call_black_box_for_gt = True
+        super().__init__(config=config,
+                         dataset_size=dataset_size,
+                         unstructured_dataset=unstructured_dataset,
+                         call_black_box_for_gt=True)
 
     def __len__(self):
         return self.dataset_size
@@ -612,12 +602,10 @@ class StringDataset(StructuredDataset):
 
 class VideoDataset(StructuredDataset):
     def __init__(self, config, dataset_size, unstructured_dataset):
-        self.config = config
-        self.dataset_size = dataset_size
-        self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_sample_strategy()
-        self.preprocess = self.get_preprocess_strategy()
-        self.call_black_box_for_gt = True
+        super().__init__(config=config,
+                         dataset_size=dataset_size,
+                         unstructured_dataset=unstructured_dataset,
+                         call_black_box_for_gt=True)
 
     def __len__(self):
         return self.dataset_size
@@ -666,12 +654,10 @@ class VideoDataset(StructuredDataset):
 
 class CoffeeLeafDataset(StructuredDataset):
     def __init__(self, config, dataset_size, unstructured_dataset):
-        self.config = config
-        self.dataset_size = dataset_size
-        self.unstructured_dataset = unstructured_dataset
-        self.strategy = self.get_sample_strategy()
-        self.preprocess = self.get_preprocess_strategy()
-        self.call_black_box_for_gt = False
+        super().__init__(config=config,
+                         dataset_size=dataset_size,
+                         unstructured_dataset=unstructured_dataset,
+                         call_black_box_for_gt=False)
 
     def __len__(self):
         return self.dataset_size
@@ -728,6 +714,41 @@ class CoffeeLeafDataset(StructuredDataset):
         return input.CoffeeInput(distrs, lengths, areas)
 
 
+class TokensDataset(StructuredDataset):
+    def __init__(self, config, dataset_size, unstructured_dataset):
+        super().__init__(config=config,
+                         dataset_size=dataset_size,
+                         unstructured_dataset=unstructured_dataset,
+                         call_black_box_for_gt=True)
+
+    def __len__(self):
+        return self.dataset_size
+
+    @staticmethod
+    def collate_fn(batch, config):
+        pass
+
+    def forward(net, x):
+        pass
+
+    def get_sample_strategy(self):
+        pass
+
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_IDENTITY]
+        return self.preprocess_from_allowed_strategies(allowed)
+
+    def generate_datapoint(self):
+        samples = self.preprocess.preprocess(self.strategy.sample())
+        return samples
+
+    def get_input_mapping(config):
+        pass
+
+    def distrs_to_input(distrs, x, _):
+        pass
+
+
 def get_unstructured_dataset_static(config):
     ud = config[DATASET]
     if ud == MNIST:
@@ -746,6 +767,8 @@ def get_unstructured_dataset_static(config):
         return unstructured_dataset.CoffeeLeafRustDataset
     elif ud == COFFEE_LEAF_MINER:
         return unstructured_dataset.CoffeeLeafMinerDataset
+    elif ud == CONLL2003:
+        return unstructured_dataset.CoNLL2003Dataset
     else:
         raise UnknownUnstructuredDataset(f"Unknown dataset: {ud}")
 
@@ -776,5 +799,7 @@ def get_structured_dataset_static(config):
         return VideoDataset
     elif sd == LEAF_AREA_TYPE:
         return CoffeeLeafDataset
+    elif sd == TOKEN_SEQUENCE_TYPE:
+        return TokensDataset
     else:
         raise UnknownStructuredDataset(f"Unknown dataset: {sd}")
