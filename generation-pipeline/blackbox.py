@@ -17,24 +17,6 @@ class TimeoutError(Exception):
     pass
 
 
-# def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
-#     def decorator(func):
-#         def _handle_timeout(signum, frame):
-#             raise TimeoutError(error_message)
-
-#         @functools.wraps(func)
-#         def wrapper(*args, **kwargs):
-#             signal.signal(signal.SIGALRM, _handle_timeout)
-#             signal.alarm(seconds)
-#             try:
-#                 result = func(*args, **kwargs)
-#             finally:
-#                 signal.alarm(0)
-#             return result
-#         return wrapper
-#     return decorator
-
-
 class BlackBoxFunction(torch.nn.Module):
     def __init__(
             self,
@@ -57,7 +39,24 @@ class BlackBoxFunction(torch.nn.Module):
         self.fn_cache = {}
         self.inputs_permute = True if check_symmetry and len(
             input_mappings) > 1 else False
-        # self.timeout_decorator = timeout(seconds=timeout_seconds)
+        self.timeout_seconds = timeout_seconds
+        self.timeout_decorator = self.decorator
+        self.error_message = os.strerror(errno.ETIME)
+
+    def decorator(self, func):
+        def _handle_timeout(signum, frame):
+            raise TimeoutError(self.error_message)
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.alarm(self.timeout_seconds)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return result
+        return wrapper
 
     def forward(self, *inputs):
         num_inputs = len(inputs)
@@ -127,7 +126,7 @@ class BlackBoxFunction(torch.nn.Module):
                     if hashable_fn_input in self.fn_cache:
                         yield self.fn_cache[hashable_fn_input]
                     else:
-                        y = self.function(*fn_input)
+                        y = self.timeout_decorator(self.function)(*fn_input)
                         self.fn_cache[hashable_fn_input] = y
                         yield y
             except:

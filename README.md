@@ -23,5 +23,5 @@ TODO:
   * Finish implementing this.
 - Other
   * ~~Implement caching~~
-  * Add timeout back
+  * ~~Add timeout back~~
   * Add baselines
