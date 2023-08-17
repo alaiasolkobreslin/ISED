@@ -1,7 +1,7 @@
 # neuro-symbolic-dataset
 
 ## Notes:
-- [Drive Foler](https://drive.google.com/drive/folders/1e_Gm-ZNdAPsc64K1c5cQadUU7oaZqtOw?usp=sharing) containing Coffee leaf masks and other datasets
+- [Drive Folder](https://drive.google.com/drive/folders/1e_Gm-ZNdAPsc64K1c5cQadUU7oaZqtOw?usp=sharing) containing Coffee leaf masks and other datasets
 - Regular Sudoku dataset comes from this [Kaggle dataset](https://www.kaggle.com/datasets/bryanpark/sudoku?resource=download)
   * For mini sudoku, min number of blanks is 6, max is 12
   * For regular sudoku, min number of blanks is 16, max is 52
