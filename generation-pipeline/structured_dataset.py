@@ -764,7 +764,6 @@ class TokensDataset(StructuredDataset):
         return input.ListInputMapping(length=max_length, element_input_mapping=element_input_mapping, combine=id)
 
     def distrs_to_input(distrs, x, config):
-        distrs = torch.softmax(distrs[0], dim=2)
         _, length, _ = distrs.shape
         return input.ListInput(tensor=distrs, length=length)
 

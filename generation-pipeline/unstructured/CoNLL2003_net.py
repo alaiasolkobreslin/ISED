@@ -17,4 +17,4 @@ class BertModel(torch.nn.Module):
         output = self.bert(input_ids=input_id,
                            attention_mask=mask, return_dict=False)
 
-        return output
+        return torch.softmax(input=output[0], dim=2)
