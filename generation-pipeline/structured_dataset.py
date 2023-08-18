@@ -60,7 +60,7 @@ class StructuredDataset:
 
     def get_sample_strategy(self):
         """
-        Returns a strategy object according to the sampling strategy specified 
+        Returns a strategy object according to the sampling strategy specified
         in the configuration
         """
         pass
@@ -87,7 +87,7 @@ class StructuredDataset:
 
     def get_preprocess_strategy(self):
         """
-        Returns a preprocessing strategy object according to the strategy 
+        Returns a preprocessing strategy object according to the strategy
         specified in the configuration
         """
 
@@ -761,10 +761,12 @@ class TokensDataset(StructuredDataset):
         max_length = config[MAX_LENGTH]
         element_input_mapping = input.DiscreteInputMapping(
             [i for i in range(9)], id)
-        return input.PaddedListInputMapping(max_length, element_input_mapping, id)
+        return input.ListInputMapping(length=max_length, element_input_mapping=element_input_mapping, combine=id)
 
     def distrs_to_input(distrs, x, config):
-        pass
+        distrs = torch.softmax(distrs[0], dim=2)
+        _, length, _ = distrs.shape
+        return input.ListInput(tensor=distrs, length=length)
 
 
 def get_unstructured_dataset_static(config):
