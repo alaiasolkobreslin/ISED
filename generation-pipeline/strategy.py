@@ -72,20 +72,20 @@ class SudokuProblemStrategy(Strategy):
         self.n_cols = n_cols
         if self.n_rows == 4:
             self.input_mapping = [i for i in range(1, 5)]
-            self.file = 'data/Sudoku/4x4_sudoku_unique_puzzles.csv'
+            self.file = 'data/Sudoku/4x4sudoku.csv'
         elif self.n_rows == 9:
             self.input_mapping = [i for i in range(1, 10)]
-            self.file = 'data/Sudoku/sudoku.csv'
+            self.file = 'data/Sudoku/9x9sudoku.csv'
         self.quizzes, self.solutions = self.quizzes_and_solutions()
-        self.n_problems = 1000000
+        self.n_problems = 100000
 
     def quizzes_and_solutions(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         sudoku_path = os.path.join(dir_path, self.file)
 
         total_squares = self.n_rows * self.n_cols
-        quizzes = np.zeros((1000000, total_squares), np.int32)
-        solutions = np.zeros((1000000, total_squares), np.int32)
+        quizzes = np.zeros((100000, total_squares), np.int32)
+        solutions = np.zeros((100000, total_squares), np.int32)
         for i, line in enumerate(open(sudoku_path, 'r').read().splitlines()[1:]):
             quiz, solution = line.split(",")
             for j, q_s in enumerate(zip(quiz, solution)):
