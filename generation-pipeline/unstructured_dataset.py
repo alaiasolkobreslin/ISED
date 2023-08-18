@@ -336,7 +336,7 @@ class CoNLL2003Dataset(UnstructuredDataset):
 
     def __init__(self, train):
         self.name = CONLL2003
-        self.data = CoNLL2003Dataset.get_data(train=train)
+        self.data = CoNLL2003_dataset.get_data(train=train)
 
     def __len__(self):
         return len(self.data)
@@ -346,7 +346,7 @@ class CoNLL2003Dataset(UnstructuredDataset):
         pass
 
     def input_mapping(self):
-        return [i for i in range(0)]
+        return [i for i in range(9)]
 
     def sample_with_y(self, sequence_id: int) -> int:
         return sequence_id

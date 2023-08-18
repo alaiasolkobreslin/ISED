@@ -726,13 +726,28 @@ class TokensDataset(StructuredDataset):
 
     @staticmethod
     def collate_fn(batch, config):
-        pass
+        input_ids = torch.stack([item['input_ids'] for item in batch])
+        token_type_ids = torch.stack(
+            [item['token_type_ids'] for item in batch])
+        attention_mask = torch.stack(
+            [item['attention_mask'] for item in batch])
+        return (input_ids, token_type_ids, attention_mask)
 
     def forward(net, x):
-        pass
+        input_id, _, attention_mask = x
+        input_id = torch.squeeze(input_id)
+        attention_mask = torch.squeeze(attention_mask)
+        return net(input_id=input_id, mask=attention_mask)
 
     def get_sample_strategy(self):
-        pass
+        s = self.config[STRATEGY]
+        input_mapping = self.unstructured_dataset.input_mapping()
+        if s == SINGLE_SAMPLE_STRATEGY:
+            strat = strategy.SingleSampleStrategy(
+                self.unstructured_dataset, input_mapping)
+        else:
+            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+        return strat
 
     def get_preprocess_strategy(self):
         allowed = [PREPROCESS_IDENTITY]
@@ -743,9 +758,12 @@ class TokensDataset(StructuredDataset):
         return samples
 
     def get_input_mapping(config):
-        pass
+        max_length = config[MAX_LENGTH]
+        element_input_mapping = input.DiscreteInputMapping(
+            [i for i in range(9)], id)
+        return input.PaddedListInputMapping(max_length, element_input_mapping, id)
 
-    def distrs_to_input(distrs, x, _):
+    def distrs_to_input(distrs, x, config):
         pass
 
 

@@ -1802,5 +1802,28 @@
     "batch_size_test": 16,
     "dataset_size_train": 1000,
     "dataset_size_test": 100
+  },
+  "ner_identity": {
+    "py_func": "ner_identity",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "token_sequence",
+        "max_length": 512,
+        "strategy": "single_sample",
+        "preprocess": "id",
+        "dataset": "CoNLL2003",
+        "unstructured_input_type": ""
+      }
+    ],
+    "output": {
+      "type": "List[int]",
+      "output_mapping": "unknown"
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 1000,
+    "dataset_size_test": 100
   }
 }

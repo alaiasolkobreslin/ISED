@@ -822,6 +822,10 @@ def bio_tagging():
     pass
 
 
+def ner_identity(x):
+    return x
+
+
 dispatcher = {
     'sum_2': sum_2,
     'sum_3': sum_3,
@@ -890,6 +894,7 @@ dispatcher = {
     'rust_coffee_leaf_severity': rust_coffee_leaf_severity,
     'miner_coffee_leaf_severity': miner_coffee_leaf_severity,
     'bio_tagging': bio_tagging,
+    'ner_identity': ner_identity
 }
 
 
