@@ -818,8 +818,44 @@ def miner_coffee_leaf_severity(selected_areas):
         return 5
 
 
-def bio_tagging():
-    pass
+def bio_tagging(tags):
+    # {'O': 0, 'B-PER': 1, 'I-PER': 2, 'B-ORG': 3, 'I-ORG': 4, 'B-LOC': 5, 'I-LOC': 6, 'B-MISC': 7, 'I-MISC': 8}
+    last_per_b = 0
+    last_org_b = 0
+    last_loc_b = 0
+    last_misc_b = 0
+    last_per_i = 0
+    last_org_i = 0
+    last_loc_i = 0
+    last_misc_i = 0
+    for i, tag in enumerate(tags):
+        if tag == 1:  # B-PER
+            last_per_b = i
+        elif tag == 3:  # B-ORG
+            last_org_b = i
+        elif tag == 5:  # B-LOC
+            last_loc_b = i
+        elif tag == 7:  # B-MISC
+            last_misc_b = i
+        elif tag == 2:  # I-PER
+            if last_per_b != i - 1 and last_per_i != i - 1:
+                return False
+            last_per_i = i
+        elif tag == 4:  # I-ORG
+            if last_org_b != i - 1 and last_org_i != i - 1:
+                return False
+            last_org_i = i
+        elif tag == 6:  # I-LOC
+            if last_loc_b != i - 1 and last_loc_i != i - 1:
+                return False
+            last_loc_i = i
+        elif tag == 8:  # I-MISC
+            if last_misc_b != i - 1 and last_misc_i != i - 1:
+                return False
+            last_misc_i = i
+        else:
+            continue
+    return True
 
 
 def ner_identity(x):

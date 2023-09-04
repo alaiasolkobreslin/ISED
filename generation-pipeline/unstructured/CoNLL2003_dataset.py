@@ -56,19 +56,16 @@ class DataSequence(torch.utils.data.Dataset):
         txt = [sentence['tokens'] for sentence in dataset]
         self.texts = [aligner.tokenizer(str(i),
                                         padding='max_length', max_length=512, truncation=True, return_tensors="pt") for i in txt]
-        self.labels = [aligner.align_label(i, j) for i, j in zip(txt, labels)]
+        self.labels = labels
 
     def __len__(self):
-
         return len(self.labels)
 
     def get_batch_data(self, idx):
-
         return self.texts[idx]
 
     def get_batch_labels(self, idx):
-
-        return torch.LongTensor(self.labels[idx])
+        return self.labels[idx]
 
     def __getitem__(self, idx):
 
