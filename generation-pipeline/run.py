@@ -188,18 +188,19 @@ class Trainer():
             norm_label, y = self.output_mapping.get_normalized_labels(
                 y_pred_sim, target, output_mapping)
 
-            # Compute loss
-            loss = self.loss_fn(y_pred_sim, norm_label)
-            for optimizer in self.optimizers:
-                optimizer.zero_grad()
-            loss.backward()
-            for optimizer in self.optimizers:
-                optimizer.step()
-            if not math.isnan(loss.item()):
-                train_loss += loss.item()
+            if output_mapping:
+                # Compute loss
+                loss = self.loss_fn(y_pred_sim, norm_label)
+                for optimizer in self.optimizers:
+                    optimizer.zero_grad()
+                loss.backward()
+                for optimizer in self.optimizers:
+                    optimizer.step()
+                if not math.isnan(loss.item()):
+                    train_loss += loss.item()
 
             # Collect index and compute accuracy
-            if num_outputs > 0:
+            if output_mapping:
                 y_index = torch.argmax(y, dim=1)
                 y_pred_index = torch.argmax(y_pred, dim=1)
                 correct_count = torch.sum(torch.where(torch.sum(
@@ -241,7 +242,7 @@ class Trainer():
                     test_loss += loss.item()
 
                 # Collect index and compute accuracy
-                if num_outputs > 0:
+                if output_mapping:
                     y_index = torch.argmax(y, dim=1)
                     y_pred_index = torch.argmax(
                         y_pred, dim=1)
@@ -273,7 +274,7 @@ class Trainer():
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("neuro-symbolic-dataset")
-    parser.add_argument("--n-epochs", type=int, default=10)
+    parser.add_argument("--n-epochs", type=int, default=100)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--n-samples", type=int, default=100)
     parser.add_argument("--configuration", type=str,

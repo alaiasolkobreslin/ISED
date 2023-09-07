@@ -9,6 +9,11 @@ from torchvision import transforms
 
 
 class COFFEE_dataset(torch.utils.data.Dataset):
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.1307,), (0.3081,))
+    ])
+
     def __init__(self, root: str, prefix: str, train: bool):
         super(COFFEE_dataset, self).__init__()
         self.img_dir = 'miner_img_xml' if prefix == 'miner' else 'rust_xml_image'
@@ -35,6 +40,16 @@ class COFFEE_dataset(torch.utils.data.Dataset):
         else:
             return 5
 
+    def get_ids_of_severity(self):
+        ys = [self.get_severity_score(
+            self.area_dict[self.split][leaf]) for leaf in self.metadata]
+        sorted_ys = sorted(ys)
+        idxs = sorted(range(len(ys)), key=ys.__getitem__)
+        ids_of_severity = defaultdict(lambda: [])
+        for i in range(len(sorted_ys)):
+            ids_of_severity[sorted_ys[i]].append(idxs[i])
+        return ids_of_severity
+
     def __getitem__(self, index):
         leaf = self.metadata[index]
         leaf_path = os.path.join(
@@ -47,10 +62,10 @@ class COFFEE_dataset(torch.utils.data.Dataset):
         severity = self.get_severity_score(affected_area)
 
         # get SAM generated bboxes
-        transform = transforms.PILToTensor()
         bboxes = self.sam_bboxes[leaf]
         areas = []
         images = []
+        img_w, img_h = img.size
         for i, bbox in enumerate(bboxes):
             box = bbox['bbox']
 
@@ -61,11 +76,11 @@ class COFFEE_dataset(torch.utils.data.Dataset):
                 continue
 
             areas.append(bbox['area'])
-            crop_area = (box['xmin'], box['ymin'],
-                         box['xmax'], box['ymax'])
-            cropped_img = img.rotate(180).crop(crop_area)
+            crop_area = (img_w - box['xmax'], img_h - box['ymax'],
+                         img_w - box['xmin'], img_h - box['ymin'])
+            cropped_img = img.crop(crop_area)
             resized_img = cropped_img.resize((28, 28))
-            images.append(transform(resized_img))
+            images.append(self.transform(resized_img))
         return ((images, areas), severity)
 
     def __len__(self):
@@ -89,11 +104,4 @@ def get_data(prefix: str, train: bool):
     data_dir = os.path.abspath(os.path.join(
         os.path.abspath(__file__), "../../data"))
     data = COFFEE_dataset(data_dir, prefix, train)
-
-    ys = [severity for (_, severity) in data]
-    sorted_ys = sorted(ys)
-    idxs = sorted(range(len(ys)), key=ys.__getitem__)
-    ids_of_severity = defaultdict(lambda: [])
-    for i in range(len(sorted_ys)):
-        ids_of_severity[sorted_ys[i]].append(idxs[i])
-    return (data, ids_of_severity)
+    return (data, data.get_ids_of_severity())
