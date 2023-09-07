@@ -112,11 +112,11 @@ class MNISTDataset(UnstructuredDataset):
         self.plot_confusion_matrix(network=network, dataset=mnist_dataset)
 
 
-class MNISTDataset_0to4(UnstructuredDataset):
+class MNISTDataset_1to4(UnstructuredDataset):
 
     def __init__(self, train):
-        self.name = MNIST_0TO4
-        self.digits = [i for i in range(0, 5)]
+        self.name = MNIST_1TO4
+        self.digits = [i for i in range(1, 5)]
         self.data, self.ids_of_digit = MNIST_dataset.get_data(
             train=train, digits=self.digits)
 

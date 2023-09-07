@@ -780,8 +780,8 @@ def get_unstructured_dataset_static(config):
         return unstructured_dataset.HWFDataset
     elif ud == MNIST_VIDEO:
         return unstructured_dataset.MNISTVideoDataset
-    elif ud == MNIST_0TO4:
-        return unstructured_dataset.MNISTDataset_0to4
+    elif ud == MNIST_1TO4:
+        return unstructured_dataset.MNISTDataset_1to4
     elif ud == COFFEE_LEAF_RUST:
         return unstructured_dataset.CoffeeLeafRustDataset
     elif ud == COFFEE_LEAF_MINER:
