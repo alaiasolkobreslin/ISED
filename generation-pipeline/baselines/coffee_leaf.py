@@ -71,16 +71,18 @@ class CoffeeBaselineDataset(torch.utils.data.Dataset):
         return (imgs, severity_scores)
 
     def get_severity_score(self, area):
+        severity = 0
         if area < self.quantiles['Q1']:
-            return 1
+            severity = 1
         elif area < self.quantiles['Q2']:
-            return 2
+            severity = 2
         elif area < self.quantiles['Q3']:
-            return 3
+            severity = 3
         elif area < self.quantiles['Q4']:
-            return 4
+            severity = 4
         else:
-            return 5
+            severity = 5
+        return severity - 1
 
 
 def coffee_baseline_loader(data_dir, prefix, batch_size_train, batch_size_test):
@@ -120,7 +122,7 @@ class CoffeeNet(nn.Module):
             in_channels=16, out_channels=32, kernel_size=3, padding=1)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.fc1 = nn.Linear(32 * 56 * 56, 128)
-        self.fc2 = nn.Linear(128, 2)  # Output classes: 0 or 1
+        self.fc2 = nn.Linear(128, 5)  # Output classes: 1 through 5
 
     def forward(self, x):
         x = self.pool(torch.relu(self.conv1(x)))
@@ -186,10 +188,10 @@ class Trainer():
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("mnist_sum_2")
-    parser.add_argument("--n-epochs", type=int, default=10)
+    parser.add_argument("--n-epochs", type=int, default=100)
     parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
-    parser.add_argument("--learning-rate", type=float, default=0.001)
+    parser.add_argument("--learning-rate", type=float, default=0.0001)
     parser.add_argument("--prefix", type=str, default='miner')
     parser.add_argument("--seed", type=int, default=1234)
     args = parser.parse_args()
