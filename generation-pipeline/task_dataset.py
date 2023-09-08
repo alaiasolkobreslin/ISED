@@ -13,6 +13,11 @@ class TaskDataset:
         self.function = task_program.dispatcher[py_program]
         self.structured_datasets = {}
         inputs = self.config[INPUTS]
+        self.no_dataset_generation = config[NO_DATASET_GENERATION] \
+            if NO_DATASET_GENERATION in config else False
+        if self.no_dataset_generation:
+            self.unstructured_dataset = TaskDataset.get_unstructured_dataset(
+                inputs[0], train=train)
         for input in inputs:
             name = input[NAME]
             unstructured_dataset = TaskDataset.get_unstructured_dataset(
@@ -74,8 +79,18 @@ class TaskDataset:
         calls to `generate_datapoint` and storing the resulting datapoints in
         `dataset` before returning it
         """
-        length = self.__len__()
-        dataset = [None] * length
-        for i in range(length):
-            dataset[i] = self.generate_datapoint()
-        return dataset
+        if self.no_dataset_generation:
+            original_dataset = self.unstructured_dataset.get_full_dataset()
+            length = len(original_dataset)
+            dataset = [None] * length
+            name = self.config[INPUTS][0][NAME]
+            for i in range(length):
+                (imgs, result) = original_dataset[i]
+                dataset[i] = ({name: imgs}, self.config[INPUTS], result)
+            return dataset
+        else:
+            length = self.__len__()
+            dataset = [None] * length
+            for i in range(length):
+                dataset[i] = self.generate_datapoint()
+            return dataset

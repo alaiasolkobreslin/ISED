@@ -78,6 +78,12 @@ class UnstructuredDataset:
 
         print(cm)
 
+    def get_full_dataset(self):
+        """
+        Returns the entire unstructured dataset
+        """
+        pass
+
 
 class MNISTDataset(UnstructuredDataset):
 
@@ -300,6 +306,9 @@ class CoffeeLeafMinerDataset(UnstructuredDataset):
             prefix='miner', train=False)
         self.plot_confusion_matrix(network=network, dataset=coffee_dataset)
 
+    def get_full_dataset(self):
+        return self.data
+
 
 class CoffeeLeafRustDataset(UnstructuredDataset):
 
@@ -330,6 +339,9 @@ class CoffeeLeafRustDataset(UnstructuredDataset):
     def confusion_matrix(self, network):
         coffee_dataset, _ = COFFEE_dataset.get_data(prefix='rust', train=False)
         self.plot_confusion_matrix(network=network, dataset=coffee_dataset)
+
+    def get_full_dataset(self):
+        return self.data
 
 
 class CoNLL2003Dataset(UnstructuredDataset):

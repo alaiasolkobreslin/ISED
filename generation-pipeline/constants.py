@@ -10,6 +10,8 @@ BATCH_SIZE_TEST = "batch_size_test"
 DATASET_SIZE_TRAIN = "dataset_size_train"
 DATASET_SIZE_TEST = "dataset_size_test"
 
+NO_DATASET_GENERATION = "no_dataset_generation"
+
 # Inputs
 INPUTS = "inputs"
 

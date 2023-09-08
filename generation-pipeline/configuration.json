@@ -1777,8 +1777,9 @@
     "learning_rate": 0.0001,
     "batch_size_train": 16,
     "batch_size_test": 16,
-    "dataset_size_train": 1000,
-    "dataset_size_test": 100
+    "dataset_size_train": 238,
+    "dataset_size_test": 47,
+    "no_dataset_generation": true
   },
   "miner_coffee_leaf_severity": {
     "py_func": "miner_coffee_leaf_severity",
@@ -1800,8 +1801,9 @@
     "learning_rate": 0.0001,
     "batch_size_train": 16,
     "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
+    "dataset_size_train": 214,
+    "dataset_size_test": 43,
+    "no_dataset_generation": true
   },
   "bio_tagging": {
     "py_func": "bio_tagging",
