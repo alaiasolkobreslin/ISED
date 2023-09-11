@@ -25,4 +25,4 @@ TODO:
   * ~~Add timeout back~~
   * Collect list of Leetcode tasks to include
   * Implement baselines
-  * We need to allow the user to adjust settings for a dataset where there is only a single input (like the coffee task) so that during training we are guaranteed to iterate through each example exactly once during each epoch.
+  * ~~We need to allow the user to adjust settings for a dataset where there is only a single input (like the coffee task) so that during training we are guaranteed to iterate through each example exactly once during each epoch.~~
