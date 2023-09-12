@@ -112,37 +112,67 @@ def longest_substring_without_repeating_characters(s: str) -> str:
 
 
 def median_of_two_sorted_arrays(nums1, nums2):
-    # problem 4: https://leetcode.com/problems/median-of-two-sorted-arrays/
-    n1 = len(nums1)
-    n2 = len(nums2)
+    def kth(a, b, k):
+        if not a:
+            return b[k]
+        if not b:
+            return a[k]
+        ia, ib = len(a) // 2, len(b) // 2
+        ma, mb = a[ia], b[ib]
 
-    # If nums1 is larger than nums2, swap them to ensure n1 is smaller than n2.
-    if n1 > n2:
-        return median_of_two_sorted_arrays(nums2, nums1)
-
-    l = 0
-    r = n1
-    while l <= r:
-        mid1 = (l + r) / 2
-        mid2 = (n1 + n2 + 1) / 2 - mid1
-
-        maxLeft1 = nums1[mid1-1] if mid1 != 0 else float('-inf')
-        minRight1 = nums1[mid1] if mid1 != n1 else float('inf')
-
-        maxLeft2 = nums2[mid2-1] if mid2 != 0 else float('-inf')
-        minRight2 = nums2[mid2] if mid2 != n2 else float('inf')
-
-        if maxLeft1 <= minRight2 and maxLeft2 <= minRight1:
-            if (n1 + n2) % 2 == 0:
-                return float(max(maxLeft1, maxLeft2) + min(minRight1, minRight2)) / 2
+        # when k is bigger than the sum of a and b's median indices
+        if ia + ib < k:
+            # if a's median is bigger than b's, b's first half doesn't include k
+            if ma > mb:
+                return kth(a, b[ib + 1:], k - ib - 1)
             else:
-                return float(max(maxLeft1, maxLeft2))
-        elif maxLeft1 > minRight2:
-            r = mid1 - 1
+                return kth(a[ia + 1:], b, k - ia - 1)
+        # when k is smaller than the sum of a and b's indices
         else:
-            l = mid1 + 1
+            # if a's median is bigger than b's, a's second half doesn't include k
+            if ma > mb:
+                return kth(a[:ia], b, k)
+            else:
+                return kth(a, b[:ib], k)
+    l = len(nums1) + len(nums2)
+    if l % 2 == 1:
+        return kth(nums1, nums2, l // 2)
+    else:
+        return (kth(nums1, nums2, l // 2) + kth(nums1, nums2, l // 2 - 1)) / 2.
 
-    return -1
+
+# def median_of_two_sorted_arrays(nums1, nums2):
+#     # problem 4: https://leetcode.com/problems/median-of-two-sorted-arrays/
+#     n1 = len(nums1)
+#     n2 = len(nums2)
+
+#     # If nums1 is larger than nums2, swap them to ensure n1 is smaller than n2.
+#     if n1 > n2:
+#         return median_of_two_sorted_arrays(nums2, nums1)
+
+#     l = 0
+#     r = n1
+#     while l <= r:
+#         mid1 = (l + r) / 2
+#         mid2 = (n1 + n2 + 1) / 2 - mid1
+
+#         maxLeft1 = nums1[mid1-1] if mid1 != 0 else float('-inf')
+#         minRight1 = nums1[mid1] if mid1 != n1 else float('inf')
+
+#         maxLeft2 = nums2[mid2-1] if mid2 != 0 else float('-inf')
+#         minRight2 = nums2[mid2] if mid2 != n2 else float('inf')
+
+#         if maxLeft1 <= minRight2 and maxLeft2 <= minRight1:
+#             if (n1 + n2) % 2 == 0:
+#                 return float(max(maxLeft1, maxLeft2) + min(minRight1, minRight2)) / 2
+#             else:
+#                 return float(max(maxLeft1, maxLeft2))
+#         elif maxLeft1 > minRight2:
+#             r = mid1 - 1
+#         else:
+#             l = mid1 + 1
+
+#     return -1
 
 
 def longest_palindromic_substring(s: str) -> str:
