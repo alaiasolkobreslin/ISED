@@ -1,6 +1,6 @@
-| Problem  | Use MNIST Dataset | Use SVHN Dataset | Use EMNIST Dataset |
-| -------- | :---------------: | :--------------: | :----------------: |
-| [add_two_numbers](https://leetcode.com/problems/add-two-numbers/) | ✓	| ✓ |  |
+| Problem  | Use MNIST Dataset | Use SVHN Dataset | Use EMNIST Dataset | Notes |
+| -------- | :---------------: | :--------------: | :----------------: | :---: |
+| [add_two_numbers](https://leetcode.com/problems/add-two-numbers/) | ✓	| ✓ |   | Needs k >= 1000 |
 | [longest_substring_without_repeating_characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/) | ✓ | ✓ | ✓ |
 | [median_of_two_sorted_arrays](https://leetcode.com/problems/median-of-two-sorted-arrays/) | ✓ | ✓ |  |
 | [longest_palindromic_substring](https://leetcode.com/problems/longest-palindromic-substring/) | ✓ | ✓ | ✓ |

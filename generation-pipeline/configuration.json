@@ -714,8 +714,8 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
-  "longest_substring_without_repeating_character": {
-    "py_func": "longest_substring_without_repeating_character",
+  "longest_substring_without_repeating_characters": {
+    "py_func": "longest_substring_without_repeating_characters",
     "inputs": [
       {
         "name": "s",
