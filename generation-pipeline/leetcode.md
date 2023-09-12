@@ -22,4 +22,11 @@
 | [minimum_path_sum](https://leetcode.com/problems/minimum-path-sum/) | ✓ | ✓ |  |
 | [plus_one](https://leetcode.com/problems/plus-one/) | ✓ | ✓ |   |
 | [climbing_stairs (delete?)](https://leetcode.com/problems/climbing-stairs/) |   |   |   |
-| [edit_distance](https://leetcode.com/problems/edit-distance/)
+| [edit_distance(delete?)](https://leetcode.com/problems/edit-distance/) |   |   |   |
+| [combinations(delete?)](https://leetcode.com/problems/combinations/) |   |   |   |
+| [largest_rectangle_in_histogram](https://leetcode.com/problems/largest-rectangle-in-histogram/) | ✓ | ✓ |   |
+| [subsets_ii](https://leetcode.com/problems/subsets-ii/) | ✓ | ✓ |   |
+| [decode_ways](https://leetcode.com/problems/decode-ways/) | ✓ | ✓ |   |
+| [interleaving_string(delete?)](https://leetcode.com/problems/interleaving-string/) |   |   |   |
+| [best_time_to_buy_and_sell_stock](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) |   |   |   |
+| [longest_consecutive_sequence](https://leetcode.com/problems/longest-consecutive-sequence/) | ✓ | ✓ |   |

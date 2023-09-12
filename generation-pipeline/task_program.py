@@ -772,7 +772,7 @@ def sort_list_indices(x):
     return np.argsort(x).tolist()
 
 
-def rust_coffee_leaf_severity(selected, areas):
+def rust_coffee_leaf_severity(selected_areas):
     quantiles = {
         "Q1": 37526.200000000004,
         "Q2": 63953.00000000001,
@@ -780,9 +780,9 @@ def rust_coffee_leaf_severity(selected, areas):
         "Q4": 164972.80000000002
     }
     total_area = 0
-    for i, s in enumerate(selected):
-        if s:
-            total_area += areas[i]
+    for (selected, area) in selected_areas:
+        if selected:
+            total_area += area
     if total_area < quantiles['Q1']:
         return 1
     elif total_area < quantiles['Q2']:
