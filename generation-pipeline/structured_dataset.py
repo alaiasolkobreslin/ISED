@@ -567,7 +567,7 @@ class StringDataset(StructuredDataset):
     def get_sample_strategy(self):
         length = self.config[LENGTH]
         s = self.config[STRATEGY]
-        input_mapping = [i for i in range(10)]
+        input_mapping = self.unstructured_dataset.input_mapping()
         if s == SIMPLE_LIST_STRATEGY:
             strat = strategy.SimpleListStrategy(
                 self.unstructured_dataset, input_mapping, length)
@@ -782,6 +782,8 @@ def get_unstructured_dataset_static(config):
         return unstructured_dataset.MNISTVideoDataset
     elif ud == MNIST_1TO4:
         return unstructured_dataset.MNISTDataset_1to4
+    elif ud == MNIST_2TO9:
+        return unstructured_dataset.MNISTDataset_2to9
     elif ud == COFFEE_LEAF_RUST:
         return unstructured_dataset.CoffeeLeafRustDataset
     elif ud == COFFEE_LEAF_MINER:

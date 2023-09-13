@@ -802,6 +802,10 @@ def sort_list_indices(x):
     return np.argsort(x).tolist()
 
 
+def select_top_4(x):
+    return np.argsort(x).tolist()[:4]
+
+
 def rust_coffee_leaf_severity(selected_areas):
     quantiles = {
         "Q1": 37526.200000000004,
@@ -957,6 +961,7 @@ dispatcher = {
     'sum_grid': sum_grid,
     'how_many_3_two_lists': how_many_3_two_lists,
     'sort_list_indices': sort_list_indices,
+    'select_top_4': select_top_4,
     'rust_coffee_leaf_severity': rust_coffee_leaf_severity,
     'miner_coffee_leaf_severity': miner_coffee_leaf_severity,
     'bio_tagging': bio_tagging,

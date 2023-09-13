@@ -894,7 +894,7 @@
         "strategy": "list",
         "preprocess": "id",
         "length": 2,
-        "dataset": "MNIST",
+        "dataset": "MNIST_2TO9",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
@@ -1742,6 +1742,30 @@
         "strategy": "list",
         "preprocess": "id",
         "length": 4,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "length": 4
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "select_top_4": {
+    "py_func": "select_top_4",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 16,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }

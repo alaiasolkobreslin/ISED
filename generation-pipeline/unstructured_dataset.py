@@ -151,6 +151,40 @@ class MNISTDataset_1to4(UnstructuredDataset):
         self.plot_confusion_matrix(network=network, dataset=mnist_dataset)
 
 
+class MNISTDataset_2to9(UnstructuredDataset):
+
+    def __init__(self, train):
+        self.name = MNIST_2TO9
+        self.digits = [i for i in range(2, 10)]
+        self.data, self.ids_of_digit = MNIST_dataset.get_data(
+            train=train, digits=self.digits)
+
+    def __len__(self):
+        return len(self.data)
+
+    @staticmethod
+    def collate_fn(batch):
+        return MNIST_dataset.MNISTDataset.collate_fn(batch)
+
+    def input_mapping(self):
+        return [i for i in range(2, 10)]
+
+    def sample_with_y(self, digit: int) -> int:
+        digit = digit + 2  # index 0 -> 2
+        return self.ids_of_digit[digit][random.randrange(0, len(self.ids_of_digit[digit]))]
+
+    def get(self, index: int) -> Tuple[torch.Tensor, int]:
+        return self.data[index]
+
+    def net(self):
+        return MNIST_net.MNISTNet(n_preds=8)
+
+    def confusion_matrix(self, network):
+        mnist_dataset, _ = MNIST_dataset.get_data(
+            train=False, digits=self.digits)
+        self.plot_confusion_matrix(network=network, dataset=mnist_dataset)
+
+
 class EMNISTDataset(UnstructuredDataset):
     def __init__(self, train):
         self.name = EMNIST
