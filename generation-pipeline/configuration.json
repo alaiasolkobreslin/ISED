@@ -948,7 +948,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "sort",
-        "length": 2,
+        "length": 10,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -1023,7 +1023,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 4,
+        "length": 2,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -1046,8 +1046,8 @@
         "type": "List[List[digit]]",
         "strategy": "2d_list",
         "preprocess": "id",
-        "n_rows": 3,
-        "n_cols": 3,
+        "n_rows": 2,
+        "n_cols": 2,
         "dataset": "MNIST",
         "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }

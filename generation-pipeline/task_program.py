@@ -271,6 +271,7 @@ def merge_two_sorted_lists(list1, list2):
 
 def remove_duplicates_from_sorted_array(nums):
     # problem 26: https://leetcode.com/problems/remove-duplicates-from-sorted-array/
+    nums = list(nums)
     count = 0
     for i in range(len(nums)):
         if i < len(nums) - 2 and nums[i] == nums[i + 1]:
@@ -379,6 +380,7 @@ def trapping_rain_water(height):
 
 def permutations_ii(nums):
     # problem 47: https://leetcode.com/problems/permutations-ii/
+    nums = list(nums)
     n = len(nums)
     res = []
 
@@ -396,17 +398,7 @@ def permutations_ii(nums):
 
 def rotate_image(matrix):
     # problem 48: https://leetcode.com/problems/rotate-image/
-    n = len(matrix)
-    for i in range(n):
-        for j in range(i + 1, n):
-            tmp = matrix[i][j]
-            matrix[i][j] = matrix[j][i]
-            matrix[j][i] = tmp
-    for i in range(n):
-        for j in range(n/2):
-            tmp = matrix[i][j]
-            matrix[i][j] = matrix[i][n - 1 - j]
-            matrix[i][n - 1 - j] = tmp
+    return list(zip(*matrix[::-1]))
 
 
 def group_anagrams(strs):
