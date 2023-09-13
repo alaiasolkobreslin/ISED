@@ -245,12 +245,19 @@ class SingleIntListDataset(StructuredDataset):
         samples = self.preprocess.preprocess(self.strategy.sample())
         return zip(*samples)
 
+    def combine(config, input):
+        # TODO: fix this. It's kind of a hacky way to do preprocessing
+        if config[PREPROCESS] == PREPROCESS_SORT:
+            return sorted(input)
+        else:
+            return input
+
     def get_input_mapping(config):
         ud = get_unstructured_dataset_static(config)
         length = config[LENGTH]
         element_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
-        return input.ListInputMapping(length, element_input_mapping, id)
+        return input.ListInputMapping(length, element_input_mapping, partial(SingleIntListDataset.combine, config))
 
     def distrs_to_input(distrs, x, config):
         length = config[LENGTH]
