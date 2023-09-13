@@ -198,6 +198,8 @@ class VideoInput(Input):
 class InputMapping:
     def __init__(self): pass
 
+    def shape(self): pass
+
     def sample(self, input: Any,
                sample_count: int) -> Tuple[torch.Tensor, List[Any]]: pass
 
@@ -465,6 +467,9 @@ class DiscreteInputMapping(InputMapping):
     def __init__(self, elements: List[Any], combine: Callable):
         self.elements = elements
         self.combine = combine
+
+    def shape(self):
+        return (len(self.elements),)
 
     def sample(self, inputs: SingleInput, sample_count: int) -> Tuple[torch.Tensor, List[Any]]:
         num_input_elements = inputs.tensor.shape[1]

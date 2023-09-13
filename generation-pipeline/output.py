@@ -9,6 +9,10 @@ import util
 class OutputMapping:
     def __init__(self): pass
 
+    def dim(self): pass
+
+    def get_elements(self): pass
+
     def vectorize(self, elements, element_indices: dict, results: List, result_probs: torch.Tensor):
         """
         An output mapping should implement this function to vectorize the results and result probabilities
@@ -52,6 +56,9 @@ class DiscreteOutputMapping(OutputMapping):
         self.elements = elements
         self.element_indices = {e: i for (i, e) in enumerate(elements)}
 
+    def dim(self):
+        return len(self.elements)
+
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
         result_tensor = torch.zeros((batch_size, len(self.elements)))
@@ -62,6 +69,11 @@ class DiscreteOutputMapping(OutputMapping):
                                                           [j]]] += result_probs[i, j]
         y_pred = torch.nn.functional.normalize(result_tensor, dim=1)
         return (self.element_indices, y_pred, y_pred)
+
+    def vectorize_label(self, labels):
+        return torch.stack([
+            torch.tensor([1.0 if self.eval_result_eq(e, label) else 0.0 for e in self.elements])
+            for label in labels])
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         y = super().get_normalized_labels(y_pred, target, output_mapping)
@@ -251,6 +263,9 @@ def get_output_mapping(output_config):
     elif om == LIST_OUTPUT_MAPPING:
         length = output_config[LENGTH]
         return ListOutputMapping(length=length, fallback=0)
+    elif om == DISCRETE_OUTPUT_MAPPING:
+        if "range" in output_config:
+            return DiscreteOutputMapping(elements=list(range(output_config["range"][0], output_config["range"][1])))
     elif om == SUDOKU_OUTPUT_MAPPING:
         size = output_config[N_ROWS]
         return SudokuOutputMapping(size=size, fallback=0)
