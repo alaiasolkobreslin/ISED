@@ -385,7 +385,7 @@ class StringListDataset(StructuredDataset):
             current_str += str(input[i])
             i += 1
             if i % str_length == 0:
-                result.append(int(current_str))
+                result.append(current_str)
                 current_str = ""
         return result
 
@@ -395,7 +395,7 @@ class StringListDataset(StructuredDataset):
         str_length = config[STR_LENGTH]
         chr_input_mapping = input.DiscreteInputMapping(
             ud.input_mapping(ud), id)
-        return input.ListInputMapping2D(length, str_length, chr_input_mapping, partial(IntListDataset.combine, str_length))
+        return input.ListInputMapping2D(length, str_length, chr_input_mapping, partial(StringListDataset.combine, str_length))
 
     def distrs_to_input(distrs, x, config):
         n_rows = config[LENGTH]

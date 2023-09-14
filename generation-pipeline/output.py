@@ -39,6 +39,8 @@ class OutputMapping:
         if type(a) is float or type(b) is float:
             result = abs(a - b) < threshold
         elif type(a) is tuple and type(b) is tuple:
+            if len(a) != len(b):
+                return False
             result = True
             for i in range(len(a)):
                 result = result and self.eval_result_eq(a[i], b[i], threshold)

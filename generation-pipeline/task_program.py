@@ -410,7 +410,7 @@ def group_anagrams(strs):
             d[x] = [strs[i]]
         else:
             d[x].append(strs[i])
-    return d.values()
+    return list(d.values())
 
 
 def maximum_subarray(nums):
