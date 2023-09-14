@@ -1118,7 +1118,7 @@
         "strategy": "2d_list",
         "preprocess": "id",
         "n_rows": 2,
-        "n_cols": 3,
+        "n_cols": 2,
         "dataset": "MNIST",
         "unstructured_input_type": "List[List[Tensor[1 x 28 x 28]]]"
       }

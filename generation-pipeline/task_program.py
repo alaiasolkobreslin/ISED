@@ -430,6 +430,7 @@ def maximum_subarray(nums):
 
 def spiral_matrix(matrix):
     # problem 54: https://leetcode.com/problems/spiral-matrix/
+    matrix = list(matrix)
     res = []
     while matrix:
         res.extend(matrix.pop(0))
@@ -469,6 +470,7 @@ def minimum_path_sum(grid):
 
 def plus_one(digits):
     # problem 66: https://leetcode.com/problems/plus-one/
+    digits = list(digits)
     length = len(digits) - 1
     while digits[length] == 9:
         digits[length] = 0
@@ -617,6 +619,7 @@ def best_time_to_buy_and_sell_stock(prices):
 
 def longest_consecutive_sequence(nums):
     # problem 128: https://leetcode.com/problems/longest-consecutive-sequence/
+    nums = list(nums)
     nums.sort()
     longest, cur_longest = 0, min(1, len(nums))
     for i in range(1, len(nums)):

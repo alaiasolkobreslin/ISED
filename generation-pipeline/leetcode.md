@@ -28,5 +28,5 @@
 | [subsets_ii](https://leetcode.com/problems/subsets-ii/) | ✓ | ✓ |   |
 | [decode_ways](https://leetcode.com/problems/decode-ways/) | ✓ | ✓ |   |
 | [interleaving_string(delete?)](https://leetcode.com/problems/interleaving-string/) |   |   |   |
-| [best_time_to_buy_and_sell_stock](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) |   |   |   |
+| [best_time_to_buy_and_sell_stock](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/) | ✓ | ✓ |   |
 | [longest_consecutive_sequence](https://leetcode.com/problems/longest-consecutive-sequence/) | ✓ | ✓ |   |
