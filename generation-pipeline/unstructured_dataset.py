@@ -1,7 +1,7 @@
 
 from typing import *
 import random
-import torchvision
+import string
 
 from sklearn.metrics import confusion_matrix
 import numpy
@@ -199,7 +199,10 @@ class EMNISTDataset(UnstructuredDataset):
         return EMNIST_dataset.EMNISTDataset.collate_fn(batch)
 
     def input_mapping(self):
-        return [i for i in range(47)]
+        digits_im = [i for i in range(10)]
+        uppercase_im = list(string.ascii_uppercase)
+        lowercase_im = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'n', 'q', 'r', 't']
+        return digits_im + uppercase_im + lowercase_im
 
     def sample_with_y(self, character: int) -> int:
         return self.ids_of_character[character][random.randrange(0, len(self.ids_of_character[character]))]

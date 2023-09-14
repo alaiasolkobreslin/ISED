@@ -1070,7 +1070,8 @@
         "type": "List[str]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 6,
+        "str_length": 2,
+        "length": 2,
         "dataset": "EMNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }

@@ -134,7 +134,7 @@ class SingleDataset(StructuredDataset):
             strat = strategy.SingleSampleStrategy(
                 self.unstructured_dataset, input_mapping)
         else:
-            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
 
     def get_preprocess_strategy(self):
@@ -176,7 +176,7 @@ class IntDataset(StructuredDataset):
             strat = strategy.SimpleListStrategy(
                 self.unstructured_dataset, input_mapping, n_digits)
         else:
-            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
 
     def get_preprocess_strategy(self):
@@ -291,7 +291,7 @@ class IntListDataset(StructuredDataset):
             strat = strategy.SimpleListStrategy(
                 self.unstructured_dataset, input_mapping, n_digits)
         else:
-            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
 
     def get_preprocess_strategy(self):
@@ -334,6 +334,77 @@ class IntListDataset(StructuredDataset):
         return input.ListInput2D(distrs, n_rows, n_cols)
 
 
+class StringListDataset(StructuredDataset):
+
+    def __init__(self, config, dataset_size, unstructured_dataset):
+        super().__init__(config=config,
+                         dataset_size=dataset_size,
+                         unstructured_dataset=unstructured_dataset,
+                         call_black_box_for_gt=True)
+
+    def __len__(self):
+        return self.dataset_size
+
+    @staticmethod
+    def collate_fn(batch, config):
+        return torch.stack([torch.stack([torch.stack(i) for i in item]) for item in batch])
+
+    def forward(net, x):
+        batch_size, lst_length, str_length, _, _, _ = x.shape
+        return net(x.flatten(start_dim=0, end_dim=2)).view(batch_size, lst_length, str_length, -1)
+
+    def get_sample_strategy(self):
+        str_length = self.config[STR_LENGTH]
+        s = self.config[STRATEGY]
+        input_mapping = self.unstructured_dataset.input_mapping()
+        if s == SIMPLE_LIST_STRATEGY:
+            strat = strategy.SimpleListStrategy(
+                self.unstructured_dataset, input_mapping, str_length)
+        else:
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
+        return strat
+
+    def get_preprocess_strategy(self):
+        allowed = [PREPROCESS_IDENTITY]
+        return self.preprocess_from_allowed_strategies(allowed)
+
+    def generate_datapoint(self):
+        im = self.unstructured_dataset.input_mapping()
+        lst = [None] * self.config[LENGTH]
+        for i in range(self.config[LENGTH]):
+            samples = self.strategy.sample()
+            imgs, chr_lst = zip(*samples)
+            s = ''.join(str(im[n]) for n in chr_lst)
+            lst[i] = (imgs, s)
+        lst = self.preprocess.preprocess(lst)
+        return zip(*lst)
+
+    def combine(str_length, input):
+        result = []
+        i = 0
+        current_str = ""
+        while i < len(input):
+            current_str += str(input[i])
+            i += 1
+            if i % str_length == 0:
+                result.append(int(current_str))
+                current_str = ""
+        return result
+
+    def get_input_mapping(config):
+        ud = get_unstructured_dataset_static(config)
+        length = config[LENGTH]
+        str_length = config[STR_LENGTH]
+        chr_input_mapping = input.DiscreteInputMapping(
+            ud.input_mapping(ud), id)
+        return input.ListInputMapping2D(length, str_length, chr_input_mapping, partial(IntListDataset.combine, str_length))
+
+    def distrs_to_input(distrs, x, config):
+        n_rows = config[LENGTH]
+        n_cols = config[STR_LENGTH]
+        return input.ListInput2D(distrs, n_rows, n_cols)
+
+
 class SingleIntListListDataset(StructuredDataset):
     def __init__(self, config, dataset_size, unstructured_dataset):
         super().__init__(config=config,
@@ -361,7 +432,7 @@ class SingleIntListListDataset(StructuredDataset):
             strat = strategy.Simple2DListStrategy(
                 self.unstructured_dataset, input_mapping, n_rows, n_cols)
         else:
-            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
 
     def get_preprocess_strategy(self):
@@ -443,7 +514,7 @@ class SudokuDataset(StructuredDataset):
             strat = strategy.SudokuRandomStrategy(
                 self.unstructured_dataset, n_rows, n_cols)
         else:
-            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
 
     def get_preprocess_strategy(self):
@@ -524,7 +595,7 @@ class PaddedListDataset(StructuredDataset):
                 self.unstructured_dataset, input_mapping, self.config[MAX_LENGTH]
             )
         else:
-            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
 
     def get_preprocess_strategy(self):
@@ -579,7 +650,7 @@ class StringDataset(StructuredDataset):
             strat = strategy.SimpleListStrategy(
                 self.unstructured_dataset, input_mapping, length)
         else:
-            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
 
     def get_preprocess_strategy(self):
@@ -587,9 +658,10 @@ class StringDataset(StructuredDataset):
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
+        im = self.unstructured_dataset.input_mapping()
         samples = self.preprocess.preprocess(self.strategy.sample())
         imgs, string_list = zip(*samples)
-        string = ''.join(str(n) for n in string_list)
+        string = ''.join(str(im[n]) for n in string_list)
         return (imgs, string)
 
     def combine(inputs):
@@ -753,7 +825,7 @@ class TokensDataset(StructuredDataset):
             strat = strategy.SingleSampleStrategy(
                 self.unstructured_dataset, input_mapping)
         else:
-            raise InvalidSampleStrategy("Sampling strategy {s} is invalid")
+            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
 
     def get_preprocess_strategy(self):
@@ -821,6 +893,8 @@ def get_structured_dataset_static(config):
         return PaddedListDataset
     elif sd == STRING_TYPE:
         return StringDataset
+    elif sd == STRING_LIST_TYPE:
+        return StringListDataset
     elif sd == SUDOKU_TYPE:
         return SudokuDataset
     elif sd == VIDEO_DIGIT_TYPE:
