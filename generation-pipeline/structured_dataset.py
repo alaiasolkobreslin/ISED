@@ -36,6 +36,7 @@ class StructuredDataset:
         self.config = config
         self.dataset_size = dataset_size
         self.unstructured_dataset = unstructured_dataset
+        self.im = self.unstructured_dataset.input_mapping()
         self.strategy = self.get_sample_strategy()
         self.preprocess = self.get_preprocess_strategy()
         self.call_black_box_for_gt = call_black_box_for_gt
@@ -125,14 +126,14 @@ class SingleDataset(StructuredDataset):
         return net(x)
 
     def generate_datapoint(self):
-        return self.preprocess.preprocess(self.strategy.sample())
+        (ud, sd) = self.strategy.sample()
+        return self.preprocess.preprocess((ud, self.im[sd]))
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
-        input_mapping = self.unstructured_dataset.input_mapping()
         if s == SINGLE_SAMPLE_STRATEGY:
             strat = strategy.SingleSampleStrategy(
-                self.unstructured_dataset, input_mapping)
+                self.unstructured_dataset, self.im)
         else:
             raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
@@ -230,9 +231,8 @@ class SingleIntListDataset(StructuredDataset):
                 self.unstructured_dataset, input_mapping)
         elif s == SIMPLE_LIST_STRATEGY:
             length = self.config[LENGTH]
-            input_mapping = self.unstructured_dataset.input_mapping()
             strat = strategy.SimpleListStrategy(
-                self.unstructured_dataset, input_mapping, length)
+                self.unstructured_dataset, self.im, length)
         else:
             raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
@@ -356,10 +356,9 @@ class StringListDataset(StructuredDataset):
     def get_sample_strategy(self):
         str_length = self.config[STR_LENGTH]
         s = self.config[STRATEGY]
-        input_mapping = self.unstructured_dataset.input_mapping()
         if s == SIMPLE_LIST_STRATEGY:
             strat = strategy.SimpleListStrategy(
-                self.unstructured_dataset, input_mapping, str_length)
+                self.unstructured_dataset, self.im, str_length)
         else:
             raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
@@ -369,12 +368,11 @@ class StringListDataset(StructuredDataset):
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
-        im = self.unstructured_dataset.input_mapping()
         lst = [None] * self.config[LENGTH]
         for i in range(self.config[LENGTH]):
             samples = self.strategy.sample()
             imgs, chr_lst = zip(*samples)
-            s = ''.join(str(im[n]) for n in chr_lst)
+            s = ''.join(str(self.im[n]) for n in chr_lst)
             lst[i] = (imgs, s)
         lst = self.preprocess.preprocess(lst)
         return zip(*lst)
@@ -590,9 +588,8 @@ class PaddedListDataset(StructuredDataset):
             strat = strategy.SingleSampleStrategy(
                 self.unstructured_dataset, input_mapping)
         elif s == SIMPLE_LIST_STRATEGY:
-            input_mapping = self.unstructured_dataset.input_mapping()
             strat = strategy.SimpleListStrategy(
-                self.unstructured_dataset, input_mapping, self.config[MAX_LENGTH]
+                self.unstructured_dataset, self.im, self.config[MAX_LENGTH]
             )
         else:
             raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
@@ -645,10 +642,9 @@ class StringDataset(StructuredDataset):
     def get_sample_strategy(self):
         length = self.config[LENGTH]
         s = self.config[STRATEGY]
-        input_mapping = self.unstructured_dataset.input_mapping()
         if s == SIMPLE_LIST_STRATEGY:
             strat = strategy.SimpleListStrategy(
-                self.unstructured_dataset, input_mapping, length)
+                self.unstructured_dataset, self.im, length)
         else:
             raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
@@ -658,10 +654,9 @@ class StringDataset(StructuredDataset):
         return self.preprocess_from_allowed_strategies(allowed)
 
     def generate_datapoint(self):
-        im = self.unstructured_dataset.input_mapping()
         samples = self.preprocess.preprocess(self.strategy.sample())
         imgs, string_list = zip(*samples)
-        string = ''.join(str(im[n]) for n in string_list)
+        string = ''.join(str(self.im[n]) for n in string_list)
         return (imgs, string)
 
     def combine(inputs):
@@ -704,9 +699,8 @@ class VideoDataset(StructuredDataset):
                 self.unstructured_dataset, input_mapping)
         elif s == SIMPLE_LIST_STRATEGY:
             length = self.config[LENGTH]
-            input_mapping = self.unstructured_dataset.input_mapping()
             strat = strategy.SimpleListStrategy(
-                self.unstructured_dataset, input_mapping, length)
+                self.unstructured_dataset, self.im, length)
         else:
             raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
@@ -820,10 +814,9 @@ class TokensDataset(StructuredDataset):
 
     def get_sample_strategy(self):
         s = self.config[STRATEGY]
-        input_mapping = self.unstructured_dataset.input_mapping()
         if s == SINGLE_SAMPLE_STRATEGY:
             strat = strategy.SingleSampleStrategy(
-                self.unstructured_dataset, input_mapping)
+                self.unstructured_dataset, self.input_mapping)
         else:
             raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
         return strat
