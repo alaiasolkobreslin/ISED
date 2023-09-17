@@ -650,10 +650,6 @@ def grid_identity(x):
     return x
 
 
-def svhn_identity(x):
-    return x
-
-
 def mnist_video_digits(x):
     digits, changes = x
     indices_with_changes = changes.nonzero()
@@ -785,12 +781,6 @@ def sudoku_solver(board):
 
 def sum_grid(grid):
     return sum(elt for row in grid for elt in row)
-
-
-def how_many_3_two_lists(l1, l2):
-    s1 = sum((n == 3) for n in l1)
-    s2 = sum((n == 3) for n in l2)
-    return s1 + s2
 
 
 def sort_list_indices(x):
@@ -948,13 +938,11 @@ dispatcher = {
     'sort_integer_list': sort_integer_list,
     'char_identity': char_identity,
     'grid_identity': grid_identity,
-    'svhn_identity': svhn_identity,
     'mnist_video_digits': mnist_video_digits,
     'palindrome_string': palindrome_string,
     'valid_mini_sudoku': valid_mini_sudoku,
     'mini_sudoku_solver': mini_sudoku_solver,
     'sum_grid': sum_grid,
-    'how_many_3_two_lists': how_many_3_two_lists,
     'sort_list_indices': sort_list_indices,
     'select_top_4': select_top_4,
     'rust_coffee_leaf_severity': rust_coffee_leaf_severity,

@@ -22,7 +22,10 @@
     "output": {
       "type": "int",
       "output_mapping": "discrete_output_mapping",
-      "range": [0, 19]
+      "range": [
+        0,
+        19
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -53,7 +56,10 @@
     "output": {
       "type": "int",
       "output_mapping": "discrete_output_mapping",
-      "range": [0, 2500]
+      "range": [
+        0,
+        19
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -91,7 +97,11 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "discrete_output_mapping",
+      "range": [
+        0,
+        28
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -129,7 +139,11 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "discrete_output_mapping",
+      "range": [
+        0,
+        28
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -175,7 +189,11 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "discrete_output_mapping",
+      "range": [
+        0,
+        37
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
