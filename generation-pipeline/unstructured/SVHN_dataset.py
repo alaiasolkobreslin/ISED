@@ -17,6 +17,7 @@ class SVHNDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         root: str,
+        digits: List[int],
         train: bool = True,
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,

@@ -1487,6 +1487,7 @@
     ],
     "output": {
       "type": "int",
+      "n_classes": 10,
       "output_mapping": "int_output_mapping",
       "length": 5
     },
@@ -1511,6 +1512,7 @@
     ],
     "output": {
       "type": "int",
+      "n_classes": 10,
       "output_mapping": "int_output_mapping",
       "length": 5
     },
@@ -1904,6 +1906,7 @@
     ],
     "output": {
       "type": "List[List[str]]",
+      "n_classes": 10,
       "output_mapping": "sudoku_output_mapping",
       "n_rows": 9,
       "n_cols": 9
@@ -1931,6 +1934,7 @@
     ],
     "output": {
       "type": "List[List[str]]",
+      "n_classes": 10,
       "output_mapping": "sudoku_output_mapping",
       "n_rows": 9,
       "n_cols": 9
@@ -1956,6 +1960,7 @@
     ],
     "output": {
       "type": "List[int]",
+      "n_classes": 10,
       "output_mapping": "unknown"
     },
     "learning_rate": 0.0001,
@@ -1979,6 +1984,7 @@
     ],
     "output": {
       "type": "List[int]",
+      "n_classes": 10,
       "output_mapping": "unknown"
     },
     "learning_rate": 0.0001,
@@ -3191,6 +3197,7 @@
     ],
     "output": {
       "type": "List[List[str]]",
+      "n_classes": 4,
       "output_mapping": "sudoku_output_mapping",
       "n_rows": 4,
       "n_cols": 4
@@ -3218,6 +3225,7 @@
     ],
     "output": {
       "type": "List[List[str]]",
+      "n_classes": 4,
       "output_mapping": "sudoku_output_mapping",
       "n_rows": 4,
       "n_cols": 4
@@ -3465,5 +3473,30 @@
     "batch_size_test": 16,
     "dataset_size_train": 1000,
     "dataset_size_test": 100
+  },
+  "reverse_string": {
+    "py_func": "reverse_string",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "str",
+        "length": 5,
+        "strategy": "list",
+        "preprocess": "id",
+        "dataset": "EMNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "str",
+      "n_classes": 47,
+      "output_mapping": "list_output_mapping",
+      "length": 5
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   }
 }

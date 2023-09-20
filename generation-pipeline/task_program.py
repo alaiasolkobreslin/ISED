@@ -881,6 +881,10 @@ def ner_identity(x):
     return x
 
 
+def reverse_string(str):
+    return str[::-1]
+
+
 dispatcher = {
     'sum_2': sum_2,
     'sum_3': sum_3,
@@ -948,7 +952,8 @@ dispatcher = {
     'rust_coffee_leaf_severity': rust_coffee_leaf_severity,
     'miner_coffee_leaf_severity': miner_coffee_leaf_severity,
     'bio_tagging': bio_tagging,
-    'ner_identity': ner_identity
+    'ner_identity': ner_identity,
+    'reverse_string': reverse_string,
 }
 
 
