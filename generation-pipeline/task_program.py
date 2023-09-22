@@ -784,11 +784,11 @@ def sum_grid(grid):
 
 
 def sort_list_indices(x):
-    return np.argsort(x).tolist()
+    return np.argsort(x, kind='mergesort').tolist()
 
 
 def select_top_4(x):
-    return np.argsort(x).tolist()[:4]
+    return np.argsort(x, kind='mergesort').tolist()[:4]
 
 
 def rust_coffee_leaf_severity(selected_areas):
