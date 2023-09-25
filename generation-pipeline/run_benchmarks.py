@@ -1,5 +1,7 @@
 import os
 import json
+import csv
+import time
 import random
 from typing import *
 from functools import partial
@@ -261,20 +263,27 @@ class Trainer():
                 iter.set_description(
                     f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
 
+        return total_correct / num_items
         # self.network.confusion_matrix()
 
     def train(self, n_epochs):
-        self.test_epoch(0)
+        dict = {}
+        # self.test_epoch(0)
         for epoch in range(1, n_epochs + 1):
+            t0 = time.time()
             self.train_epoch(epoch)
-            self.test_epoch(epoch)
+            t1 = time.time()
+            dict["time epoch " + str(epoch)] = round(t1 - t0, ndigits=4)
+            acc = self.test_epoch(epoch)
+            dict["accuracy epoch " + str(epoch)] = round(acc, ndigits=6)
         self.network.close()
+        return dict
 
 
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("neuro-symbolic-dataset")
-    parser.add_argument("--n-epochs", type=int, default=20)
+    parser.add_argument("--n-epochs", type=int, default=10)
     # parser.add_argument("--seed", type=int, default=1234)
     # parser.add_argument("--n-samples", type=int, default=100)
     parser.add_argument("--configuration", type=str,
@@ -284,10 +293,34 @@ if __name__ == "__main__":
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
 
-    random_seeds = [3177, 5848, 9175, 8725, 1234]
-    sample_counts = [1, 100, 500, 1000, 5000]
-    tasks = ['sum_4_mnist', 'sort_list_indices_mnist',
-             'reverse_integer_mnist', 'reverse_string']
+    random_seeds = [3177, 5848, 9175]
+    sample_counts = [100]
+    tasks = ['sum_2_mnist',
+             'sum_3_mnist',
+             'sum_4_mnist',
+             'add_mod_3_mnist',
+             'add_sub_mnist',
+             'eq_2_mnist',
+             'how_many_3_or_4_mnist',
+             'how_many_not_3_and_not_4_mnist',
+             'how_many_not_3_mnist',
+             'identity_mnist',
+             'is_3_and_4_mnist',
+             'not_3_or_4_mnist',
+             'less_than_mnist',
+             'mod_2_mnist',
+             'mult_2_mnist']
+            
+    accuracies = ["accuracy epoch " + str(i+1) for i in range(10)]
+    times = ["time epoch " + str(i+1) for i in range(10)]
+    field_names = ['task name', 'random seed', 'sample count'] + accuracies + times
+
+
+    with open('sample_count_experiment.csv', 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=field_names)
+        writer.writeheader()
+        csvfile.close()
+    
 
     # environment init
     torch.multiprocessing.set_start_method('spawn')
@@ -300,11 +333,11 @@ if __name__ == "__main__":
     # Parameters
     n_epochs = args.n_epochs
 
-    for seed in random_seeds:
-        torch.manual_seed(seed)
-        random.seed(seed)
+    for task in tasks:
         for n_samples in sample_counts:
-            for task in tasks:
+            for seed in random_seeds:
+                torch.manual_seed(seed)
+                random.seed(seed)
                 print('Task: {}'.format(task))
 
                 task_config = configuration[task]
@@ -327,14 +360,21 @@ if __name__ == "__main__":
                 unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
                     input, train=True) for input in task_config[INPUTS]]
                 trainer = Trainer(train_loader=train_loader,
-                                  test_loader=test_loader,
-                                  unstructured_datasets=unstructured_datasets,
-                                  learning_rate=learning_rate,
-                                  config=config,
-                                  fn=fn,
-                                  output_mapping=om,
-                                  sample_count=n_samples,
-                                  batch_size_train=batch_size_train,
-                                  check_symmetry=args.symmetry,
-                                  caching=args.caching)
-                trainer.train(n_epochs)
+                                test_loader=test_loader,
+                                unstructured_datasets=unstructured_datasets,
+                                learning_rate=learning_rate,
+                                config=config,
+                                fn=fn,
+                                output_mapping=om,
+                                sample_count=n_samples,
+                                batch_size_train=batch_size_train,
+                                check_symmetry=args.symmetry,
+                                caching=args.caching)
+                dict = trainer.train(n_epochs)
+                dict["task name"] = task
+                dict["random seed"] = seed
+                dict["sample count"] = n_samples
+                with open('sample_count_experiment.csv', 'a', newline='') as csvfile:
+                    writer = csv.DictWriter(csvfile, fieldnames=field_names)
+                    writer.writerow(dict)
+                    csvfile.close()
