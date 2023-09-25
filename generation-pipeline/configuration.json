@@ -663,7 +663,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 3,
+        "length": 8,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -686,7 +686,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 3,
+        "length": 8,
         "dataset": "SVHN",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -709,7 +709,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 3,
+        "length": 8,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -732,7 +732,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 3,
+        "length": 8,
         "dataset": "SVHN",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -1472,13 +1472,13 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
-  "reverse_integer_mnist": {
+  "reverse_integer_mnist_length4": {
     "py_func": "reverse_integer",
     "inputs": [
       {
         "name": "x",
         "type": "List[digit]",
-        "length": 5,
+        "length": 4,
         "strategy": "list",
         "preprocess": "id",
         "dataset": "MNIST",
@@ -1489,7 +1489,57 @@
       "type": "int",
       "n_classes": 10,
       "output_mapping": "int_output_mapping",
-      "length": 5
+      "length": 4
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "reverse_integer_mnist_length8": {
+    "py_func": "reverse_integer",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[digit]",
+        "length": 8,
+        "strategy": "list",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "n_classes": 10,
+      "output_mapping": "int_output_mapping",
+      "length": 8
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "reverse_integer_mnist_length16": {
+    "py_func": "reverse_integer",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[digit]",
+        "length": 16,
+        "strategy": "list",
+        "preprocess": "id",
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "n_classes": 10,
+      "output_mapping": "int_output_mapping",
+      "length": 16
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
