@@ -295,32 +295,33 @@ if __name__ == "__main__":
 
     random_seeds = [3177, 5848, 9175]
     sample_counts = [100]
-    tasks = ['sum_2_mnist',
-             'sum_3_mnist',
-             'sum_4_mnist',
-             'add_mod_3_mnist',
-             'add_sub_mnist',
-             'eq_2_mnist',
-             'how_many_3_or_4_mnist',
-             'how_many_not_3_and_not_4_mnist',
+    tasks = ['how_many_not_3_and_not_4_mnist',
              'how_many_not_3_mnist',
-             'identity_mnist',
-             'is_3_and_4_mnist',
-             'not_3_or_4_mnist',
-             'less_than_mnist',
-             'mod_2_mnist',
-             'mult_2_mnist']
-            
+             'sum_2_svhn',
+             'sum_3_svhn',
+             'sum_4_svhn',
+             'add_mod_3_svhn',
+             'add_sub_svhn',
+             'eq_2_svhn',
+             'how_many_3_or_4_svhn',
+             'how_many_not_3_and_not_4_svhn',
+             'how_many_not_3_svhn',
+             'identity_svhn',
+             'is_3_and_4_svhn',
+             'not_3_or_4_svhn',
+             'less_than_svhn',
+             'mod_2_svhn',
+             'mult_2_svhn']
+
     accuracies = ["accuracy epoch " + str(i+1) for i in range(10)]
     times = ["time epoch " + str(i+1) for i in range(10)]
-    field_names = ['task name', 'random seed', 'sample count'] + accuracies + times
+    field_names = ['task name', 'random seed',
+                   'sample count'] + accuracies + times
 
-
-    with open('sample_count_experiment.csv', 'w', newline='') as csvfile:
+    with open('scallop_svhn.csv', 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writeheader()
         csvfile.close()
-    
 
     # environment init
     torch.multiprocessing.set_start_method('spawn')
@@ -360,16 +361,16 @@ if __name__ == "__main__":
                 unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
                     input, train=True) for input in task_config[INPUTS]]
                 trainer = Trainer(train_loader=train_loader,
-                                test_loader=test_loader,
-                                unstructured_datasets=unstructured_datasets,
-                                learning_rate=learning_rate,
-                                config=config,
-                                fn=fn,
-                                output_mapping=om,
-                                sample_count=n_samples,
-                                batch_size_train=batch_size_train,
-                                check_symmetry=args.symmetry,
-                                caching=args.caching)
+                                  test_loader=test_loader,
+                                  unstructured_datasets=unstructured_datasets,
+                                  learning_rate=learning_rate,
+                                  config=config,
+                                  fn=fn,
+                                  output_mapping=om,
+                                  sample_count=n_samples,
+                                  batch_size_train=batch_size_train,
+                                  check_symmetry=args.symmetry,
+                                  caching=args.caching)
                 dict = trainer.train(n_epochs)
                 dict["task name"] = task
                 dict["random seed"] = seed
