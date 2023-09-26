@@ -1851,7 +1851,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "sort",
-        "length": 8,
+        "length": 6,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -1874,7 +1874,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "sort",
-        "length": 8,
+        "length": 6,
         "dataset": "SVHN",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
