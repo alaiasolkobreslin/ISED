@@ -295,9 +295,7 @@ if __name__ == "__main__":
 
     random_seeds = [3177, 5848, 9175]
     sample_counts = [100]
-    tasks = ['how_many_not_3_and_not_4_mnist',
-             'how_many_not_3_mnist',
-             'sum_2_svhn',
+    tasks = ['sum_2_svhn',
              'sum_3_svhn',
              'sum_4_svhn',
              'add_mod_3_svhn',
@@ -375,7 +373,7 @@ if __name__ == "__main__":
                 dict["task name"] = task
                 dict["random seed"] = seed
                 dict["sample count"] = n_samples
-                with open('sample_count_experiment.csv', 'a', newline='') as csvfile:
+                with open('scallop_svhn.csv', 'a', newline='') as csvfile:
                     writer = csv.DictWriter(csvfile, fieldnames=field_names)
                     writer.writerow(dict)
                     csvfile.close()
