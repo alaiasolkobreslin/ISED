@@ -54,6 +54,7 @@ def get_data(train):
         train=train,
         download=True,
         transform=svhn_img_transform,
+        digits=[i for i in range(10)]
     )
     labels = torch.from_numpy(data.svhn_dataset.labels)
     sorted = torch.sort(labels)
