@@ -1624,7 +1624,7 @@
       {
         "name": "x",
         "type": "int",
-        "num_digits": 3,
+        "num_digits": 5,
         "strategy": "list",
         "preprocess": "id",
         "dataset": "MNIST",
@@ -1647,7 +1647,7 @@
       {
         "name": "x",
         "type": "int",
-        "num_digits": 3,
+        "num_digits": 5,
         "strategy": "list",
         "preprocess": "id",
         "dataset": "SVHN",
@@ -1741,7 +1741,7 @@
         "type": "str",
         "strategy": "list",
         "preprocess": "id",
-        "length": 2,
+        "length": 3,
         "dataset": "MNIST_2TO9",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -1764,7 +1764,7 @@
         "type": "str",
         "strategy": "list",
         "preprocess": "id",
-        "length": 2,
+        "length": 3,
         "dataset": "SVHN_2TO9",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -1787,7 +1787,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "sort",
-        "length": 2,
+        "length": 3,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       },
@@ -1796,7 +1796,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "sort",
-        "length": 2,
+        "length": 3,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -1851,7 +1851,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "sort",
-        "length": 10,
+        "length": 8,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -1874,7 +1874,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "sort",
-        "length": 10,
+        "length": 8,
         "dataset": "SVHN",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
