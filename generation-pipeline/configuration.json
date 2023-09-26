@@ -1578,7 +1578,7 @@
       {
         "name": "x",
         "type": "int",
-        "num_digits": 5,
+        "num_digits": 3,
         "strategy": "list",
         "preprocess": "palindrome",
         "dataset": "MNIST",
@@ -1601,7 +1601,7 @@
       {
         "name": "x",
         "type": "int",
-        "num_digits": 5,
+        "num_digits": 3,
         "strategy": "list",
         "preprocess": "palindrome",
         "dataset": "SVHN",
@@ -1624,7 +1624,7 @@
       {
         "name": "x",
         "type": "int",
-        "num_digits": 5,
+        "num_digits": 3,
         "strategy": "list",
         "preprocess": "id",
         "dataset": "MNIST",
@@ -1647,7 +1647,7 @@
       {
         "name": "x",
         "type": "int",
-        "num_digits": 5,
+        "num_digits": 3,
         "strategy": "list",
         "preprocess": "id",
         "dataset": "SVHN",
