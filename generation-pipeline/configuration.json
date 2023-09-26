@@ -98,7 +98,7 @@
     "dataset_size_test": 500
   },
   "sum_3_svhn": {
-    "py_func": "sum_3_svhn",
+    "py_func": "sum_3",
     "inputs": [
       {
         "name": "digit_1",
