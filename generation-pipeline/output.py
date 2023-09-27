@@ -173,6 +173,8 @@ class ListOutputMapping(OutputMapping):
                 result_prob = result_probs[i][j]
                 for idx in range(self.length):
                     elt = r[idx]
+                    if type(elt) is str:
+                        elt = EMNIST_MAPPING.index(elt)
                     result_tensor_sim[i][idx][elt] += result_prob
 
         result_tensor_sim = torch.nn.functional.normalize(
@@ -190,7 +192,10 @@ class ListOutputMapping(OutputMapping):
         y_sim = torch.zeros((batch_size, self.length, self.n_classes))
         for i, l in enumerate(target):
             for idx in range(self.length):
-                elt = int(l[idx])
+                if self.n_classes == 47:
+                    elt = EMNIST_MAPPING.index(l[idx])
+                else:
+                    elt = int(l[idx])
                 y_sim[i][idx][elt] = 1.0
         y = super().get_normalized_labels(y_pred, target, output_mapping)
         return y_sim, y

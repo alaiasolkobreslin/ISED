@@ -2003,7 +2003,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 2,
+        "length": 3,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -2027,7 +2027,7 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 2,
+        "length": 3,
         "dataset": "SVHN",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -3578,7 +3578,7 @@
       {
         "name": "x",
         "type": "str",
-        "length": 5,
+        "length": 3,
         "strategy": "list",
         "preprocess": "id",
         "dataset": "EMNIST",
@@ -3589,7 +3589,7 @@
       "type": "str",
       "n_classes": 47,
       "output_mapping": "list_output_mapping",
-      "length": 5
+      "length": 3
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
