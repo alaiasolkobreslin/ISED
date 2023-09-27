@@ -1672,7 +1672,8 @@
         "type": "List[str]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 7,
+        "length": 3,
+        "str_length": 3,
         "dataset": "EMNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -1695,7 +1696,8 @@
         "type": "List[str]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 7,
+        "length": 3,
+        "str_length": 3,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -1718,7 +1720,8 @@
         "type": "List[str]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 7,
+        "length": 3,
+        "str_length": 3,
         "dataset": "SVHN",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
