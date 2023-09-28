@@ -10,6 +10,7 @@ import random
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+import csv
 import time
 
 coffee_img_transform = torchvision.transforms.Compose([
@@ -178,7 +179,7 @@ class Trainer():
                     f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
             if test_loss < self.best_loss:
                 self.best_loss = test_loss
-        return correct / num_items
+        return (correct / num_items).item()
         
 
     def train(self, n_epochs):
@@ -211,6 +212,11 @@ if __name__ == "__main__":
     times = ["time epoch " + str(i+1) for i in range(30)]
     field_names = ['task name', 'random seed',
                    'sample count'] + accuracies + times
+
+    with open('coffee_baseline.csv', 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=field_names)
+        writer.writeheader()
+        csvfile.close()
 
     # Parameters
     n_epochs = args.n_epochs
