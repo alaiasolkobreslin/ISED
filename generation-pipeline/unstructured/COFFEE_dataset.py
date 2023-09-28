@@ -72,7 +72,10 @@ class COFFEE_dataset(torch.utils.data.Dataset):
             # First, we want to discard sections that are too large
             crop_img_area = (box['xmax'] - box['xmin']) * \
                 (box['ymax'] - box['ymin'])
-            if crop_img_area > 2500000:
+            if crop_img_area > 1000000:
+                continue
+
+            if i > 9:
                 continue
 
             areas.append(bbox['area'])

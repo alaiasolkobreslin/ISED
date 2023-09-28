@@ -10,6 +10,7 @@ import random
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+import time
 
 coffee_img_transform = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
@@ -177,42 +178,66 @@ class Trainer():
                     f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
             if test_loss < self.best_loss:
                 self.best_loss = test_loss
+        return correct / num_items
+        
 
     def train(self, n_epochs):
-        self.test_epoch(0)
+        dict = {}
+        # self.test_epoch(0)
         for epoch in range(1, n_epochs + 1):
+            t0 = time.time()
             self.train_epoch(epoch)
-            self.test_epoch(epoch)
+            t1 = time.time()
+            dict["time epoch " + str(epoch)] = round(t1 - t0, ndigits=4)
+            acc = self.test_epoch(epoch)
+            dict["accuracy epoch " + str(epoch)] = round(acc, ndigits=6)
+        return dict
 
 
 if __name__ == "__main__":
     # Argument parser
-    parser = ArgumentParser("mnist_sum_2")
-    parser.add_argument("--n-epochs", type=int, default=100)
+    parser = ArgumentParser("coffee")
+    parser.add_argument("--n-epochs", type=int, default=30)
     parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
     parser.add_argument("--prefix", type=str, default='miner')
-    parser.add_argument("--seed", type=int, default=1234)
+    # parser.add_argument("--seed", type=int, default=1234)
     args = parser.parse_args()
+
+    random_seeds = [3177, 5848, 9175]
+
+    accuracies = ["accuracy epoch " + str(i+1) for i in range(30)]
+    times = ["time epoch " + str(i+1) for i in range(30)]
+    field_names = ['task name', 'random seed',
+                   'sample count'] + accuracies + times
 
     # Parameters
     n_epochs = args.n_epochs
     batch_size_train = args.batch_size_train
     batch_size_test = args.batch_size_test
     learning_rate = args.learning_rate
-    torch.manual_seed(args.seed)
-    random.seed(args.seed)
 
-    # Data
-    data_dir = os.path.abspath(os.path.join(
-        os.path.abspath(__file__), "../../data"))
+    for seed in random_seeds:
+        torch.manual_seed(seed)
+        random.seed(seed)
 
-    # Dataloaders
-    train_loader, test_loader = coffee_baseline_loader(
-        data_dir, args.prefix, batch_size_train, batch_size_test)
+        # Data
+        data_dir = os.path.abspath(os.path.join(
+            os.path.abspath(__file__), "../../data"))
 
-    # Create trainer and train
-    trainer = Trainer(train_loader, test_loader,
-                      learning_rate)
-    trainer.train(n_epochs)
+        # Dataloaders
+        train_loader, test_loader = coffee_baseline_loader(
+            data_dir, args.prefix, batch_size_train, batch_size_test)
+
+        # Create trainer and train
+        trainer = Trainer(train_loader, test_loader,
+                        learning_rate)
+        dict = trainer.train(n_epochs)
+        dict["task name"] = 'coffee leaf baseline'
+        dict["random seed"] = seed
+        dict["sample count"] = 0
+        with open('coffee_baseline.csv', 'a', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=field_names)
+            writer.writerow(dict)
+            csvfile.close()

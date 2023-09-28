@@ -937,6 +937,7 @@ dispatcher = {
     'interleaving_string': interleaving_string,
     'best_time_to_buy_and_sell_stock': best_time_to_buy_and_sell_stock,
     'longest_consecutive_sequence': longest_consecutive_sequence,
+    'longest_common_prefix': longest_common_prefix,
 
     'sort_list': sort_list,
     'sort_integer_list': sort_integer_list,
