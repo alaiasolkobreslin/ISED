@@ -1,0 +1,4 @@
+task name,random seed,sample count,accuracy epoch 1,accuracy epoch 2,accuracy epoch 3,accuracy epoch 4,accuracy epoch 5,accuracy epoch 6,accuracy epoch 7,accuracy epoch 8,accuracy epoch 9,accuracy epoch 10,time epoch 1,time epoch 2,time epoch 3,time epoch 4,time epoch 5,time epoch 6,time epoch 7,time epoch 8,time epoch 9,time epoch 10
+add_two_numbers_mnist,3177,1000,0.392,0.866,0.9,0.916,0.93,0.934,0.914,0.946,0.944,0.938,477.9547,471.1957,466.042,463.9199,466.5045,471.8903,467.7396,469.8415,466.3425,467.6269
+add_two_numbers_mnist,5848,1000,0.002,0.838,0.902,0.916,0.926,0.928,0.936,0.932,0.942,0.942,484.1192,478.5646,480.3308,485.8545,491.8136,485.3352,486.4573,482.431,485.2014,482.072
+add_two_numbers_mnist,9175,1000,0.628,0.852,0.892,0.906,0.918,0.926,0.928,0.942,0.944,0.936,480.43,478.2401,477.6989,479.2588,480.4629,481.6917,478.1978,476.2785,481.3635,481.9843
