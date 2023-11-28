@@ -398,7 +398,8 @@ def permutations_ii(nums):
 
 def rotate_image(matrix):
     # problem 48: https://leetcode.com/problems/rotate-image/
-    return list(zip(*matrix[::-1]))
+    matrix = list(matrix)
+    return [list(l) for l in zip(*matrix[::-1])]
 
 
 def group_anagrams(strs):

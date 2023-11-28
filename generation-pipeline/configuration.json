@@ -2050,7 +2050,7 @@
     "py_func": "rotate_image",
     "inputs": [
       {
-        "name": "nums",
+        "name": "matrix",
         "type": "List[List[digit]]",
         "strategy": "2d_list",
         "preprocess": "id",
@@ -2077,7 +2077,7 @@
     "py_func": "rotate_image",
     "inputs": [
       {
-        "name": "nums",
+        "name": "matrix",
         "type": "List[List[digit]]",
         "strategy": "2d_list",
         "preprocess": "id",
