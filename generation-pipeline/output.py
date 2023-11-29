@@ -7,7 +7,8 @@ import util
 
 
 class OutputMapping:
-    def __init__(self): pass
+    def __init__(self, loss_aggregator):
+        self.loss_aggregator = loss_aggregator
 
     def dim(self): pass
 
@@ -23,9 +24,18 @@ class OutputMapping:
             for j in range(sample_count):
                 if results[i][j] != RESERVED_FAILURE:
                     idx = util.get_hashable_elem(results[i][j])
-                    result_tensor[i, element_indices[idx]
-                                  ] += result_probs[i, j]
+                    if self.loss_aggregator == ADD_MULT:
+                        result_tensor[i, element_indices[idx]
+                                      ] += result_probs[i, j]
+                    elif self.loss_aggregator == MIN_MAX:
+                        result_tensor[i, element_indices[idx]] = torch.max(
+                            result_tensor[i, element_indices[idx]].clone(), result_probs[i][j])
+                    else:
+                        raise Exception(
+                            f"Unknown loss aggregator: {self.loss_aggregator}")
         return (element_indices, torch.nn.functional.normalize(result_tensor, dim=1))
+        # s = torch.nn.Softmax(dim=1)
+        # return (element_indices, s(result_tensor))
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         """
@@ -54,7 +64,8 @@ class OutputMapping:
 
 
 class DiscreteOutputMapping(OutputMapping):
-    def __init__(self, elements: List[Any]):
+    def __init__(self, elements: List[Any], loss_aggregator):
+        super().__init__(loss_aggregator)
         self.elements = elements
         self.element_indices = {e: i for (i, e) in enumerate(elements)}
 
@@ -84,7 +95,8 @@ class DiscreteOutputMapping(OutputMapping):
 
 
 class UnknownDiscreteOutputMapping(OutputMapping):
-    def __init__(self, fallback):
+    def __init__(self, fallback, loss_aggregator):
+        super().__init__(loss_aggregator)
         self.fallback = fallback
 
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
@@ -104,7 +116,8 @@ class UnknownDiscreteOutputMapping(OutputMapping):
 
 
 class IntOutputMapping(OutputMapping):
-    def __init__(self, length, n_classes, fallback):
+    def __init__(self, length, n_classes, fallback, loss_aggregator):
+        super().__init__(loss_aggregator)
         self.length = length
         self.n_classes = n_classes
         self.fallback = fallback
@@ -152,7 +165,8 @@ class IntOutputMapping(OutputMapping):
 
 
 class ListOutputMapping(OutputMapping):
-    def __init__(self, length, n_classes, fallback):
+    def __init__(self, length, n_classes, fallback, loss_aggregator):
+        super().__init__(loss_aggregator)
         self.length = length
         self.n_classes = n_classes
         self.fallback = fallback
@@ -202,7 +216,8 @@ class ListOutputMapping(OutputMapping):
 
 
 class SudokuOutputMapping(OutputMapping):
-    def __init__(self, size, fallback):
+    def __init__(self, size, fallback, loss_aggregator):
+        super().__init__(loss_aggregator)
         self.size = size
         self.num_options = [str(i+1) for i in range(self.size)]
         self.fallback = fallback
@@ -265,24 +280,26 @@ class SudokuOutputMapping(OutputMapping):
         return y_sim, y
 
 
-def get_output_mapping(output_config):
+def get_output_mapping(task_config):
+    output_config = task_config[OUTPUT]
     om = output_config[OUTPUT_MAPPING]
+    la = task_config.get(LOSS_AGGREGATOR, ADD_MULT)
     if om == UNKNOWN:
-        return UnknownDiscreteOutputMapping(fallback=0)
+        return UnknownDiscreteOutputMapping(fallback=0, loss_aggregator=la)
     elif om == INT_OUTPUT_MAPPING:
         length = output_config[LENGTH]
         n_classes = output_config[N_CLASSES]
-        return IntOutputMapping(length=length, n_classes=n_classes, fallback=0)
+        return IntOutputMapping(length=length, n_classes=n_classes, fallback=0, loss_aggregator=la)
     elif om == LIST_OUTPUT_MAPPING:
         length = output_config[LENGTH]
         n_classes = output_config[N_CLASSES]
-        return ListOutputMapping(length=length, n_classes=n_classes, fallback=0)
+        return ListOutputMapping(length=length, n_classes=n_classes, fallback=0, loss_aggregator=la)
     elif om == DISCRETE_OUTPUT_MAPPING:
         if "range" in output_config:
-            return DiscreteOutputMapping(elements=list(range(output_config["range"][0], output_config["range"][1])))
+            return DiscreteOutputMapping(elements=list(range(output_config["range"][0], output_config["range"][1])), loss_aggregator=la)
     elif om == SUDOKU_OUTPUT_MAPPING:
         size = output_config[N_ROWS]
         n_classes = output_config[N_CLASSES]
-        return SudokuOutputMapping(size=size, fallback=0)
+        return SudokuOutputMapping(size=size, fallback=0, loss_aggregator=la)
     else:
         raise Exception(f"Unknown output mapping {om}")

@@ -24,6 +24,7 @@ class BlackBoxFunction(torch.nn.Module):
             input_mappings: Tuple[InputMapping],
             output_mapping: OutputMapping,
             batch_size: int,
+            loss_aggregator: str,
             check_symmetry: bool = True,
             caching: bool = True,
             sample_count: int = 100,
@@ -34,6 +35,7 @@ class BlackBoxFunction(torch.nn.Module):
         self.input_mappings = input_mappings
         self.output_mapping = output_mapping
         self.pool = Pool(processes=batch_size)
+        self.loss_aggregator = loss_aggregator
         self.sample_count = sample_count
         self.caching = caching
         self.fn_cache = {}
@@ -95,12 +97,17 @@ class BlackBoxFunction(torch.nn.Module):
         for i in range(len(sampled_indices)):
             input_tensor = inputs[i]
             input_permutations = self.get_permutations(sampled_indices, inputs)
-            # individual_permutations = self.get_individual_permutations(
-            #     sampled_indices[i], inputs)
             proofs = [(1 if perm[i] == i else 1) * input_tensor.gather(
                 1, sampled_indices[perm[i]]) for perm in input_permutations]
             for (j, proof) in enumerate(proofs):
-                result_probs[j] *= proof
+                if self.loss_aggregator == ADD_MULT:
+                    result_probs[j] *= proof
+                elif self.loss_aggregator == MIN_MAX:
+                    result_probs[j] = torch.minimum(
+                        result_probs[j].clone(), proof)
+                else:
+                    raise Exception(
+                        f"Unknown loss aggregator: {self.loss_aggregator}")
         result_probs = torch.sum(result_probs, dim=0)
 
         # Vectorize the results back into a tensor

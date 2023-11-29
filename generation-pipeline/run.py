@@ -70,7 +70,7 @@ class TaskNet(nn.Module):
     def __init__(
             self,
             unstructured_datasets: List[unstructured_dataset.UnstructuredDataset],
-            config: dict,
+            task_config: dict,
             fn: Callable,
             output_mapping: output.OutputMapping,
             sample_count: int,
@@ -79,10 +79,12 @@ class TaskNet(nn.Module):
             caching: bool):
         super(TaskNet, self).__init__()
 
-        self.config = config
+        input_configs = task_config[INPUTS]
+
+        self.config = input_configs
         self.unstructured_datasets = unstructured_datasets
         self.structured_datasets = [
-            structured_dataset.get_structured_dataset_static(input) for input in config]
+            structured_dataset.get_structured_dataset_static(input) for input in input_configs]
 
         self.nets_dict = {}
         self.nets = self.get_nets_list()
@@ -90,12 +92,14 @@ class TaskNet(nn.Module):
         self.forward_fns = [partial(sd.forward, self.nets[i])
                             for i, sd in enumerate(self.structured_datasets)]
         input_mappings = tuple([sd.get_input_mapping(
-            config[i]) for i, sd in enumerate(self.structured_datasets)])
+            input_configs[i]) for i, sd in enumerate(self.structured_datasets)])
+        loss_aggregator = task_config.get(LOSS_AGGREGATOR, ADD_MULT)
         self.eval_formula = \
             blackbox.BlackBoxFunction(function=fn,
                                       input_mappings=input_mappings,
                                       output_mapping=output_mapping,
                                       batch_size=batch_size_train,
+                                      loss_aggregator=loss_aggregator,
                                       check_symmetry=check_symmetry,
                                       caching=caching,
                                       sample_count=sample_count)
@@ -138,8 +142,7 @@ class TaskNet(nn.Module):
         self.pool.close()
 
     def confusion_matrix(self):
-        # for i, ud in enumerate(self.unstructured_datasets):
-        #     ud.confusion_matrix(self.nets[i])
+        # Just print one confusion matrix for the first UD
         self.unstructured_datasets[0].confusion_matrix(self.nets[0])
 
 
@@ -150,7 +153,7 @@ class Trainer():
             test_loader: torch.utils.data.DataLoader,
             unstructured_datasets: List[unstructured_dataset.UnstructuredDataset],
             learning_rate: float,
-            config: dict,
+            task_config: dict,
             fn: Callable,
             output_mapping: output.OutputMapping,
             sample_count: int,
@@ -158,7 +161,7 @@ class Trainer():
             check_symmetry: bool,
             caching: bool):
         self.network = TaskNet(unstructured_datasets=unstructured_datasets,
-                               config=config,
+                               task_config=task_config,
                                fn=fn,
                                output_mapping=output_mapping,
                                sample_count=sample_count,
@@ -182,9 +185,7 @@ class Trainer():
             (output_mapping, y_pred_sim, y_pred) = self.network(data)
 
             # Normalize label format
-            # batch_size, num_outputs = y_pred.shape
             batch_size = y_pred_sim.shape[0]
-            num_outputs = 1
             norm_label, y = self.output_mapping.get_normalized_labels(
                 y_pred_sim, target, output_mapping)
 
@@ -229,9 +230,7 @@ class Trainer():
                 (output_mapping, y_pred_sim, y_pred) = self.network(data)
 
                 # Normalize label format
-                # batch_size, num_outputs = y_pred.shape
                 batch_size = y_pred_sim.shape[0]
-                num_outputs = 1
 
                 norm_label, y = self.output_mapping.get_normalized_labels(
                     y_pred_sim, target, output_mapping)
@@ -310,30 +309,19 @@ if __name__ == "__main__":
             task_config, batch_size_train, batch_size_test)
 
         # Set the output mapping
-        output_config = task_config[OUTPUT]
-        # output_mapping = output_config[OUTPUT_MAPPING]
-        # if output_mapping == UNKNOWN:
-        om = output.get_output_mapping(output_config)
-        # elif output_mapping == RANGE:
-        #     start = output_config[OUTPUT_MAPPING_RANGE][START]
-        #     end = output_config[OUTPUT_MAPPING_RANGE][END]
-        #     elements = [i for i in range(start, end)]
-        #     om = output.DiscreteOutputMapping(elements=elements)
-        # else:
-        #     raise Exception("unknown output mapping")
+        om = output.get_output_mapping(task_config)
 
         # Create trainer and train
         py_func = task_config[PY_PROGRAM]
         learning_rate = task_config[LEARNING_RATE]
         fn = task_program.dispatcher[py_func]
-        config = task_config[INPUTS]
         unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
             input, train=True) for input in task_config[INPUTS]]
         trainer = Trainer(train_loader=train_loader,
                           test_loader=test_loader,
                           unstructured_datasets=unstructured_datasets,
                           learning_rate=learning_rate,
-                          config=config,
+                          task_config=task_config,
                           fn=fn,
                           output_mapping=om,
                           sample_count=args.n_samples,

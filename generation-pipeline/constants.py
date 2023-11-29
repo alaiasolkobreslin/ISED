@@ -96,3 +96,8 @@ digits_im = [str(i) for i in range(10)]
 uppercase_im = list(string.ascii_uppercase)
 lowercase_im = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'n', 'q', 'r', 't']
 EMNIST_MAPPING = digits_im + uppercase_im + lowercase_im
+
+# Loss aggregation
+LOSS_AGGREGATOR = "loss_aggregator"
+MIN_MAX = "min_max"
+ADD_MULT = "add_mult"
