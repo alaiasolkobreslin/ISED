@@ -178,17 +178,3 @@ class BlackBoxFunction(torch.nn.Module):
         else:
             permutations = [i for i in range(len(idxs))]
             return [permutations]
-
-    # def get_individual_permutations(self, sampled_indices, inputs):
-
-    #     permutations = []
-    #     for i, input in enumerate(inputs):
-    #         p = self.input_mappings[i].permute(input)  # is it input or idx?
-    #         permutations.append(p)
-    #     return permutations
-
-        # permutations = []
-        # for i, input in enumerate(inputs):
-        #     im = self.input_mappings[i]
-        #     permutations.append(im.permute(input))
-        #     pass
