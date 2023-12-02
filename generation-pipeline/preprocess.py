@@ -27,7 +27,6 @@ class PreprocessSudokuBoard(Preprocess):
     def preprocess(self, input, bool_board):
         length = bool_board.shape[0]
         board = []
-        # board = [['.'] * length] * length
         idx = 0
         for i in range(length):
             row = []

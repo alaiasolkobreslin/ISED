@@ -34,8 +34,6 @@ class OutputMapping:
                         raise Exception(
                             f"Unknown loss aggregator: {self.loss_aggregator}")
         return (element_indices, torch.nn.functional.normalize(result_tensor, dim=1))
-        # s = torch.nn.Softmax(dim=1)
-        # return (element_indices, s(result_tensor))
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         """
