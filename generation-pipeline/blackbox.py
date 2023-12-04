@@ -232,16 +232,44 @@ class BlackBoxFunctionFiniteDifference(torch.autograd.Function):
             jacobian.append(jacobian_i)
         return tuple(jacobian)
 
+    def zip_batched_inputs(batched_inputs):
+        return list(zip(*batched_inputs))
+
     @staticmethod
     def forward(ctx, bbox, *inputs):
-        bbox = bbox
+
+        num_inputs = len(inputs)
+        assert num_inputs == len(
+            bbox.input_mappings), "inputs and input_mappings must have the same length"
+
+        # Get the batch size
+        batch_size = inputs[0].batch_size()
+        for i in range(1, num_inputs):
+            assert batch_size == inputs[i].batch_size(
+            ), "all inputs must have the same batch size"
+
+        # Prepare the inputs to the black-box function
+        to_compute_inputs, max_indices = [], []
+        for (input_i, input_mapping_i) in zip(inputs, bbox.input_mappings):
+            max_indices_i, max_elements_i = input_mapping_i.argmax(input_i)
+            to_compute = max_elements_i
+            to_compute_inputs.append(to_compute)
+            max_indices.append(max_indices_i)
+
+        to_compute_inputs = BlackBoxFunctionFiniteDifference.zip_batched_inputs(
+            to_compute_inputs)
+
+        # Get the outputs from the black-box function
+        results = bbox.invoke_function_on_batched_inputs(to_compute_inputs)
+
+        # TODO: finish this
+
         ctx.save_for_backward(*inputs)
         output = bbox.function(*inputs)
         return output
 
     @staticmethod
     def backward(ctx, bbox, grad_output):
-        bbox = bbox
         inputs = ctx.saved_tensors
         js = BlackBoxFunctionFiniteDifference.finite_difference(
             bbox.function, *inputs)

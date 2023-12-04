@@ -94,7 +94,7 @@ class TaskNet(nn.Module):
         input_mappings = tuple([sd.get_input_mapping(
             input_configs[i]) for i, sd in enumerate(self.structured_datasets)])
         loss_aggregator = task_config.get(LOSS_AGGREGATOR, ADD_MULT)
-        self.eval_formula = \
+        self.bbox = \
             blackbox.BlackBoxFunction(function=fn,
                                       input_mappings=input_mappings,
                                       output_mapping=output_mapping,
@@ -103,6 +103,8 @@ class TaskNet(nn.Module):
                                       check_symmetry=check_symmetry,
                                       caching=caching,
                                       sample_count=sample_count)
+        self.eval_formula = partial(
+            blackbox.BlackBoxFunctionFiniteDifference.apply, self.bbox)
 
         self.pool = Pool(processes=batch_size_train)
 

@@ -96,20 +96,6 @@ class PaddedListInput(Input):
         # # result = self.tensor.gather(dim + 1, indices)
         # # return torch.prod(result, dim=1)
 
-    # def gather_permutations(self, dim: int, indices: torch.Tensor, permutations: List[List[Tuple]]):
-    #     batch_size, max_length, _ = indices.shape
-    #     proofs = []
-    #     tensor_lst = [i for i in torch.transpose(self.tensor, 0, 1)]
-    #     for i in range(batch_size):
-    #         length = self.lengths[i]
-    #         for perm in permutations[length-1]:
-    #             permuted = torch.stack([tensor_lst[perm[j]]
-    #                                     for j in range(length)])
-    #             new_tensor = torch.transpose(permuted, 0, 1)
-    #             new_tensor_gathered = new_tensor.gather(dim+1, indices)
-    #             proofs.append(torch.prod(new_tensor_gathered, dim=1))
-    #     return proofs
-
 
 class PaddedListInputSudoku(Input):
     """
@@ -203,7 +189,9 @@ class InputMapping:
     def sample(self, input: Any,
                sample_count: int) -> Tuple[torch.Tensor, List[Any]]: pass
 
-    def permute(self) -> List[Any]: pass
+    def argmax(self, input: Any) -> Tuple[torch.Tensor, List[Any]]: pass
+
+    # def permute(self) -> List[Any]: pass
 
 
 class PaddedListInputMappingCoffee(InputMapping):
@@ -240,6 +228,9 @@ class PaddedListInputMappingCoffee(InputMapping):
 
         return (sampled_indices, result_sampled_elements)
 
+    def argmax(self, list_input: CoffeeInput):
+        pass
+
 
 class PaddedListInputMapping(InputMapping):
     def __init__(self, max_length: int, element_input_mapping: InputMapping, combine: Callable):
@@ -274,11 +265,14 @@ class PaddedListInputMapping(InputMapping):
 
         return (sampled_indices, result_sampled_elements)
 
-    def permute(self):
-        idx_lst = [i for i in range(self.max_length)]
-        if not self.does_permute:
-            return [idx_lst]
-        return [p for p in itertools.permutations(idx_lst)]
+    def argmax(self, input: PaddedListInput):
+        pass
+
+    # def permute(self):
+    #     idx_lst = [i for i in range(self.max_length)]
+    #     if not self.does_permute:
+    #         return [idx_lst]
+    #     return [p for p in itertools.permutations(idx_lst)]
 
 
 class PaddedListInputMappingSudoku(InputMapping):
@@ -314,18 +308,8 @@ class PaddedListInputMappingSudoku(InputMapping):
 
         return (sampled_indices, result_sampled_elements)
 
-    # def permute(self):
-    #     permutations = []
-    #     if not self.does_permute:
-    #         for i in range(self.max_length):
-    #             idx_lst = [j for j in range(i)]
-    #             permutations.append([idx_lst])
-    #     else:
-    #         for i in range(self.max_length):
-    #             idx_lst = [j for j in range(i+1)]
-    #             permutations.append(
-    #                 [p for p in itertools.permutations(idx_lst)])
-    #     return permutations
+    def argmax(self, input: PaddedListInputSudoku):
+        pass
 
 
 class ListInputMapping(InputMapping):
@@ -361,11 +345,14 @@ class ListInputMapping(InputMapping):
 
         return (sampled_indices, result_sampled_elements)
 
-    def permute(self):
-        idx_lst = [i for i in range(self.length)]
-        if not self.does_permute:
-            return [idx_lst]
-        return [p for p in itertools.permutations(idx_lst)]
+    def argmax(self, input: ListInput):
+        pass
+
+    # def permute(self):
+    #     idx_lst = [i for i in range(self.length)]
+    #     if not self.does_permute:
+    #         return [idx_lst]
+    #     return [p for p in itertools.permutations(idx_lst)]
 
 
 class ListInputMapping2DSudoku(InputMapping):
@@ -394,12 +381,12 @@ class ListInputMapping2DSudoku(InputMapping):
             for j in range(sample_count):
                 curr_elem = []
                 for k in range(list_input.n_rows * list_input.n_cols):
-                    row = k // n_rows
-                    col = k % n_cols
+                    row = k // self.n_rows
+                    col = k % self.n_cols
                     selected = list_input.selected[i][row][col].item()
                     if selected:
                         curr_elem.append(
-                            str(sampled_elements[i * n_rows * n_cols + k][j]))
+                            str(sampled_elements[i * self.n_rows * self.n_cols + k][j]))
                     else:
                         curr_elem.append('.')
                 curr_batch.append(curr_elem)
@@ -408,12 +395,15 @@ class ListInputMapping2DSudoku(InputMapping):
         # Reshape the sampled indices
         sampled_indices_original_shape = tuple(sampled_indices.shape[1:])
         sampled_indices = sampled_indices.reshape(
-            batch_size, n_rows, n_cols, *sampled_indices_original_shape)
+            batch_size, self.n_rows, self.n_cols, *sampled_indices_original_shape)
 
         return (sampled_indices, result_sampled_elements)
 
-    def permute(self):
-        return []
+    def argmax(self, input: ListInput2DSudoku):
+        pass
+
+    # def permute(self):
+    #     return []
 
 
 class ListInputMapping2D(InputMapping):
@@ -455,12 +445,15 @@ class ListInputMapping2D(InputMapping):
 
         return (sampled_indices, result_sampled_elements)
 
-    def permute(self):
-        all_idxs = [i for i in range(self.n_rows * self.n_cols)]
-        if not self.does_permute:
-            return [all_idxs]
-        permutations = itertools.permutations(all_idxs)
-        return [p for p in permutations]
+    def argmax(self, input: ListInput2D):
+        pass
+
+    # def permute(self):
+    #     all_idxs = [i for i in range(self.n_rows * self.n_cols)]
+    #     if not self.does_permute:
+    #         return [all_idxs]
+    #     permutations = itertools.permutations(all_idxs)
+    #     return [p for p in permutations]
 
 
 class DiscreteInputMapping(InputMapping):
@@ -481,5 +474,13 @@ class DiscreteInputMapping(InputMapping):
                             for sampled_indices_for_task_i in sampled_indices]
         return (sampled_indices, sampled_elements)
 
-    def permute(self):
-        return []
+    def argmax(self, inputs: SingleInput):
+        num_input_elements = inputs.tensor.shape[1]
+        assert num_input_elements == len(
+            self.elements), "inputs must have the same number of columns as the number of elements"
+        max_indices = torch.argmax(inputs.tensor, dim=1)
+        max_elements = [self.elements[i] for i in max_indices]
+        return (max_indices, max_elements)
+
+    # def permute(self):
+    #     return []
