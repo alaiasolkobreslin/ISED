@@ -5,6 +5,7 @@ import errno
 import os
 import signal
 import functools
+from functools import partial
 import itertools
 import random
 from torch.multiprocessing import Pool
@@ -235,6 +236,33 @@ class BlackBoxFunctionFiniteDifference(torch.autograd.Function):
     def zip_batched_inputs(batched_inputs):
         return list(zip(*batched_inputs))
 
+    def invoke_function_on_inputs(bbox, r):
+        """
+        Given a list of inputs, invoke the black-box function on each of them.
+        Note that function may fail on some inputs, and we skip those.
+        """
+        try:
+            fn_input = (bbox.input_mappings[i].combine(
+                elt) for i, elt in enumerate(r))
+            if not bbox.caching:
+                yield bbox.function(*fn_input)
+            else:
+                hashable_fn_input = util.get_hashable_elem(fn_input)
+                if hashable_fn_input in bbox.fn_cache:
+                    yield bbox.fn_cache[hashable_fn_input]
+                else:
+                    y = bbox.timeout_decorator(bbox.function)(*fn_input)
+                    bbox.fn_cache[hashable_fn_input] = y
+                    yield y
+        except:
+            yield RESERVED_FAILURE
+
+    def process_batch(bbox, batch):
+        return list(BlackBoxFunctionFiniteDifference.invoke_function_on_inputs(bbox, batch))
+
+    def invoke_function_on_batched_inputs(bbox, batched_inputs):
+        return bbox.pool.map(partial(BlackBoxFunctionFiniteDifference.process_batch, bbox), batched_inputs)
+
     @staticmethod
     def forward(ctx, bbox, *inputs):
 
@@ -260,7 +288,8 @@ class BlackBoxFunctionFiniteDifference(torch.autograd.Function):
             to_compute_inputs)
 
         # Get the outputs from the black-box function
-        results = bbox.invoke_function_on_batched_inputs(to_compute_inputs)
+        results = BlackBoxFunctionFiniteDifference.invoke_function_on_batched_inputs(
+            bbox, to_compute_inputs)
 
         # TODO: finish this
 
