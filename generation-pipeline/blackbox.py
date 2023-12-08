@@ -264,7 +264,9 @@ class BlackBoxFunctionFiniteDifference(torch.autograd.Function):
         return bbox.pool.map(partial(BlackBoxFunctionFiniteDifference.process_batch, bbox), batched_inputs)
 
     @staticmethod
-    def forward(ctx, bbox, *inputs):
+    def forward(ctx, bbox, inputs, *input_tensors):
+
+        ctx.save_for_backward(*input_tensors)
 
         num_inputs = len(inputs)
         assert num_inputs == len(
@@ -279,7 +281,9 @@ class BlackBoxFunctionFiniteDifference(torch.autograd.Function):
         # Prepare the inputs to the black-box function
         to_compute_inputs, max_indices = [], []
         for (input_i, input_mapping_i) in zip(inputs, bbox.input_mappings):
-            max_indices_i, max_elements_i = input_mapping_i.argmax(input_i)
+            max_indices_i, max_elements_i = input_mapping_i.argmax(
+                input_i)
+            max_indices_i = max_indices_i.reshape((-1, 1))
             to_compute = max_elements_i
             to_compute_inputs.append(to_compute)
             max_indices.append(max_indices_i)
@@ -291,15 +295,19 @@ class BlackBoxFunctionFiniteDifference(torch.autograd.Function):
         results = BlackBoxFunctionFiniteDifference.invoke_function_on_batched_inputs(
             bbox, to_compute_inputs)
 
-        # TODO: finish this
+        result_probs = torch.ones(
+            (batch_size, 1))
+        for i in range(len(max_indices)):
+            input_tensor = inputs[i]
+            proof = input_tensor.gather(1, max_indices[i])
+            result_probs *= proof
 
-        ctx.save_for_backward(*inputs)
-        output = bbox.function(*inputs)
-        return output
+        return bbox.output_mapping.vectorize(results, result_probs)
 
     @staticmethod
-    def backward(ctx, bbox, grad_output):
+    def backward(ctx, bbox, something_else, grad_output):
         inputs = ctx.saved_tensors
+        # inputs = tuple((i.tensor for i in inputs))
         js = BlackBoxFunctionFiniteDifference.finite_difference(
             bbox.function, *inputs)
         js = [grad_output.unsqueeze(1).matmul(j).squeeze(1) for j in js]

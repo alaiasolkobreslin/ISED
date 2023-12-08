@@ -130,7 +130,8 @@ class TaskNet(nn.Module):
         distrs = [self.forward_fns[i](x[key]) for i, key in enumerate(keys)]
         inputs = [self.structured_datasets[i].distrs_to_input(distrs[i], x[keys[i]], input)
                   for i, input in enumerate(self.config)]
-        return self.eval_formula(*inputs)
+        input_tensors = [input.tensor for input in inputs]
+        return self.eval_formula(inputs, *input_tensors)
 
     def eval(self):
         for net in self.nets_dict.values():
