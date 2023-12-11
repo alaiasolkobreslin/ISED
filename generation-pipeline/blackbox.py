@@ -184,6 +184,8 @@ class BlackBoxFunction(torch.nn.Module):
 
 class BlackBoxFunctionFiniteDifference(torch.autograd.Function):
 
+    bbox = None
+
     def compute_prob(argmax, inputs):
         n = len(argmax)
         batch_size = argmax[0].shape[0]
@@ -268,6 +270,8 @@ class BlackBoxFunctionFiniteDifference(torch.autograd.Function):
 
         ctx.save_for_backward(*input_tensors)
 
+        BlackBoxFunctionFiniteDifference.bbox = bbox
+
         num_inputs = len(inputs)
         assert num_inputs == len(
             bbox.input_mappings), "inputs and input_mappings must have the same length"
@@ -305,10 +309,9 @@ class BlackBoxFunctionFiniteDifference(torch.autograd.Function):
         return bbox.output_mapping.vectorize(results, result_probs)
 
     @staticmethod
-    def backward(ctx, bbox, something_else, grad_output):
+    def backward(ctx, om, grad_output, y_pred):
         inputs = ctx.saved_tensors
-        # inputs = tuple((i.tensor for i in inputs))
         js = BlackBoxFunctionFiniteDifference.finite_difference(
-            bbox.function, *inputs)
+            BlackBoxFunctionFiniteDifference.bbox.function, *inputs)
         js = [grad_output.unsqueeze(1).matmul(j).squeeze(1) for j in js]
         return tuple(js)

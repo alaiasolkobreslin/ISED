@@ -185,7 +185,7 @@ class Trainer():
         total_correct = 0
         iter = tqdm(self.train_loader, total=len(self.train_loader))
         for (i, (data, target)) in enumerate(iter):
-            (output_mapping, y_pred_sim, y_pred) = self.network(data)
+            output_mapping, y_pred_sim, y_pred = self.network(data)
 
             # Normalize label format
             batch_size = y_pred_sim.shape[0]
