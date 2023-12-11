@@ -5,6 +5,7 @@ import random
 import torch
 import torchvision
 import torch.optim as optim
+import torch.nn.functional as F
 from PIL import Image
 
 from argparse import ArgumentParser
@@ -109,13 +110,14 @@ class Trainer():
     self.save_model = save_model
     self.min_test_loss = 100000000.0
 
-  def loss_fn(self, output, expected_output):
-    return torch.mean(torch.square(output - expected_output))
+  def loss_fn(self, output, ground_truth):
+    (_, dim) = output.shape
+    gt = torch.stack([torch.tensor([1.0 if i == t else 0.0 for i in range(dim)]) for t in ground_truth])
+    return F.binary_cross_entropy(output, gt)
 
   def accuracy(self, output, expected_output) -> Tuple[int, int]:
-    diff = torch.abs(output - expected_output)
-    num_correct = len([() for d in diff if d.item() < 0.4999])
-    return (len(output), num_correct)
+    num_correct = torch.sum(output.argmax(dim=1) == expected_output)
+    return (output.shape[0], num_correct)
 
   def train_epoch(self, epoch):
     self.network.train()
@@ -134,7 +136,7 @@ class Trainer():
       num_items += batch_size
       total_train_correct += num_correct
       correct_perc = 100. * total_train_correct / num_items
-      iter.set_description(f"[Train Epoch {epoch}] Batch Loss: {loss.item():.4f}, Overall Accuracy: {correct_perc:.4f}%")
+      iter.set_description(f"[Train Epoch {epoch}] Correct: {num_correct}, Overall Accuracy: {correct_perc:.4f}%")
 
   def test_epoch(self, epoch):
     self.network.eval()

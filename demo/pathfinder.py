@@ -3,6 +3,7 @@ from torch import nn
 import itertools
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
+from collections import deque
 
 import blackbox
 
@@ -85,7 +86,26 @@ def build_adj(num_block_x, num_block_y):
   return adjacency
 
 def existsPath(is_connected, is_endpoint):
-  return torch.randint(0,(64,)).long()
+	adj = []
+	for (v,w) in is_connected:
+		adj[v].append(w)
+		adj[w].append(v)
+	
+	[s, d] = is_endpoint
+	visited = [False for i in range(36)]
+	queue = deque()
+	visited[s] = True
+	queue.append()
+
+	while (len(queue) > 0):
+		s = queue.popleft()
+		for i in adj[s]:
+			if (i == d):
+				return 1
+			if (not visited[i]):
+				visited[i] = True
+				queue.append(i)
+	return 0
 
 class PathFinderNet(nn.Module):
   def __init__(self, sample_count, num_block_x=6, num_block_y=6):
@@ -103,8 +123,9 @@ class PathFinderNet(nn.Module):
     # Scallop Context
     self.bbox_connected = blackbox.BlackBoxFunction(
       existsPath,
-      (blackbox.DiscreteInputMapping(list(range(120))),blackbox.DiscreteInputMapping(list(range(36)))),
-      blackbox.DiscreteOutputMapping(list(range(0))),
+      (blackbox.DiscreteInputMapping(self.adjacency),
+       blackbox.DiscreteInputMapping(list(range(self.num_blocks)))),
+      blackbox.DiscreteOutputMapping(list(range(2))),
       sample_count=sample_count
     )
     

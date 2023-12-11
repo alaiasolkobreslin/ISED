@@ -1,34 +1,8 @@
 from typing import *
 import torch
-import errno
-import os
-import signal
-import functools
 
 
 RESERVED_FAILURE = "__RESERVED_FAILURE__"
-
-
-class TimeoutError(Exception):
-    pass
-
-
-def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
-    def decorator(func):
-        def _handle_timeout(signum, frame):
-            raise TimeoutError(error_message)
-
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            signal.signal(signal.SIGALRM, _handle_timeout)
-            signal.alarm(seconds)
-            try:
-                result = func(*args, **kwargs)
-            finally:
-                signal.alarm(0)
-            return result
-        return wrapper
-    return decorator
 
 
 class ListInput:
@@ -84,12 +58,12 @@ class DiscreteInputMapping(InputMapping):
     def __init__(self, elements: List[Any]):
         self.elements = elements
 
-    def sample(self, inputs: torch.Tensor, sample_count: int) -> Tuple[torch.Tensor, List[Any]]:
+    def sample(self, inputs: torch.Tensor, top_k, sample_count: int) -> Tuple[torch.Tensor, List[Any]]:
         num_input_elements = inputs.shape[1]
         assert num_input_elements == len(self.elements), "inputs must have the same number of columns as the number of elements"
         distrs = torch.distributions.Categorical(probs=inputs)
-        sampled_indices = distrs.sample((sample_count,)).transpose(0, 1)
-        sampled_elements = [[self.elements[i] for i in sampled_indices_for_task_i] for sampled_indices_for_task_i in sampled_indices]
+        sampled_indices = distrs.sample((sample_count,top_k)).transpose(0,2).transpose(1,2) # 64 * 100 * 2
+        sampled_elements = [[[self.elements[i] for i in sampled_indices_for_task_i] for sampled_indices_for_task_i in sampled_indices_for_task_j] for sampled_indices_for_task_j in sampled_indices]
         return (sampled_indices, sampled_elements)
 
 
@@ -120,8 +94,8 @@ class DiscreteOutputMapping(OutputMapping):
 
 
 class UnknownDiscreteOutputMapping(OutputMapping):
-    def __init__(self, fallback):
-        self.fallback = fallback
+    def __init__(self):
+        pass
 
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
@@ -129,11 +103,6 @@ class UnknownDiscreteOutputMapping(OutputMapping):
         # Get the unique elements
         elements = list(set([elem for batch in results for elem in batch if elem != RESERVED_FAILURE]))
         element_indices = {e: i for (i, e) in enumerate(elements)}
-
-        # If there is no element being derived...
-        if len(elements) == 0:
-            # We return a single fallback value, while the probability of result being fallback are all 0
-            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True))
 
         # Vectorize the results
         result_tensor = torch.zeros((batch_size, len(elements)))
@@ -153,15 +122,13 @@ class BlackBoxFunction(torch.nn.Module):
             function: Callable,
             input_mappings: Tuple[InputMapping],
             output_mapping: OutputMapping,
-            sample_count: int = 100,
-            timeout_seconds: int = 1):
+            sample_count: int = 100):
         super(BlackBoxFunction, self).__init__()
         assert type(input_mappings) == tuple, "input_mappings must be a tuple"
         self.function = function
         self.input_mappings = input_mappings
         self.output_mapping = output_mapping
         self.sample_count = sample_count
-        self.timeout_decorator = timeout(seconds=timeout_seconds)
 
     def forward(self, *inputs):
         num_inputs = len(inputs)
@@ -173,9 +140,11 @@ class BlackBoxFunction(torch.nn.Module):
             assert batch_size == self.get_batch_size(inputs[i]), "all inputs must have the same batch size"
 
         # Prepare the inputs to the black-box function
+        # most likely k or >0.5 probability
         to_compute_inputs, sampled_indices = [], []
-        for (input_i, input_mapping_i) in zip(inputs, self.input_mappings):
-            sampled_indices_i, sampled_elements_i = input_mapping_i.sample(input_i, sample_count=self.sample_count)
+        top_k = [50,2]
+        for (input_i, input_mapping_i, k_i) in zip(inputs, self.input_mappings, top_k):
+            sampled_indices_i, sampled_elements_i = input_mapping_i.sample(input_i, k_i, sample_count=self.sample_count)
             to_compute_inputs.append(sampled_elements_i)
             sampled_indices.append(sampled_indices_i)
         to_compute_inputs = self.zip_batched_inputs(to_compute_inputs)
@@ -186,7 +155,7 @@ class BlackBoxFunction(torch.nn.Module):
         # Aggregate the probabilities
         result_probs = torch.ones((batch_size, self.sample_count))
         for (input_tensor, sampled_index) in zip(inputs, sampled_indices):
-            result_probs *= input_tensor.gather(1, sampled_index)
+            result_probs *= input_tensor.gather(1, sampled_index.max(dim=2).indices)
 
         # Vectorize the results back into a tensor
         return self.output_mapping.vectorize(results, result_probs)
@@ -209,7 +178,7 @@ class BlackBoxFunction(torch.nn.Module):
         """
         for r in inputs:
             try:
-                y = self.timeout_decorator(self.function)(*r)
+                y = self.function(*r)
                 yield y
             except:
                 yield RESERVED_FAILURE
