@@ -58,12 +58,40 @@ class DiscreteInputMapping(InputMapping):
     def __init__(self, elements: List[Any]):
         self.elements = elements
 
-    def sample(self, inputs: torch.Tensor, top_k, sample_count: int) -> Tuple[torch.Tensor, List[Any]]:
+    def sample(self, inputs: torch.Tensor, sample_count: int) -> Tuple[torch.Tensor, List[Any]]:
+        n = 2
         num_input_elements = inputs.shape[1]
         assert num_input_elements == len(self.elements), "inputs must have the same number of columns as the number of elements"
-        distrs = torch.distributions.Categorical(probs=inputs)
-        sampled_indices = distrs.sample((sample_count,top_k)).transpose(0,2).transpose(1,2) # 64 * 100 * 2
+        
+        # Draw n distinct elements for each sample
+        sampled_indices = torch.multinomial(inputs.repeat(sample_count,1), n).reshape(sample_count,inputs.shape[0],n).transpose(0,1) # 64 * 100 * 2
         sampled_elements = [[[self.elements[i] for i in sampled_indices_for_task_i] for sampled_indices_for_task_i in sampled_indices_for_task_j] for sampled_indices_for_task_j in sampled_indices]
+        return (sampled_indices, sampled_elements)
+
+
+class BinaryInputMapping(InputMapping):
+    def __init__(self, elements: List[Any]):
+        self.elements = elements
+
+    def sample(self, inputs: torch.Tensor, sample_count: int) -> Tuple[torch.Tensor, List[Any]]:
+        num_input_elements = inputs.shape[1] + 1
+        assert num_input_elements == len(self.elements), "inputs must have the same number of columns as the number of elements"
+        
+        # Sample 0/1 for each element
+        probs = torch.where(inputs<0.2,0,inputs-0.2)
+        distrs = torch.distributions.Bernoulli(probs)
+        sampled_all = distrs.sample((sample_count,)).transpose(0,1)  # 64 * 100 * 120 
+        
+        # Compute indices of the selected elements, truncated to minimum length
+        sampled_indices = torch.topk(sampled_all, dim=2, k=sampled_all.sum(dim=2).min().int()).indices
+        
+        # Compute indices of all elements, with unselected assigned to 120
+        sampled_all = torch.where(sampled_all==1,1,-1)
+        sampled_all = (sampled_all*(torch.arange(inputs.shape[1]).unsqueeze(0).unsqueeze(0).repeat(inputs.shape[0],sample_count,1))).long()
+        sampled_all = torch.where(sampled_all<0,inputs.shape[1],sampled_all)
+        
+        sampled_elements = [[[self.elements[i] for i in sampled_indices_for_task_i] for sampled_indices_for_task_i in sampled_indices_for_task_j] for sampled_indices_for_task_j in sampled_all]
+        
         return (sampled_indices, sampled_elements)
 
 
@@ -89,7 +117,7 @@ class DiscreteOutputMapping(OutputMapping):
             for j in range(sample_count):
                 # print(results[i][j])
                 if results[i][j] != RESERVED_FAILURE:
-                    result_tensor[i, self.element_indices[results[i][j]]] += result_probs[i, j]
+                    result_tensor[i, self.element_indices[results[i][j]]].data += result_probs[i, j]
         return torch.nn.functional.normalize(result_tensor, dim=1)
 
 
@@ -140,11 +168,9 @@ class BlackBoxFunction(torch.nn.Module):
             assert batch_size == self.get_batch_size(inputs[i]), "all inputs must have the same batch size"
 
         # Prepare the inputs to the black-box function
-        # most likely k or >0.5 probability
         to_compute_inputs, sampled_indices = [], []
-        top_k = [50,2]
-        for (input_i, input_mapping_i, k_i) in zip(inputs, self.input_mappings, top_k):
-            sampled_indices_i, sampled_elements_i = input_mapping_i.sample(input_i, k_i, sample_count=self.sample_count)
+        for (input_i, input_mapping_i) in zip(inputs, self.input_mappings):
+            sampled_indices_i, sampled_elements_i = input_mapping_i.sample(input_i, sample_count=self.sample_count)
             to_compute_inputs.append(sampled_elements_i)
             sampled_indices.append(sampled_indices_i)
         to_compute_inputs = self.zip_batched_inputs(to_compute_inputs)
@@ -155,8 +181,9 @@ class BlackBoxFunction(torch.nn.Module):
         # Aggregate the probabilities
         result_probs = torch.ones((batch_size, self.sample_count))
         for (input_tensor, sampled_index) in zip(inputs, sampled_indices):
-            result_probs *= input_tensor.gather(1, sampled_index.max(dim=2).indices)
-
+            for i in range(sampled_index.shape[2]):
+                result_probs *= input_tensor.gather(1, sampled_index[:,:,i].long())
+        
         # Vectorize the results back into a tensor
         return self.output_mapping.vectorize(results, result_probs)
 

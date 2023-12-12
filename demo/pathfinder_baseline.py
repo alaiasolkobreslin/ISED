@@ -1,21 +1,17 @@
 from typing import Optional, Callable, Tuple
 import os
 import random
+import itertools
 
 import torch
 import torchvision
 import torch.optim as optim
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 from PIL import Image
 
 from argparse import ArgumentParser
 from tqdm import tqdm
-import itertools
-from collections import deque
-
-import blackbox
-
 
 pathfinder_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -91,7 +87,6 @@ def pathfinder_32_loader(data_root, difficulty, batch_size, train_percentage):
   test_loader = torch.utils.data.DataLoader(test_dataset, collate_fn=PathFinder32Dataset.collate_fn, batch_size=batch_size, shuffle=True)
   return (train_loader, test_loader)
 
-# Returns list of all adjacent pairs
 def build_adj(num_block_x, num_block_y):
   adjacency = []
   block_coord_to_block_id = lambda x, y: y * num_block_x + x
@@ -104,52 +99,18 @@ def build_adj(num_block_x, num_block_y):
         adjacency.append((source_id, target_id))
   return adjacency
 
-# Finds path in an undirected graph
-def existsPath(is_connected, is_endpoint):
-  [s,d] = is_endpoint
-
-  adj = [[] for _ in range(36)]
-  for (v,w) in is_connected:
-    if v < 0:
-      continue
-    adj[v].append(w)
-    adj[w].append(v)
-
-  visited = [False for i in range(36)]
-  queue = deque()
-  visited[s] = True
-  queue.append(s)
-  while (len(queue) > 0):
-    s = queue.popleft()
-    for i in adj[s]:
-      if (i == d):
-        return 1
-      if (not visited[i]):
-        visited[i] = True
-        queue.append(i)
-  return 0
-
 class PathFinderNet(nn.Module):
-  def __init__(self, sample_count, num_block_x=6, num_block_y=6):
+  def __init__(self, num_block_x=6, num_block_y=6):
     super(PathFinderNet, self).__init__()
 
     # block
     self.num_block_x = num_block_x
     self.num_block_y = num_block_y
     self.num_blocks = num_block_x * num_block_y
+    self.block_coord_to_block_id = lambda x, y: y * num_block_x + x
 
     # Adjacency
-    self.adjacency = build_adj(num_block_x, num_block_y)
-
-    # Blackbox for reasoning about path
-    self.bbox = blackbox.BlackBoxFunction(
-      existsPath,
-      # is_connected, end_points -> exists_path
-      (blackbox.BinaryInputMapping(self.adjacency + [(-1,-1)]),
-       blackbox.DiscreteInputMapping(list(range(self.num_blocks)))),
-      blackbox.DiscreteOutputMapping(list(range(2))),
-      sample_count=sample_count
-    )
+    self.adjacency = build_adj(self.num_block_x, self.num_block_y)
 
     # CNN
     self.cnn = nn.Sequential(
@@ -178,21 +139,28 @@ class PathFinderNet(nn.Module):
       nn.Sigmoid(),
     )
 
+    # Exists Path
+    self.last_fc = nn.Sequential(
+      nn.Linear(self.num_blocks + len(self.adjacency), 1),
+      nn.Sigmoid(),
+    )
+
   def forward(self, image):
     embedding = self.cnn(image)
     is_connected = self.is_connected_fc(embedding) # 64 * 120
     is_endpoint = self.is_endpoint_fc(embedding) # 64 * 36
-    result = self.bbox(is_connected, is_endpoint)
+    feature = torch.cat((is_connected, is_endpoint), dim=1)
+    result = self.last_fc(feature).reshape(-1)
     return result
 
 class Trainer():
-  def __init__(self, train_loader, test_loader, learning_rate, sample_count, gpu, save_model=False):
+  def __init__(self, train_loader, test_loader, learning_rate, gpu, save_model=False):
     if gpu >= 0:
       device = torch.device("cuda:%d" % gpu)
     else:
       device = torch.device("cpu")
     self.device = device
-    self.network = PathFinderNet(sample_count).to(self.device)
+    self.network = PathFinderNet.to(self.device)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -202,13 +170,12 @@ class Trainer():
     self.min_test_loss = 100000000.0
 
   def loss_fn(self, output, ground_truth):
-    (_, dim) = output.shape
-    gt = torch.stack([torch.tensor([1.0 if i == t else 0.0 for i in range(dim)]) for t in ground_truth])
-    return F.binary_cross_entropy(output, gt)
+    return torch.mean(torch.square(output - ground_truth))
 
   def accuracy(self, output, expected_output) -> Tuple[int, int]:
-    num_correct = torch.sum(output.argmax(dim=1) == expected_output)
-    return (output.shape[0], num_correct)
+    diff = torch.abs(output - expected_output)
+    num_correct = len([() for d in diff if d.item() < 0.4999])
+    return (len(output), num_correct)
 
   def train_epoch(self, epoch):
     self.network.train()
@@ -227,7 +194,7 @@ class Trainer():
       num_items += batch_size
       total_train_correct += num_correct
       correct_perc = 100. * total_train_correct / num_items
-      iter.set_description(f"[Train Epoch {epoch}] Correct: {num_correct/batch_size:.2f}, Overall Accuracy: {correct_perc:.4f}%")
+      iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}, Overall Accuracy: {correct_perc:.4f}%")
 
   def test_epoch(self, epoch):
     self.network.eval()
@@ -269,7 +236,7 @@ if __name__ == "__main__":
   parser.add_argument("--train-percentage", type=float, default=0.9)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--seed", type=int, default=1234)
-  parser.add_argument("--difficulty", type=str, default="easy")
+  parser.add_argument("--difficulty", type=str, default="all")
   parser.add_argument("--cuda", action="store_true")
   args = parser.parse_args()
 
@@ -286,7 +253,7 @@ if __name__ == "__main__":
   model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../model/pathfinder"))
   if not os.path.exists(model_dir): os.makedirs(model_dir)
   (train_loader, test_loader) = pathfinder_32_loader(data_dir, args.difficulty, args.batch_size, args.train_percentage)
-  trainer = Trainer(train_loader, test_loader, args.learning_rate, args.sample_count, args.gpu)
+  trainer = Trainer(train_loader, test_loader, args.learning_rate, args.gpu)
 
-  # Run
+  # Run!
   trainer.train(args.n_epochs)
