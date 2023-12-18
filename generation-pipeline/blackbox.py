@@ -95,7 +95,7 @@ class BlackBoxFunction(torch.nn.Module):
         input_permutations = self.get_permutations(sampled_indices, inputs)
         n_permutations = len([i for i in input_permutations])
         result_probs = torch.ones(
-            (n_permutations, batch_size, self.sample_count))
+            (n_permutations, batch_size, self.sample_count), device=DEVICE)
         for i in range(len(sampled_indices)):
             input_tensor = inputs[i]
             input_permutations = self.get_permutations(sampled_indices, inputs)

@@ -110,7 +110,7 @@ class MNISTDataset(UnstructuredDataset):
         return self.data[index]
 
     def net(self):
-        return MNIST_net.MNISTNet(n_preds=10)
+        return MNIST_net.MNISTNet(n_preds=10).to(DEVICE)
 
     def confusion_matrix(self, network):
         digits = [i for i in range(10)]
@@ -253,29 +253,29 @@ class SVHNDataset_1to4(UnstructuredDataset):
         self.data, self.ids_of_digit = SVHN_dataset.get_data(
             train=train, digits=self.digits)
 
-    def __len__(self):
-        return len(self.data)
+    # def __len__(self):
+    #     return len(self.data)
 
-    @staticmethod
-    def collate_fn(batch):
-        return MNIST_dataset.MNISTDataset.collate_fn(batch)
+    # @staticmethod
+    # def collate_fn(batch):
+    #     return MNIST_dataset.MNISTDataset.collate_fn(batch)
 
-    def input_mapping(self):
-        return [i for i in range(1, 5)]
+    # def input_mapping(self):
+    #     return [i for i in range(1, 5)]
 
-    def sample_with_y(self, digit: int) -> int:
-        return self.ids_of_digit[digit][random.randrange(0, len(self.ids_of_digit[digit]))]
+    # def sample_with_y(self, digit: int) -> int:
+    #     return self.ids_of_digit[digit][random.randrange(0, len(self.ids_of_digit[digit]))]
 
-    def get(self, index: int) -> Tuple[torch.Tensor, int]:
-        return self.data[index]
+    # def get(self, index: int) -> Tuple[torch.Tensor, int]:
+    #     return self.data[index]
 
-    def net(self):
-        return MNIST_net.MNISTNet(n_preds=4)
+    # def net(self):
+    #     return MNIST_net.MNISTNet(n_preds=4)
 
-    def confusion_matrix(self, network):
-        mnist_dataset, _ = MNIST_dataset.get_data(
-            train=False, digits=self.digits)
-        self.plot_confusion_matrix(network=network, dataset=mnist_dataset)
+    # def confusion_matrix(self, network):
+    #     mnist_dataset, _ = MNIST_dataset.get_data(
+    #         train=False, digits=self.digits)
+    #     self.plot_confusion_matrix(network=network, dataset=mnist_dataset)
 
 
 class HWFDataset(UnstructuredDataset):

@@ -19,7 +19,7 @@ class OutputMapping:
         An output mapping should implement this function to vectorize the results and result probabilities
         """
         batch_size, sample_count = result_probs.shape
-        result_tensor = torch.zeros((batch_size, len(elements)))
+        result_tensor = torch.zeros((batch_size, len(elements)), device=DEVICE)
         for i in range(batch_size):
             for j in range(sample_count):
                 if results[i][j] != RESERVED_FAILURE:
@@ -41,7 +41,7 @@ class OutputMapping:
         """
         batch_size = y_pred.shape[0]
         y = torch.tensor([1.0 if self.eval_result_eq(
-            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping], device=DEVICE).view(batch_size, -1)
         return y
 
     def eval_result_eq(self, a, b, threshold=0.01):
@@ -72,7 +72,7 @@ class DiscreteOutputMapping(OutputMapping):
 
     def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
-        result_tensor = torch.zeros((batch_size, len(self.elements)))
+        result_tensor = torch.zeros((batch_size, len(self.elements)), device=DEVICE)
         for i in range(batch_size):
             for j in range(sample_count):
                 if results[i][j] != RESERVED_FAILURE:
@@ -84,7 +84,7 @@ class DiscreteOutputMapping(OutputMapping):
     def vectorize_label(self, labels):
         return torch.stack([
             torch.tensor([1.0 if self.eval_result_eq(e, label)
-                         else 0.0 for e in self.elements])
+                         else 0.0 for e in self.elements], device=DEVICE)
             for label in labels])
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
@@ -109,7 +109,7 @@ class UnknownDiscreteOutputMapping(OutputMapping):
     def get_normalized_labels(self, y_pred, target, output_mapping):
         batch_size, _ = y_pred.shape
         y = torch.tensor([1.0 if self.eval_result_eq(
-            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping], device=DEVICE).view(batch_size, -1)
         return (y, y)
 
 
@@ -127,10 +127,10 @@ class IntOutputMapping(OutputMapping):
             set([(util.get_hashable_elem(elem)) for batch in results for elem in batch if elem != RESERVED_FAILURE]))
         element_indices = {e: i for (i, e) in enumerate(elements)}
         if len(elements) == 0:
-            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True))
+            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True, device=DEVICE))
 
         result_tensor_sim = torch.zeros(
-            (batch_size, self.length, self.n_classes))
+            (batch_size, self.length, self.n_classes), device=DEVICE)
         for i, result in enumerate(results):
             for j, r in enumerate(result):
                 r = str(r).rjust(self.length, "0")
@@ -151,7 +151,7 @@ class IntOutputMapping(OutputMapping):
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         batch_size = y_pred.shape[0]
-        y_sim = torch.zeros((batch_size, self.length, self.n_classes))
+        y_sim = torch.zeros((batch_size, self.length, self.n_classes), device=DEVICE)
         for i, l in enumerate(target):
             l = str(l).rjust(self.length, "0")
             for idx in range(self.length):
@@ -179,7 +179,7 @@ class ListOutputMapping(OutputMapping):
             return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True))
 
         result_tensor_sim = torch.zeros(
-            (batch_size, self.length, self.n_classes))
+            (batch_size, self.length, self.n_classes), device=DEVICE)
         for i, result in enumerate(results):
             for j, r in enumerate(result):
                 result_prob = result_probs[i][j]
@@ -201,7 +201,7 @@ class ListOutputMapping(OutputMapping):
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         batch_size = y_pred.shape[0]
-        y_sim = torch.zeros((batch_size, self.length, self.n_classes))
+        y_sim = torch.zeros((batch_size, self.length, self.n_classes), device=DEVICE)
         for i, l in enumerate(target):
             for idx in range(self.length):
                 if self.n_classes == 47:
@@ -224,7 +224,7 @@ class SudokuOutputMapping(OutputMapping):
         batch_size, sample_count = result_probs.shape
 
         result_tensor_sim = torch.zeros(
-            (batch_size, self.size, self.size, self.size))
+            (batch_size, self.size, self.size, self.size), device=DEVICE)
         for i, result in enumerate(results):
             for j, r in enumerate(result):
                 result_prob = result_probs[i][j]
@@ -245,10 +245,10 @@ class SudokuOutputMapping(OutputMapping):
         # If there is no element being derived...
         if len(elements) == 0:
             # We return a single fallback value, while the probability of result being fallback are all 0
-            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True))
+            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True, device=DEVICE))
 
         # Vectorize the results
-        result_tensor = torch.zeros((batch_size, len(elements)))
+        result_tensor = torch.zeros((batch_size, len(elements)), device=DEVICE)
         for i in range(batch_size):
             for j in range(sample_count):
                 if results[i][j] != RESERVED_FAILURE:
@@ -263,7 +263,7 @@ class SudokuOutputMapping(OutputMapping):
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         batch_size = y_pred.shape[0]
-        y_sim = torch.zeros((batch_size, self.size, self.size, self.size))
+        y_sim = torch.zeros((batch_size, self.size, self.size, self.size), device=DEVICE)
         for i, l in enumerate(target):
             for row in range(self.size):
                 for col in range(self.size):
@@ -273,7 +273,7 @@ class SudokuOutputMapping(OutputMapping):
                         y_sim[i][row][col][idx] = 1.0
 
         y = torch.tensor([1.0 if self.eval_result_eq(
-            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping], device=DEVICE).view(batch_size, -1)
 
         return y_sim, y
 

@@ -101,3 +101,6 @@ EMNIST_MAPPING = digits_im + uppercase_im + lowercase_im
 LOSS_AGGREGATOR = "loss_aggregator"
 MIN_MAX = "min_max"
 ADD_MULT = "add_mult"
+
+# Device
+DEVICE = "cuda:0"
