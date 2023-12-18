@@ -202,8 +202,13 @@ class BlackBoxFunctionFiniteDifference(torch.autograd.Function):
             freqs[i] = freq
         return probs, freqs
 
+    # def finite_difference(fn, output, *inputs):
     def finite_difference(fn, *inputs):
+        # Can save output in saved tensors
+        # Can easily derive output mapping from this
+        # Or, could also make an entirely new output mapping...
         argmax_inputs, inputs_distr, argmax_x = [], [], []
+        # k keeps track of the total number of input elements
         k = 0
         for x in inputs:
             n = x.shape[1]
@@ -212,6 +217,7 @@ class BlackBoxFunctionFiniteDifference(torch.autograd.Function):
             argmax_inputs.append(F.one_hot(x.argmax(dim=1), num_classes=n))
             inputs_distr.append(x)
 
+        # TODO: change this so that it's not using the black box with tensors
         y_pred = fn(*tuple(argmax_inputs))
         probs, freqs = BlackBoxFunctionFiniteDifference.compute_prob(
             argmax_x, inputs_distr)
