@@ -1,4 +1,5 @@
 import string
+import torch
 
 # Function
 PY_PROGRAM = "py_func"
@@ -103,4 +104,4 @@ MIN_MAX = "min_max"
 ADD_MULT = "add_mult"
 
 # Device
-DEVICE = "cuda:0"
+DEVICE = torch.device("cuda:0")
