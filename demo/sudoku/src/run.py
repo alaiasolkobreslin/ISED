@@ -62,6 +62,8 @@ def init_parser():
                         help='gradient norm clipping (default: 1 (enabled))')
     parser.add_argument('--disable-cos', action='store_true',
                         help='disable cosine lr schedule')
+    parser.add_argument('--sample-count', default=100, type=int,
+                        help='number of samples to take (default: 100)')
     return parser
 
 def compute_loss(solution_board,final_solution,ground_truth_board):
@@ -149,8 +151,14 @@ def compute_reward4(solution_board,final_solution,ground_truth_board):
 
 
 def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
+
+    # Take n samples of the solution boards
+    sample_count = args.sample_count
+    distrs = torch.distributions.Categorical(probs=solution_boards)
+    sampled_boards = distrs.sample((sample_count,))+1
+
     ground_truth_boards = torch.argmax(ground_truth_sol,dim=2)
-    solution_boards_new = torch.argmax(solution_boards,dim=2)+1
+    # solution_boards_new = torch.argmax(solution_boards,dim=2)+1
     
     config = 'sigmoid_bernoulli' # best option
     # between sigmoid_bernoulli gumble_round sigmoid_round 
@@ -160,42 +168,41 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
         sampled_mask_boards = b.sample()
         model.saved_log_probs = b.log_prob(sampled_mask_boards)
         sampled_mask_boards = np.array(sampled_mask_boards.cpu()).reshape(masking_prob.shape)
-        cleaned_boards = np.multiply(solution_boards_new.cpu(),sampled_mask_boards)
-    elif config == 'sigmoid_round':
-        masking_prob = masking_boards.sigmoid()
-        b= Bernoulli(masking_prob)
-        sampled_mask_boards = torch.round(masking_prob)
-        model.saved_log_probs = b.log_prob(sampled_mask_boards)
-        cleaned_boards = np.multiply(solution_boards_new.cpu(),sampled_mask_boards.cpu())
-    else: 
-        assert(config == 'gumble_round')
-        masking_prob = F.gumbel_softmax(masking_boards)
-        b = Bernoulli(masking_prob)
-        sampled_mask_boards = torch.round(masking_prob)
-        model.saved_log_probs = b.log_prob(sampled_mask_boards)
-        cleaned_boards = np.multiply(solution_boards_new.cpu(),sampled_mask_boards.cpu())
+        sampled_mask_boards_expanded = torch.from_numpy(sampled_mask_boards).unsqueeze(0)
+        # cleaned_boards = np.multiply(solution_boards_new.cpu(),sampled_mask_boards)
+        # we also need to clean the sampled boards
+        cleaned_sampled_boards = np.multiply(sampled_boards.cpu(),sampled_mask_boards_expanded).permute(1, 0, 2)
+    else:
+        raise Exception("unknown config")
     
     final_boards = []
     if args.solver == 'prolog':
         prolog_instance = Prolog()
         dir_path = os.path.dirname(os.path.realpath(__file__))
         prolog_instance.consult(dir_path + "/sudoku_solver/sudoku_prolog.pl")
-    for i in range(len(cleaned_boards)):
-        board_to_solver = Board(cleaned_boards[i].reshape((9,9)).int())
-        try:
-            if args.solver == 'prolog':
-                solver_success = board_to_solver.solve(solver ='prolog',prolog_instance = prolog_instance)
-            else:
-                solver_success = board_to_solver.solve(solver ='backtrack')
-        except StopIteration:
-            solver_success = False
-        final_solution = board_to_solver.board.reshape(81,)
-        if not solver_success:
-            final_solution = solution_boards_new[i].cpu()
-        # Compute reward and log the reward calculated
-        reward = compute_reward(solution_boards_new[i].cpu(),final_solution,ground_truth_boards[i])
-        model.rewards.append(reward)
-        final_boards.append(final_solution)
+    for i in range(len(cleaned_sampled_boards)):
+        # each i corresponds to one item in the batch
+        final_boards_i = []
+        for j in range(len(cleaned_sampled_boards[i])):
+            # each j corresponds to one sample in cleaned_sampled_boards[i]
+            board_to_solver = Board(cleaned_sampled_boards[i][j].reshape((9, 9)).int())
+            try:
+                if args.solver == 'prolog':
+                    solver_success = board_to_solver.solve(solver ='prolog',prolog_instance = prolog_instance)
+                else:
+                    solver_success = board_to_solver.solve(solver ='backtrack')
+            except StopIteration:
+                solver_success = False
+            final_solution = board_to_solver.board.reshape(81,)
+            if not solver_success:
+                final_solution = cleaned_sampled_boards[i][j].cpu()
+            # Compute reward and log the reward calculated
+            reward = compute_reward(cleaned_sampled_boards[i][j].cpu(),final_solution,ground_truth_boards[i])
+            # TODO: fix this line (or just remove it because there is no need for rewards)
+            model.rewards.append(reward)
+            final_boards_i.append(final_solution)
+        final_boards.append(final_boards_i)
+
     return final_boards
 
 
