@@ -48,18 +48,18 @@ def init_parser():
                         help='If true, use RL to train only the mask predictor')
 
     # Optimization hyperparams
-    parser.add_argument('--epochs', default=2000, type=int,
+    parser.add_argument('--epochs', default=200, type=int,
                         help='number of total epochs to run')
     parser.add_argument('--warmup', default=10, type=int, 
                         help='number of warmup epochs')
     parser.add_argument('-b', '--batch-size', default=128, type=int,
                         help='mini-batch size (default: 128)', dest='batch_size')
-    parser.add_argument('--lr', default=0.0005, type=float, 
+    parser.add_argument('--lr', default=0.00001, type=float, 
                         help='initial learning rate')
-    parser.add_argument('--weight-decay', default=3e-2, type=float, 
-                        help='weight decay (default: 3e-2)')
-    parser.add_argument('--clip-grad-norm', default=0., type=float, 
-                        help='gradient norm clipping (default: 0 (disabled))')
+    parser.add_argument('--weight-decay', default=3e-1, type=float, 
+                        help='weight decay (default: 3e-1)')
+    parser.add_argument('--clip-grad-norm', default=1., type=float, 
+                        help='gradient norm clipping (default: 1 (enabled))')
     parser.add_argument('--disable-cos', action='store_true',
                         help='disable cosine lr schedule')
     return parser
@@ -178,7 +178,8 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
     final_boards = []
     if args.solver == 'prolog':
         prolog_instance = Prolog()
-        prolog_instance.consult("src/sudoku_solver/sudoku_prolog.pl")
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        prolog_instance.consult(dir_path + "/sudoku_solver/sudoku_prolog.pl")
     for i in range(len(cleaned_boards)):
         board_to_solver = Board(cleaned_boards[i].reshape((9,9)).int())
         try:

@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from models.transformer import Transformer
 from models.perception import SequentialPerception
+import os
 
 class TransformerSudoku(nn.Module):
     def __init__(self, block_len=256, **kwargs):
@@ -20,9 +21,11 @@ class TransformerSudoku(nn.Module):
         
 
     def load_pretrained_models(self, dataset):
-        perception_path = 'outputs/perception/'+dataset+'/checkpoint_best.pth'
-        nn_sol_path = 'outputs/solvernn/'+dataset+'/checkpoint_best.pth'
-        mask_nn_path = 'outputs/mask/'+dataset+'/checkpoint_best.pth'
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        path = dir_path + '/../../'
+        perception_path = path+'outputs/perception/'+dataset+'/checkpoint_best.pth'
+        nn_sol_path = path+'outputs/solvernn/'+dataset+'/checkpoint_best.pth'
+        mask_nn_path = path+'outputs/mask/'+dataset+'/checkpoint_best.pth'
 
         self.perception.load_state_dict(torch.load(perception_path, map_location='cpu'))
         self.nn_solver.load_state_dict(torch.load(nn_sol_path, map_location='cpu'))
