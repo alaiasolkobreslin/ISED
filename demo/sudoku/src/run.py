@@ -66,7 +66,29 @@ def init_parser():
                         help='number of samples to take (default: 100)')
     return parser
 
-def compute_loss(solution_board,final_solution,ground_truth_board):
+def vectorize(results, sample_probs):
+    # results shape: 128 x 100 x 81
+    # sample_probs shape: 128 x 100
+    batch_size, sample_count = sample_probs.shape
+    size = results.shape[2]
+    n_digits = int(math.sqrt(size))
+    # result_tensor shape: 128 x 81 x 9
+    result_tensor = torch.zeros((batch_size, size, n_digits), device='cuda')
+    for i, result in enumerate(results):
+        for j, r in enumerate(result):
+            result_prob = sample_probs[i][j]
+            for k in range(size):
+                sampled_digit = int(r[k].item())
+                if sampled_digit != 0:
+                    idx = sampled_digit - 1
+                    result_tensor[i][k][idx] += result_prob
+    return torch.nn.functional.normalize(result_tensor,dim=2)
+
+def compute_loss(final_solution,ground_truth_board,sample_probs):
+    # final_solution shape: 128 x 100 x 81
+    # ground_truth_board shape: 128 x 81
+    # sample_probs shape: 128 x 100
+    vectorized = vectorize(final_solution,sample_probs)
     pass
     
 
@@ -161,6 +183,7 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
     ground_truth_boards = torch.argmax(ground_truth_sol,dim=2)
     sampled_boards_swapped = sampled_boards.permute(1, 2, 0)
     gathered_probs = solution_boards.gather(2, sampled_boards_swapped)
+    sample_probs = torch.prod(gathered_probs, dim=1)
     # solution_boards_new = torch.argmax(solution_boards,dim=2)+1
     
     config = 'sigmoid_bernoulli' # best option
@@ -197,17 +220,22 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
             except StopIteration:
                 solver_success = False
             final_solution = board_to_solver.board.reshape(81,)
+            # print(type(board_to_solver.board))
             if not solver_success:
                 final_solution = cleaned_sampled_boards[i][j].cpu()
+                final_solution_tensor = final_solution
+            else:
+                final_solution_tensor = torch.from_numpy(final_solution)
             # Compute reward and log the reward calculated
             reward = compute_reward(cleaned_sampled_boards[i][j].cpu(),final_solution,ground_truth_boards[i])
             # TODO: fix this line (or just remove it because there is no need for rewards)
             model.rewards.append(reward)
-            final_boards_i.append(final_solution)
-        # loss = compute_loss(cleaned_sampled_boards[i].cpu(),final_solution,ground_truth_boards[i],gathered_probs[i])
+            final_boards_i.append(final_solution_tensor)
         # model.losses.append(loss)
-        final_boards.append(final_boards_i)
+        final_boards.append(torch.stack(final_boards_i))
 
+    final_boards = torch.stack(final_boards)
+    loss = compute_loss(final_boards,ground_truth_boards,sample_probs)
     return final_boards
 
 
