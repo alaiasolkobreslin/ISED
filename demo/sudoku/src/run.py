@@ -67,14 +67,15 @@ def init_parser():
     return parser
 
 def compute_loss(solution_board,final_solution,ground_truth_board):
-    solution_board = list(map(int,solution_board.tolist()))
-    final_solution = list(map(int, final_solution.tolist() ))
-    ground_truth_board = list(map(int,ground_truth_board.tolist()))
+    pass
+    
 
 # Computes rewards based on how similar the ground truth board is to the solution board
 # If the two boards are equal, reward is 10.
 # Otherwise, return the proportion of the board entries that are equal.
 def compute_reward(solution_board,final_solution,ground_truth_board):
+    # The solution board is the unfilled board
+    # The final solutiopn is the filled board (if there is a solution)
     solution_board = list(map(int,solution_board.tolist()))
     final_solution = list(map(int, final_solution.tolist() ))
     ground_truth_board = list(map(int,ground_truth_board.tolist()))
@@ -155,9 +156,11 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
     # Take n samples of the solution boards
     sample_count = args.sample_count
     distrs = torch.distributions.Categorical(probs=solution_boards)
-    sampled_boards = distrs.sample((sample_count,))+1
+    sampled_boards = distrs.sample((sample_count,))
 
     ground_truth_boards = torch.argmax(ground_truth_sol,dim=2)
+    sampled_boards_swapped = sampled_boards.permute(1, 2, 0)
+    gathered_probs = solution_boards.gather(2, sampled_boards_swapped)
     # solution_boards_new = torch.argmax(solution_boards,dim=2)+1
     
     config = 'sigmoid_bernoulli' # best option
@@ -201,6 +204,8 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
             # TODO: fix this line (or just remove it because there is no need for rewards)
             model.rewards.append(reward)
             final_boards_i.append(final_solution)
+        # loss = compute_loss(cleaned_sampled_boards[i].cpu(),final_solution,ground_truth_boards[i],gathered_probs[i])
+        # model.losses.append(loss)
         final_boards.append(final_boards_i)
 
     return final_boards
