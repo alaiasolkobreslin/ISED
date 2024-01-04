@@ -85,12 +85,12 @@ def vectorize(results, sample_probs):
     return torch.nn.functional.normalize(result_tensor,dim=2)
 
 def compute_loss(final_solution,ground_truth_board,sample_probs):
-    # final_solution shape: 128 x 100 x 81
-    # ground_truth_board shape: 128 x 81
-    # sample_probs shape: 128 x 100
+    # vectorize final_solution
     vectorized = vectorize(final_solution,sample_probs)
-    pass
-    
+    # vectorize ground_truth_board
+    ground_truth_idxs = ground_truth_board-1
+    ground_truth_one_hot = torch.nn.functional.one_hot(ground_truth_idxs,num_classes=9).float()
+    return torch.nn.functional.binary_cross_entropy(vectorized,ground_truth_one_hot)
 
 # Computes rewards based on how similar the ground truth board is to the solution board
 # If the two boards are equal, reward is 10.
