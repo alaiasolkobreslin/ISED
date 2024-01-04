@@ -62,8 +62,8 @@ def init_parser():
                         help='gradient norm clipping (default: 1 (enabled))')
     parser.add_argument('--disable-cos', action='store_true',
                         help='disable cosine lr schedule')
-    parser.add_argument('--sample-count', default=100, type=int,
-                        help='number of samples to take (default: 100)')
+    parser.add_argument('--sample-count', default=10, type=int,
+                        help='number of samples to take (default: 10)')
     return parser
 
 def vectorize(results, sample_probs):
@@ -89,12 +89,7 @@ def compute_loss(final_solution,ground_truth_board,sample_probs):
     ground_truth_one_hot = torch.nn.functional.one_hot(ground_truth_idxs,num_classes=9).float()
     return torch.nn.functional.binary_cross_entropy(vectorized,ground_truth_one_hot)
 
-# Computes rewards based on how similar the ground truth board is to the solution board
-# If the two boards are equal, reward is 10.
-# Otherwise, return the proportion of the board entries that are equal.
 def compute_reward(solution_board,final_solution,ground_truth_board):
-    # The solution board is the unfilled board
-    # The final solutiopn is the filled board (if there is a solution)
     solution_board = list(map(int,solution_board.tolist()))
     final_solution = list(map(int, final_solution.tolist() ))
     ground_truth_board = list(map(int,ground_truth_board.tolist()))
@@ -181,7 +176,6 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
     sampled_boards_swapped = sampled_boards.permute(1, 2, 0)
     gathered_probs = solution_boards.gather(2, sampled_boards_swapped)
     sample_probs = torch.prod(gathered_probs, dim=1)
-    # solution_boards_new = torch.argmax(solution_boards,dim=2)+1
     
     config = 'sigmoid_bernoulli' # best option
     # between sigmoid_bernoulli gumble_round sigmoid_round 
@@ -192,7 +186,6 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
         model.saved_log_probs = b.log_prob(sampled_mask_boards)
         sampled_mask_boards = np.array(sampled_mask_boards.cpu()).reshape(masking_prob.shape)
         sampled_mask_boards_expanded = torch.from_numpy(sampled_mask_boards).unsqueeze(0)
-        # cleaned_boards = np.multiply(solution_boards_new.cpu(),sampled_mask_boards)
         # we also need to clean the sampled boards
         cleaned_sampled_boards = np.multiply(sampled_boards.cpu(),sampled_mask_boards_expanded).permute(1, 0, 2)
     else:
@@ -230,7 +223,7 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
 
     final_boards = torch.stack(final_boards)
     loss = compute_loss(final_boards,ground_truth_boards,sample_probs)
-    return final_boards
+    return loss
 
 
 
@@ -248,9 +241,7 @@ def adjust_learning_rate(optimizer, epoch, args):
 def validate(val_loader, model, args, epoch=None, time_begin=None):
     model.eval()
     loss_value = 0
-    reward_value = 0
     n = 0
-    eps = np.finfo(np.float32).eps.item()
 
     with torch.no_grad():
         for i, (images, target) in enumerate(val_loader):
@@ -258,32 +249,21 @@ def validate(val_loader, model, args, epoch=None, time_begin=None):
             target = target.to(args.gpu_id)
 
             solution_boards, masking_boards = model(images)
-            final_output(model,target,solution_boards,masking_boards,args) # this populates model.rewards 
-            rewards = np.array(model.rewards)
-            rewards_mean = rewards.mean()
-            reward_value += float(rewards_mean * images.size(0))
-            rewards = (rewards - rewards.mean())/(rewards.std() + eps)
-            policy_loss = []
-            for reward, log_prob in zip(rewards, model.saved_log_probs):
-                policy_loss.append(-log_prob*reward)
-            policy_loss = (torch.cat(policy_loss)).sum()
+            loss = final_output(model,target,solution_boards,masking_boards,args) # this populates model.rewards 
 
             n += images.size(0)
-            loss_value += float(policy_loss.item() * images.size(0))
-            model.rewards = []
-            model.saved_log_probs = []
+            loss_value += loss.item()
             torch.cuda.empty_cache()
 
             if args.print_freq >= 0 and i % args.print_freq == 0:
                 avg_loss = (loss_value / n)
-                print(f'[rl][Epoch {epoch}][Val][{i}] \t AvgLoss: {avg_loss:.4f}  \t AvgRewards: {rewards_mean:.4f}')
+                print(f'[rl][Epoch {epoch}][Val][{i}] \t AvgLoss: {avg_loss:.4f}')
     
-    avg_reward = (reward_value/n)      
     avg_loss = (loss_value / n)
     total_mins = -1 if time_begin is None else (time() - time_begin) / 60
-    print(f'----[rl][Epoch {epoch}] \t \t AvgLoss {avg_loss:.4f} \t \t AvgReward {avg_reward:.4f} \t \t Time: {total_mins:.2f} ')
+    print(f'----[rl][Epoch {epoch}] \t \t AvgLoss {avg_loss:.4f} \t \t Time: {total_mins:.2f} ')
 
-    return avg_loss, rewards_mean
+    return avg_loss
     
     
 def train(train_loader, model, optimizer, epoch, args):
@@ -302,39 +282,26 @@ def train(train_loader, model, optimizer, epoch, args):
         for param in model.perception.parameters():
             param.requires_grad = False
 
-    eps = np.finfo(np.float32).eps.item()
-    for i, (images, target) in enumerate(train_loader):        
+    for i, (images, target) in enumerate(train_loader):
         images = images.to(args.gpu_id)
         target = target.to(args.gpu_id)
         solution_boards, masking_boards = model(images)
-        final_output(model,target,solution_boards,masking_boards,args) # this populates model.rewards 
-        rewards = np.array(model.rewards)
-        rewards_mean = rewards.mean()
-        rewards = (rewards - rewards.mean())/(rewards.std() + eps)
-        policy_loss = []
-        for reward, log_prob in zip(rewards, model.saved_log_probs):
-            policy_loss.append(-log_prob*reward)
+        loss = final_output(model,target,solution_boards,masking_boards,args) # this populates model.rewards 
         optimizer.zero_grad()
-        
-        criterion = nn.BCEWithLogitsLoss()
-        loss_nn_solver = criterion(solution_boards, target[:,:,1:])
-        #policy_loss = (torch.cat(policy_loss)).sum() + loss_nn_solver
-        policy_loss = (torch.cat(policy_loss)).sum()
 
         n += images.size(0)
-        loss_value += float(policy_loss.item() * images.size(0))
-        policy_loss.backward()
+        loss_value += loss.item()
+        loss.backward()
        
-        #if args.clip_grad_norm > 0:
-        #    nn.utils.clip_grad_norm_(model.parameters(), max_norm=args.clip_grad_norm, norm_type=2)
+        if args.clip_grad_norm > 0:
+           nn.utils.clip_grad_norm_(model.parameters(), max_norm=args.clip_grad_norm, norm_type=2)
 
         optimizer.step()
              
         if args.print_freq >= 0 and i % args.print_freq == 0:
             avg_loss = (loss_value / n)
-            print(f'[rl][Epoch {epoch}][Train][{i}/{len(train_loader)}] \t AvgLoss: {avg_loss:.4f} \t AvgRewards: {rewards_mean:.4f}')
-            stats2 = {'epoch': epoch, 'train': i, 'avr_train_loss': avg_loss, 
-                    'avr_train_reward': rewards_mean}
+            print(f'[rl][Epoch {epoch}][Train][{i}/{len(train_loader)}] \t AvgLoss: {avg_loss:.4f}')
+            stats2 = {'epoch': epoch, 'train': i, 'avr_train_loss': avg_loss}
             with open(f"outputs/rl/{args.data}/detail_log.txt", "a") as f:
                 f.write(json.dumps(stats2) + "\n")
         model.rewards = []
@@ -342,7 +309,7 @@ def train(train_loader, model, optimizer, epoch, args):
         torch.cuda.empty_cache()
 
     avg_loss = (loss_value / n)
-    return avg_loss, rewards_mean
+    return avg_loss
 
 
 def main():
@@ -376,34 +343,28 @@ def main():
     ckpt_path = os.path.join('outputs', 'rl/'+args.data)
     os.makedirs(ckpt_path, exist_ok=True)
     best_loss = None
-    best_reward = None
     time_begin = time()
     with open(f"{ckpt_path}/log.txt", 'w'): pass
     with open(f"{ckpt_path}/detail_log.txt", 'w'): pass
     for epoch in range(args.epochs):
         lr = adjust_learning_rate(optimizer, epoch, args)
 
-        train_loss, train_rewards = train(train_loader, model, optimizer, epoch, args)
-        loss, valid_rewards = validate(val_loader, model, args, epoch=epoch, time_begin=time_begin)
+        train_loss = train(train_loader, model, optimizer, epoch, args)
+        val_loss = validate(val_loader, model, args, epoch=epoch, time_begin=time_begin)
         
-        if best_reward is None or valid_rewards > best_reward :
-            best_reward = valid_rewards
-            torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_best_R.pth')
-        
-        if best_loss is None or loss < best_loss :
-            best_loss = loss
+        if best_loss is None or val_loss < best_loss :
+            best_loss = val_loss
             torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_best_L.pth')
 
         stats = {'epoch': epoch, 'lr': lr, 'train_loss': train_loss, 
-                    'val_loss': loss, 'best_loss': best_loss , 
-                    'train_rewards': train_rewards, 'valid_rewards': valid_rewards}
+                    'val_loss': val_loss, 'best_loss': best_loss}
         with open(f"{ckpt_path}/log.txt", "a") as f:
             f.write(json.dumps(stats) + "\n")
 
     total_mins = (time() - time_begin) / 60
     print(f'[rl] finished in {total_mins:.2f} minutes, '
           f'best loss: {best_loss:.6f}, '
-          f'final loss: {loss:.6f}')
+          f'final loss: {val_loss:.6f}')
     torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_last.pth')
     print_loss_graph_from_file_rl(f"{ckpt_path}/log.txt",f"{ckpt_path}/loss_rl_sudoku")
     #print_loss_graph_from_details_file_rl('r',f"{ckpt_path}/detail_log.txt",f"{ckpt_path}/detail_reward") 
