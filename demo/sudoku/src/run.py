@@ -67,12 +67,9 @@ def init_parser():
     return parser
 
 def vectorize(results, sample_probs):
-    # results shape: 128 x 100 x 81
-    # sample_probs shape: 128 x 100
-    batch_size, sample_count = sample_probs.shape
+    batch_size, _ = sample_probs.shape
     size = results.shape[2]
     n_digits = int(math.sqrt(size))
-    # result_tensor shape: 128 x 81 x 9
     result_tensor = torch.zeros((batch_size, size, n_digits), device='cuda')
     for i, result in enumerate(results):
         for j, r in enumerate(result):
@@ -220,7 +217,6 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
             except StopIteration:
                 solver_success = False
             final_solution = board_to_solver.board.reshape(81,)
-            # print(type(board_to_solver.board))
             if not solver_success:
                 final_solution = cleaned_sampled_boards[i][j].cpu()
                 final_solution_tensor = final_solution
@@ -228,10 +224,8 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
                 final_solution_tensor = torch.from_numpy(final_solution)
             # Compute reward and log the reward calculated
             reward = compute_reward(cleaned_sampled_boards[i][j].cpu(),final_solution,ground_truth_boards[i])
-            # TODO: fix this line (or just remove it because there is no need for rewards)
             model.rewards.append(reward)
             final_boards_i.append(final_solution_tensor)
-        # model.losses.append(loss)
         final_boards.append(torch.stack(final_boards_i))
 
     final_boards = torch.stack(final_boards)
