@@ -25,6 +25,8 @@ except Exception:
     print('-->> Prolog not installed')
 SOLVER_TIME_OUT = 0.5
 
+output_file = '/workspace/neuro-symbolic-dataset/demo/sudoku/outputs/log.txt'
+
 def init_parser():
     parser = argparse.ArgumentParser(description='Quick training script')
 
@@ -257,11 +259,13 @@ def validate(val_loader, model, args, epoch=None, time_begin=None):
 
             if args.print_freq >= 0 and i % args.print_freq == 0:
                 avg_loss = (loss_value / n)
-                print(f'[rl][Epoch {epoch}][Val][{i}] \t AvgLoss: {avg_loss:.4f}')
+                with open(output_file, "a") as f:
+                    print(f'[rl][Epoch {epoch}][Val][{i}] \t AvgLoss: {avg_loss:.4f}', file=f)
     
     avg_loss = (loss_value / n)
     total_mins = -1 if time_begin is None else (time() - time_begin) / 60
-    print(f'----[rl][Epoch {epoch}] \t \t AvgLoss {avg_loss:.4f} \t \t Time: {total_mins:.2f} ')
+    with open(output_file, "a") as f:
+        print(f'----[rl][Epoch {epoch}] \t \t AvgLoss {avg_loss:.4f} \t \t Time: {total_mins:.2f} ', file=f)
 
     return avg_loss
     
@@ -300,10 +304,11 @@ def train(train_loader, model, optimizer, epoch, args):
              
         if args.print_freq >= 0 and i % args.print_freq == 0:
             avg_loss = (loss_value / n)
-            print(f'[rl][Epoch {epoch}][Train][{i}/{len(train_loader)}] \t AvgLoss: {avg_loss:.4f}')
+            with open(output_file, "a") as f:
+                print(f'[rl][Epoch {epoch}][Train][{i}/{len(train_loader)}] \t AvgLoss: {avg_loss:.4f}', file=f)
             stats2 = {'epoch': epoch, 'train': i, 'avr_train_loss': avg_loss}
             with open(f"outputs/rl/{args.data}/detail_log.txt", "a") as f:
-                f.write(json.dumps(stats2) + "\n")
+                print(json.dumps(stats2) + "\n", file=f)
         model.rewards = []
         model.saved_log_probs = []
         torch.cuda.empty_cache()
@@ -339,7 +344,8 @@ def main():
         #optimizer = torch.optim.AdamW(model.nn_solver.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
     # Main loop 
-    print("Beginning training")
+    with open(output_file, "a") as f:
+        print("Beginning training", file=f)
     ckpt_path = os.path.join('outputs', 'rl/'+args.data)
     os.makedirs(ckpt_path, exist_ok=True)
     best_loss = None
@@ -359,12 +365,13 @@ def main():
         stats = {'epoch': epoch, 'lr': lr, 'train_loss': train_loss, 
                     'val_loss': val_loss, 'best_loss': best_loss}
         with open(f"{ckpt_path}/log.txt", "a") as f:
-            f.write(json.dumps(stats) + "\n")
+            print(json.dumps(stats) + "\n", file=f)
 
     total_mins = (time() - time_begin) / 60
-    print(f'[rl] finished in {total_mins:.2f} minutes, '
-          f'best loss: {best_loss:.6f}, '
-          f'final loss: {val_loss:.6f}')
+    with open(output_file, "a") as f:
+        print(f'[rl] finished in {total_mins:.2f} minutes, '
+                f'best loss: {best_loss:.6f}, '
+                f'final loss: {val_loss:.6f}', file=f)
     torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_last.pth')
     print_loss_graph_from_file_rl(f"{ckpt_path}/log.txt",f"{ckpt_path}/loss_rl_sudoku")
     #print_loss_graph_from_details_file_rl('r',f"{ckpt_path}/detail_log.txt",f"{ckpt_path}/detail_reward") 
