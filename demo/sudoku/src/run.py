@@ -54,8 +54,8 @@ def init_parser():
                         help='number of total epochs to run')
     parser.add_argument('--warmup', default=10, type=int, 
                         help='number of warmup epochs')
-    parser.add_argument('-b', '--batch-size', default=128, type=int,
-                        help='mini-batch size (default: 128)', dest='batch_size')
+    parser.add_argument('-b', '--batch-size', default=256, type=int,
+                        help='mini-batch size (default: 256)', dest='batch_size')
     parser.add_argument('--lr', default=0.00001, type=float, 
                         help='initial learning rate')
     parser.add_argument('--weight-decay', default=3e-1, type=float, 
@@ -64,8 +64,8 @@ def init_parser():
                         help='gradient norm clipping (default: 1 (enabled))')
     parser.add_argument('--disable-cos', action='store_true',
                         help='disable cosine lr schedule')
-    parser.add_argument('--sample-count', default=10, type=int,
-                        help='number of samples to take (default: 10)')
+    parser.add_argument('--sample-count', default=1, type=int,
+                        help='number of samples to take (default: 1)')
     return parser
 
 def vectorize(results, sample_probs):
@@ -218,8 +218,8 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
             else:
                 final_solution_tensor = torch.from_numpy(final_solution)
             # Compute reward and log the reward calculated
-            reward = compute_reward(cleaned_sampled_boards[i][j].cpu(),final_solution,ground_truth_boards[i])
-            model.rewards.append(reward)
+            # reward = compute_reward(cleaned_sampled_boards[i][j].cpu(),final_solution,ground_truth_boards[i])
+            # model.rewards.append(reward)
             final_boards_i.append(final_solution_tensor)
         final_boards.append(torch.stack(final_boards_i))
 
@@ -259,13 +259,11 @@ def validate(val_loader, model, args, epoch=None, time_begin=None):
 
             if args.print_freq >= 0 and i % args.print_freq == 0:
                 avg_loss = (loss_value / n)
-                with open(output_file, "a") as f:
-                    print(f'[rl][Epoch {epoch}][Val][{i}] \t AvgLoss: {avg_loss:.4f}', file=f)
+                print(f'[rl][Epoch {epoch}][Val][{i}] \t AvgLoss: {avg_loss:.4f}')
     
     avg_loss = (loss_value / n)
     total_mins = -1 if time_begin is None else (time() - time_begin) / 60
-    with open(output_file, "a") as f:
-        print(f'----[rl][Epoch {epoch}] \t \t AvgLoss {avg_loss:.4f} \t \t Time: {total_mins:.2f} ', file=f)
+    print(f'----[rl][Epoch {epoch}] \t \t AvgLoss {avg_loss:.4f} \t \t Time: {total_mins:.2f} ')
 
     return avg_loss
     
@@ -304,11 +302,10 @@ def train(train_loader, model, optimizer, epoch, args):
              
         if args.print_freq >= 0 and i % args.print_freq == 0:
             avg_loss = (loss_value / n)
-            with open(output_file, "a") as f:
-                print(f'[rl][Epoch {epoch}][Train][{i}/{len(train_loader)}] \t AvgLoss: {avg_loss:.4f}', file=f)
+            print(f'[rl][Epoch {epoch}][Train][{i}/{len(train_loader)}] \t AvgLoss: {avg_loss:.4f}')
             stats2 = {'epoch': epoch, 'train': i, 'avr_train_loss': avg_loss}
             with open(f"outputs/rl/{args.data}/detail_log.txt", "a") as f:
-                print(json.dumps(stats2) + "\n", file=f)
+                f.write(json.dumps(stats2) + "\n")
         model.rewards = []
         model.saved_log_probs = []
         torch.cuda.empty_cache()
@@ -344,8 +341,7 @@ def main():
         #optimizer = torch.optim.AdamW(model.nn_solver.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
     # Main loop 
-    with open(output_file, "a") as f:
-        print("Beginning training", file=f)
+    print("Beginning training")
     ckpt_path = os.path.join('outputs', 'rl/'+args.data)
     os.makedirs(ckpt_path, exist_ok=True)
     best_loss = None
@@ -365,13 +361,12 @@ def main():
         stats = {'epoch': epoch, 'lr': lr, 'train_loss': train_loss, 
                     'val_loss': val_loss, 'best_loss': best_loss}
         with open(f"{ckpt_path}/log.txt", "a") as f:
-            print(json.dumps(stats) + "\n", file=f)
+            f.write(json.dumps(stats) + "\n")
 
     total_mins = (time() - time_begin) / 60
-    with open(output_file, "a") as f:
-        print(f'[rl] finished in {total_mins:.2f} minutes, '
-                f'best loss: {best_loss:.6f}, '
-                f'final loss: {val_loss:.6f}', file=f)
+    print(f'[rl] finished in {total_mins:.2f} minutes, '
+            f'best loss: {best_loss:.6f}, '
+            f'final loss: {val_loss:.6f}')
     torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_last.pth')
     print_loss_graph_from_file_rl(f"{ckpt_path}/log.txt",f"{ckpt_path}/loss_rl_sudoku")
     #print_loss_graph_from_details_file_rl('r',f"{ckpt_path}/detail_log.txt",f"{ckpt_path}/detail_reward") 
