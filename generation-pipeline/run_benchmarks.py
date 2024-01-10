@@ -94,11 +94,13 @@ class TaskNet(nn.Module):
                             for i, sd in enumerate(self.structured_datasets)]
         input_mappings = tuple([sd.get_input_mapping(
             config[i]) for i, sd in enumerate(self.structured_datasets)])
+        loss_aggregator = task_config.get(LOSS_AGGREGATOR, ADD_MULT)
         self.eval_formula = \
             blackbox.BlackBoxFunction(function=fn,
                                       input_mappings=input_mappings,
                                       output_mapping=output_mapping,
                                       batch_size=batch_size_train,
+                                      loss_aggregator=loss_aggregator,
                                       check_symmetry=check_symmetry,
                                       caching=caching,
                                       sample_count=sample_count)
@@ -290,7 +292,7 @@ class Trainer():
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("neuro-symbolic-dataset")
-    parser.add_argument("--n-epochs", type=int, default=30)
+    parser.add_argument("--n-epochs", type=int, default=10)
     # parser.add_argument("--seed", type=int, default=1234)
     # parser.add_argument("--n-samples", type=int, default=100)
     parser.add_argument("--configuration", type=str,
@@ -300,17 +302,16 @@ if __name__ == "__main__":
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
 
-    # random_seeds = [3177, 5848, 9175]
-    random_seeds = [9175]
-    sample_counts = [100]
-    tasks = ['miner_coffee_leaf_severity']
+    random_seeds = [3177, 5848, 9175, 8725, 1234]
+    sample_counts = [50, 100, 500, 1000]
+    tasks = ['sort_list_indices_length2_mnist', 'sort_list_indices_length3_mnist']
 
     accuracies = ["accuracy epoch " + str(i+1) for i in range(10)]
     times = ["time epoch " + str(i+1) for i in range(10)]
     field_names = ['task name', 'random seed',
                    'sample count'] + accuracies + times
 
-    with open('coffee_baseline.csv', 'w', newline='') as csvfile:
+    with open('sample_count_experiment23.csv', 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writeheader()
         csvfile.close()
@@ -342,8 +343,7 @@ if __name__ == "__main__":
                     task_config, batch_size_train, batch_size_test)
 
                 # Set the output mapping
-                output_config = task_config[OUTPUT]
-                om = output.get_output_mapping(output_config)
+                om = output.get_output_mapping(task_config)
 
                 # Create trainer and train
                 py_func = task_config[PY_PROGRAM]
@@ -367,7 +367,7 @@ if __name__ == "__main__":
                 dict["task name"] = task
                 dict["random seed"] = seed
                 dict["sample count"] = n_samples
-                with open('coffee_baseline.csv', 'a', newline='') as csvfile:
+                with open('sample_count_experiment23.csv', 'a', newline='') as csvfile:
                     writer = csv.DictWriter(csvfile, fieldnames=field_names)
                     writer.writerow(dict)
                     csvfile.close()
