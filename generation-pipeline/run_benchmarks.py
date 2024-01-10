@@ -1,4 +1,5 @@
 import os
+import pickle
 import json
 import csv
 import time
@@ -93,11 +94,13 @@ class TaskNet(nn.Module):
                             for i, sd in enumerate(self.structured_datasets)]
         input_mappings = tuple([sd.get_input_mapping(
             config[i]) for i, sd in enumerate(self.structured_datasets)])
+        loss_aggregator = task_config.get(LOSS_AGGREGATOR, ADD_MULT)
         self.eval_formula = \
             blackbox.BlackBoxFunction(function=fn,
                                       input_mappings=input_mappings,
                                       output_mapping=output_mapping,
                                       batch_size=batch_size_train,
+                                      loss_aggregator=loss_aggregator,
                                       check_symmetry=check_symmetry,
                                       caching=caching,
                                       sample_count=sample_count)
@@ -206,7 +209,7 @@ class Trainer():
                 y_index = torch.argmax(y, dim=1)
                 y_pred_index = torch.argmax(y_pred, dim=1)
                 correct_count = torch.sum(torch.where(torch.sum(
-                    y, dim=1) > 0, y_index == y_pred_index, torch.zeros(batch_size).bool())).item()
+                    y, dim=1) > 0, y_index == y_pred_index, torch.zeros(batch_size, device=DEVICE).bool())).item()
             else:
                 correct_count = 0
 
@@ -249,7 +252,7 @@ class Trainer():
                     y_pred_index = torch.argmax(
                         y_pred, dim=1)
                     correct_count = torch.sum(torch.where(torch.sum(
-                        y, dim=1) > 0, y_index == y_pred_index, torch.zeros(batch_size).bool())).item()
+                        y, dim=1) > 0, y_index == y_pred_index, torch.zeros(batch_size, device=DEVICE).bool())).item()
                 else:
                     correct_count = 0
 
@@ -262,6 +265,12 @@ class Trainer():
                 # Prints
                 iter.set_description(
                     f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
+
+        dir = f"model/{task}/"
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        pickle.dump(self.network.nets[0].state_dict(), open(
+            os.path.join(dir, f"{seed}-{epoch}.pkl"), "wb"))
 
         return total_correct / num_items
         # self.network.confusion_matrix()
@@ -293,30 +302,16 @@ if __name__ == "__main__":
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
 
-    random_seeds = [3177, 5848, 9175]
-    sample_counts = [100]
-    tasks = ['sum_2_svhn',
-             'sum_3_svhn',
-             'sum_4_svhn',
-             'add_mod_3_svhn',
-             'add_sub_svhn',
-             'eq_2_svhn',
-             'how_many_3_or_4_svhn',
-             'how_many_not_3_and_not_4_svhn',
-             'how_many_not_3_svhn',
-             'identity_svhn',
-             'is_3_and_4_svhn',
-             'not_3_or_4_svhn',
-             'less_than_svhn',
-             'mod_2_svhn',
-             'mult_2_svhn']
+    random_seeds = [3177, 5848, 9175, 8725, 1234]
+    sample_counts = [50, 100, 500, 1000]
+    tasks = ['sort_list_indices_length2_mnist', 'sort_list_indices_length3_mnist']
 
     accuracies = ["accuracy epoch " + str(i+1) for i in range(10)]
     times = ["time epoch " + str(i+1) for i in range(10)]
     field_names = ['task name', 'random seed',
                    'sample count'] + accuracies + times
 
-    with open('scallop_svhn.csv', 'w', newline='') as csvfile:
+    with open('sample_count_experiment23.csv', 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writeheader()
         csvfile.close()
@@ -348,8 +343,7 @@ if __name__ == "__main__":
                     task_config, batch_size_train, batch_size_test)
 
                 # Set the output mapping
-                output_config = task_config[OUTPUT]
-                om = output.get_output_mapping(output_config)
+                om = output.get_output_mapping(task_config)
 
                 # Create trainer and train
                 py_func = task_config[PY_PROGRAM]
@@ -373,7 +367,7 @@ if __name__ == "__main__":
                 dict["task name"] = task
                 dict["random seed"] = seed
                 dict["sample count"] = n_samples
-                with open('scallop_svhn.csv', 'a', newline='') as csvfile:
+                with open('sample_count_experiment23.csv', 'a', newline='') as csvfile:
                     writer = csv.DictWriter(csvfile, fieldnames=field_names)
                     writer.writerow(dict)
                     csvfile.close()

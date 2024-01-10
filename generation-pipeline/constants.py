@@ -1,4 +1,5 @@
 import string
+import torch
 
 # Function
 PY_PROGRAM = "py_func"
@@ -101,3 +102,6 @@ EMNIST_MAPPING = digits_im + uppercase_im + lowercase_im
 LOSS_AGGREGATOR = "loss_aggregator"
 MIN_MAX = "min_max"
 ADD_MULT = "add_mult"
+
+# Device
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

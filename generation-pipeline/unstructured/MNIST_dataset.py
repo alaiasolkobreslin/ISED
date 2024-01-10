@@ -2,6 +2,8 @@ import random
 import os
 from typing import *
 
+from constants import *
+
 import torch
 import torchvision
 
@@ -33,11 +35,14 @@ class MNISTDataset(torch.utils.data.Dataset):
         )
         self.relevant_digits = list(
             filter(lambda d: d[1] in digits, self.mnist_dataset))
+        self.relevant_digits = [(tensor.to(DEVICE), digit) for tensor, digit in self.relevant_digits]
         self.index_map = list(range(len(self.relevant_digits)))
         random.shuffle(self.index_map)
         self.shuffled_digits = [self.relevant_digits[idx]
                                 for idx in self.index_map]
-        self.targets = torch.tensor([d[1] for d in self.shuffled_digits])
+        #to GPU
+        self.targets = torch.tensor(
+            [d[1] for d in self.shuffled_digits], device=DEVICE)
 
     def __len__(self):
         return len(self.shuffled_digits)

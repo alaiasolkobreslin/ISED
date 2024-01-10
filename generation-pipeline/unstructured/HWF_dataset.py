@@ -3,6 +3,8 @@ from typing import *
 import json
 from collections import defaultdict
 
+from constants import *
+
 import torch
 import torchvision
 from PIL import Image
@@ -29,9 +31,8 @@ class HWFDataset(torch.utils.data.Dataset):
             img_full_path = os.path.join(
                 self.root, "HWF/Handwritten_Math_Symbols", img_path)
             img = Image.open(img_full_path).convert("L")
-            img = self.img_transform(img)
+            img = self.img_transform(img).to(DEVICE)
             img_seq.append(img)
-        img_seq_len = len(img_seq)
 
         # Output is the "res" in the sample of metadata
         expr = sample["expr"]

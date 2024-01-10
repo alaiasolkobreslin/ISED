@@ -205,7 +205,7 @@ class Trainer():
                 y_index = torch.argmax(y, dim=1)
                 y_pred_index = torch.argmax(y_pred, dim=1)
                 correct_count = torch.sum(torch.where(torch.sum(
-                    y, dim=1) > 0, y_index == y_pred_index, torch.zeros(batch_size).bool())).item()
+                    y, dim=1) > 0, y_index == y_pred_index, torch.zeros(batch_size, device=DEVICE).bool())).item()
             else:
                 correct_count = 0
 
@@ -246,7 +246,7 @@ class Trainer():
                     y_pred_index = torch.argmax(
                         y_pred, dim=1)
                     correct_count = torch.sum(torch.where(torch.sum(
-                        y, dim=1) > 0, y_index == y_pred_index, torch.zeros(batch_size).bool())).item()
+                        y, dim=1) > 0, y_index == y_pred_index, torch.zeros(batch_size, device=DEVICE).bool())).item()
                 else:
                     correct_count = 0
 

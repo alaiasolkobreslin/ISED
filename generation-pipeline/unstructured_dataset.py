@@ -110,7 +110,7 @@ class MNISTDataset(UnstructuredDataset):
         return self.data[index]
 
     def net(self):
-        return MNIST_net.MNISTNet(n_preds=10)
+        return MNIST_net.MNISTNet(n_preds=10).to(DEVICE)
 
     def confusion_matrix(self, network):
         digits = [i for i in range(10)]
@@ -143,7 +143,7 @@ class MNISTDataset_1to4(UnstructuredDataset):
         return self.data[index]
 
     def net(self):
-        return MNIST_net.MNISTNet(n_preds=4)
+        return MNIST_net.MNISTNet(n_preds=4).to(DEVICE)
 
     def confusion_matrix(self, network):
         mnist_dataset, _ = MNIST_dataset.get_data(
@@ -177,7 +177,7 @@ class MNISTDataset_2to9(UnstructuredDataset):
         return self.data[index]
 
     def net(self):
-        return MNIST_net.MNISTNet(n_preds=8)
+        return MNIST_net.MNISTNet(n_preds=8).to(DEVICE)
 
     def confusion_matrix(self, network):
         mnist_dataset, _ = MNIST_dataset.get_data(
@@ -208,7 +208,7 @@ class EMNISTDataset(UnstructuredDataset):
         return self.data[index]
 
     def net(self):
-        return EMNIST_net.EMNISTNet()
+        return EMNIST_net.EMNISTNet().to(DEVICE)
 
     def confusion_matrix(self, network):
         emnist_dataset, _ = EMNIST_dataset.get_data(train=False)
@@ -238,7 +238,7 @@ class SVHNDataset(UnstructuredDataset):
         return self.data[index]
 
     def net(self):
-        return SVHN_net.SVHNNet()
+        return SVHN_net.SVHNNet().to(DEVICE)
 
     def confusion_matrix(self, network):
         svhn_dataset, _ = SVHN_dataset.get_data(train=False)
@@ -253,29 +253,29 @@ class SVHNDataset_1to4(UnstructuredDataset):
         self.data, self.ids_of_digit = SVHN_dataset.get_data(
             train=train, digits=self.digits)
 
-    def __len__(self):
-        return len(self.data)
+    # def __len__(self):
+    #     return len(self.data)
 
-    @staticmethod
-    def collate_fn(batch):
-        return MNIST_dataset.MNISTDataset.collate_fn(batch)
+    # @staticmethod
+    # def collate_fn(batch):
+    #     return MNIST_dataset.MNISTDataset.collate_fn(batch)
 
-    def input_mapping(self):
-        return [i for i in range(1, 5)]
+    # def input_mapping(self):
+    #     return [i for i in range(1, 5)]
 
-    def sample_with_y(self, digit: int) -> int:
-        return self.ids_of_digit[digit][random.randrange(0, len(self.ids_of_digit[digit]))]
+    # def sample_with_y(self, digit: int) -> int:
+    #     return self.ids_of_digit[digit][random.randrange(0, len(self.ids_of_digit[digit]))]
 
-    def get(self, index: int) -> Tuple[torch.Tensor, int]:
-        return self.data[index]
+    # def get(self, index: int) -> Tuple[torch.Tensor, int]:
+    #     return self.data[index]
 
-    def net(self):
-        return MNIST_net.MNISTNet(n_preds=4)
+    # def net(self):
+    #     return MNIST_net.MNISTNet(n_preds=4).to(DEVICE)
 
-    def confusion_matrix(self, network):
-        mnist_dataset, _ = MNIST_dataset.get_data(
-            train=False, digits=self.digits)
-        self.plot_confusion_matrix(network=network, dataset=mnist_dataset)
+    # def confusion_matrix(self, network):
+    #     mnist_dataset, _ = MNIST_dataset.get_data(
+    #         train=False, digits=self.digits)
+    #     self.plot_confusion_matrix(network=network, dataset=mnist_dataset)
 
 
 class HWFDataset(UnstructuredDataset):
@@ -303,7 +303,7 @@ class HWFDataset(UnstructuredDataset):
         return ((expr, len(string)), string)
 
     def net(self):
-        return HWF_symbol_net.SymbolNet()
+        return HWF_symbol_net.SymbolNet().to(DEVICE)
 
     def confusion_matrix(self, network):
         pass
@@ -336,7 +336,7 @@ class MNISTVideoDataset(UnstructuredDataset):
         return (imgs, (digits_tensor, change_tensor))
 
     def net(self):
-        return MNIST_video_net.MNISTVideoCNN()
+        return MNIST_video_net.MNISTVideoCNN().to(DEVICE)
 
     def confusion_matrix(self, network):
         pass
@@ -366,7 +366,7 @@ class CoffeeLeafMinerDataset(UnstructuredDataset):
         return self.data[index]
 
     def net(self):
-        return COFFEE_net.COFFEE_net()
+        return COFFEE_net.COFFEE_net().to(DEVICE)
 
     def confusion_matrix(self, network):
         coffee_dataset, _ = COFFEE_dataset.get_data(
@@ -401,7 +401,7 @@ class CoffeeLeafRustDataset(UnstructuredDataset):
         return self.data[index]
 
     def net(self):
-        return COFFEE_net.COFFEE_net()
+        return COFFEE_net.COFFEE_net().to(DEVICE)
 
     def confusion_matrix(self, network):
         coffee_dataset, _ = COFFEE_dataset.get_data(prefix='rust', train=False)
@@ -434,7 +434,7 @@ class CoNLL2003Dataset(UnstructuredDataset):
         return self.data[index]
 
     def net(self):
-        return CoNLL2003_net.BertModel(self.data.unique_labels)
+        return CoNLL2003_net.BertModel(self.data.unique_labels).to(DEVICE)
 
     def confusion_matrix(self, network):
         pass

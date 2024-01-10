@@ -3347,6 +3347,54 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
+  "sort_list_indices_length2_mnist": {
+    "py_func": "sort_list_indices",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 2,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "length": 2
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "sort_list_indices_length3_mnist": {
+    "py_func": "sort_list_indices",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 3,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "length": 3
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
   "sort_list_indices_length4_mnist": {
     "py_func": "sort_list_indices",
     "inputs": [
@@ -3364,6 +3412,78 @@
       "type": "int",
       "output_mapping": "unknown",
       "length": 4
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "sort_list_indices_length5_mnist": {
+    "py_func": "sort_list_indices",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 5,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "length": 5
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "sort_list_indices_length6_mnist": {
+    "py_func": "sort_list_indices",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 6,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "length": 6
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "sort_list_indices_length7_mnist": {
+    "py_func": "sort_list_indices",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 7,
+        "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "unknown",
+      "length": 7
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,

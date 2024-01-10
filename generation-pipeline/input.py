@@ -2,6 +2,8 @@ import itertools
 from typing import List, Tuple
 import torch
 
+from constants import *
+
 from typing import *
 
 
@@ -157,7 +159,7 @@ class ListInput2DSudoku(Input):
         final_results = []
         for i, batch in enumerate(result):
             selected_i = self.selected[i]
-            collected = torch.ones(samples)
+            collected = torch.ones(samples, device=DEVICE)
             for j, row in enumerate(selected_i):
                 for k, col in enumerate(row):
                     if col:
