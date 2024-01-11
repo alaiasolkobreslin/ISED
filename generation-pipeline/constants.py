@@ -104,4 +104,5 @@ MIN_MAX = "min_max"
 ADD_MULT = "add_mult"
 
 # Device
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = "cpu"
