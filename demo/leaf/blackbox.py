@@ -1,6 +1,7 @@
 from typing import *
 import random
 import torch
+import itertools
 
 
 RESERVED_FAILURE = "__RESERVED_FAILURE__"
@@ -71,7 +72,7 @@ class DiscreteInputMapping(InputMapping):
 class OutputMapping:
     def __init__(self): pass
 
-    def vectorize(self, results: List, result_probs: torch.Tensor):
+    def vectorize(self, loss_aggregator, results: List, result_probs: torch.Tensor):
         """
         An output mapping should implement this function to vectorize the results and result probabilities
         """
@@ -83,14 +84,19 @@ class DiscreteOutputMapping(OutputMapping):
         self.elements = elements
         self.element_indices = {e: i for (i, e) in enumerate(elements)}
 
-    def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
+    def vectorize(self, loss_aggregator, results: List, result_probs: torch.Tensor) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
         result_tensor = torch.zeros((batch_size, len(self.elements)))
         for i in range(batch_size):
             for j in range(sample_count):
                 # print(results[i][j])
                 if results[i][j] != RESERVED_FAILURE:
-                    result_tensor[i, self.element_indices[results[i][j]]] += result_probs[i, j]
+                    if loss_aggregator == 'min_max':
+                        result_tensor[i, self.element_indices[results[i][j]]] = torch.max(result_tensor[i, self.element_indices[results[i][j]]].clone(), result_probs[i, j])
+                    elif loss_aggregator == 'add_mult':
+                        result_tensor[i, self.element_indices[results[i][j]]] += result_probs[i, j]
+                    else:
+                        raise Exception(f"Unknown loss aggregator: {self.loss_aggregator}")
         return torch.nn.functional.normalize(result_tensor, dim=1)
 
 
@@ -98,7 +104,7 @@ class UnknownDiscreteOutputMapping(OutputMapping):
     def __init__(self):
         pass
 
-    def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
+    def vectorize(self, loss_aggregator, results: List, result_probs: torch.Tensor) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
 
         # Get the unique elements
@@ -110,7 +116,12 @@ class UnknownDiscreteOutputMapping(OutputMapping):
         for i in range(batch_size):
             for j in range(sample_count):
                 if results[i][j] != RESERVED_FAILURE:
-                    result_tensor[i, element_indices[results[i][j]]] += result_probs[i, j]
+                    if loss_aggregator == 'min_max':
+                        result_tensor[i, element_indices[results[i][j]]] = torch.max(result_tensor[i, element_indices[results[i][j]]].clone(), result_probs[i, j])
+                    elif loss_aggregator == 'add_mult':
+                        result_tensor[i, element_indices[results[i][j]]] += result_probs[i, j]
+                    else:
+                        raise Exception(f"Unknown loss aggregator: {self.loss_aggregator}")
         result_tensor = torch.nn.functional.normalize(result_tensor, dim=1)
 
         # Return the elements mapping and also the result probability tensor
@@ -123,6 +134,7 @@ class BlackBoxFunction(torch.nn.Module):
             function: Callable,
             input_mappings: Tuple[InputMapping],
             output_mapping: OutputMapping,
+            loss_aggregator: str = "add_mult",
             sample_count: int = 100):
         super(BlackBoxFunction, self).__init__()
         assert type(input_mappings) == tuple, "input_mappings must be a tuple"
@@ -130,6 +142,8 @@ class BlackBoxFunction(torch.nn.Module):
         self.input_mappings = input_mappings
         self.output_mapping = output_mapping
         self.sample_count = sample_count
+        self.loss_aggregator = loss_aggregator
+        self.inputs_permute = False
 
     def forward(self, *inputs):
         num_inputs = len(inputs)
@@ -152,12 +166,27 @@ class BlackBoxFunction(torch.nn.Module):
         results = self.invoke_function_on_batched_inputs(to_compute_inputs)
 
         # Aggregate the probabilities
-        result_probs = torch.ones((batch_size, self.sample_count))
-        for (input_tensor, sampled_index) in zip(inputs, sampled_indices):
-            result_probs *= input_tensor.gather(1, sampled_index)
+        input_permutations = self.get_permutations(sampled_indices, inputs)
+        n_permutations = len([i for i in input_permutations])
+        result_probs = torch.ones(
+            (n_permutations, batch_size, self.sample_count))
+        for i in range(len(sampled_indices)):
+            input_tensor = inputs[i]
+            input_permutations = self.get_permutations(sampled_indices, inputs)
+            proofs = [(1 if perm[i] == i else 1) * input_tensor.gather(1, sampled_indices[perm[i]]) for perm in input_permutations]
+            for (j, proof) in enumerate(proofs):
+                if self.loss_aggregator == "add_mult":
+                    result_probs[j] *= proof
+                elif self.loss_aggregator == "min_max":
+                    result_probs[j] = torch.minimum(
+                        result_probs[j].clone(), proof)
+                else:
+                    raise Exception(
+                        f"Unknown loss aggregator: {self.loss_aggregator}")
+        result_probs = torch.sum(result_probs, dim=0)
 
         # Vectorize the results back into a tensor
-        return self.output_mapping.vectorize(results, result_probs)
+        return self.output_mapping.vectorize(self.loss_aggregator, results, result_probs)
 
     def get_batch_size(self, input: Any):
         if type(input) == torch.Tensor:
@@ -184,3 +213,28 @@ class BlackBoxFunction(torch.nn.Module):
 
     def invoke_function_on_batched_inputs(self, batched_inputs):
         return [list(self.invoke_function_on_inputs(batch)) for batch in batched_inputs]
+
+    def get_permutations(self, idxs, inputs):
+        if self.inputs_permute and not random.randrange(0, 10):
+            # 1/10 chance that we check whether inputs permute
+            permutations = itertools.permutations(
+                [i for i in range(len(idxs))])
+            likely_inputs = [torch.argmax(input[0]).item() for input in inputs]
+            fn_input = [id(elt) for i, elt in enumerate(likely_inputs)]
+            original_output = self.function(*fn_input)
+            for perm in permutations:
+                permuted_inputs = [fn_input[i] for i in perm]
+                new_output = self.function(*permuted_inputs)
+                if new_output != original_output:
+                    self.inputs_permute = False
+        if self.inputs_permute:
+            permutations = itertools.permutations(
+                [i for i in range(len(idxs))])
+            permutations_list = [p for p in permutations]
+            # TODO: This cutoff size is hardcoded. Fix this?
+            if len(permutations_list) > 120:
+                permutations_list = permutations_list[:120]
+            return permutations_list
+        else:
+            permutations = [i for i in range(len(idxs))]
+            return [permutations]
