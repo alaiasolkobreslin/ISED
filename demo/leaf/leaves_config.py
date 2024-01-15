@@ -1,24 +1,41 @@
 from openai import OpenAI
 import os
 import re
-from collections import namedtuple
 
 client = OpenAI(
   api_key='' #os.environ["OPENAI_API_KEY"]
 )
 
-def call_llm(labels, margin, shape):
+l11_expert = """
+              * Leaf 1: lobed margin, heart shape, palmate venation
+              * Leaf 2: entire margin, lanceolate shape, glossy texture, pinnate venation
+              * Leaf 2: undulate margin, lanceolate shape, glossy texture, pinnate venation
+              * Leaf 2: entire margin, lanceolate shape, leathery texture, pinnate venation
+              * Leaf 2: undulate margin, lanceolate shape, leathery texture, pinnate venation
+              * Leaf 3: incised margin, palmate shape, palmate venation, coarse texture
+              * Leaf 4: serrate margin, ovate shape, medium texture, palmate venation
+              * Leaf 5: entire margin, obovate shape, rough texture, pinnate venation
+              * Leaf 6: entire margin, pinnate venation, elliptical shape, hairy texture
+              * Leaf 6: entire margin, pinnate venation, obovate shape, hairy texture
+              * Leaf 7: entire margin, ovate shape, pinnate venation
+              * Leaf 7: entire margin, elliptical shape, pinnate venation
+              * Leaf 8: entire margin, obovate shape, pinnate venation
+              * Leaf 8: undulate margin, obovate shape, pinnate venation
+              * Leaf 9: serrulate margin, glossy texture, pinnate venation, ovate shape
+              * Leaf 10: undulate margin, oblong shape, pinnate venation
+              * Leaf 10: entire margin, oblong shape, pinnate venation
+              * Leaf 11: entire margin, lanceolate shape, medium texture, pinnate venation
+            """
+
+def classify_llm(margin, shape, texture):
   system_msg = "You are an expert in classifying plant species based on their leaves."
-  labels_str = ', '.join(labels)
-  expert_knowledge = ''
-  question = "Among [%s], which best describes leaf with a %s margin, and %s shape? " % (labels_str, margin, shape)
-  format = "Give your answer inside << >> without explanation."
-  user_msg = question + format
+  question = "Which best describes leaf with %s margin, %s shape, and %s texture? " % (margin, shape, texture)
+  format = "Give the number of the leaf inside << >> without explanation."
   response = client.chat.completions.create(
               model="gpt-3.5-turbo",
               messages=[
                 {"role": "system", "content": system_msg},
-                {"role": "user", "content": user_msg}
+                {"role": "user", "content": l11_expert + question + format}
               ]
             )
   if response.choices[0].finish_reason == 'stop':
@@ -26,45 +43,32 @@ def call_llm(labels, margin, shape):
     return re.search(r'\<\<(.*?)\>\>',ans).group(1)
   raise Exception("LLM failed to provide an answer")
 
-Leaf =  namedtuple('Leaf', ['margin', 'shape', 'texture'])
-plant_dict = {}
-
-def classify_llm(margin, shape, texture):
-  l = Leaf(margin, shape, texture)
-  if plant_dict.has_key(l):
-    return plant_dict(l)
-  else:
-    result = call_llm(margin, shape, texture)
-    plant_dict[l] = result
-    return result
-
 def classify_11(margin, shape, others):
-  if margin == 'lobed': return "chinar"
-  elif margin == 'shallow': return "jatropha"
-  elif margin == 'serrate': return "basil"
-  elif margin == 'serrulate': return "lemon"
+  if margin == 'lobed': return "Platanus orientalis"
+  elif margin == 'shallow': return "Jatropha curcas"
+  elif margin == 'serrate': return "Ocimum basilicum"
+  elif margin == 'serrulate': return "Citrus limon"
   elif margin == 'undulate':
     if shape == 'obovate' or shape == 'oblong' or shape == 'ovate':
-       return "jamun"
+       return "Syzygium cumini"
     else:
-      if others == 'narrow veins': return "alstonia scholaris"
-      elif others == 'leathery': return "mango" 
-      else: return 'arjun'
+      if others == 'leathery': return "Mangifera indica" 
+      else: return 'Terminalia Arjuna'
   else: # entire
-    if shape == 'ovate': return "pongamia"
-    elif shape == 'oblong': return "guava"
-    elif shape == 'obovate': return 'jamun'
+    if shape == 'ovate': return "Pongamia Pinnata"
+    elif shape == 'oblong': return "Psidium guajava"
+    elif shape == 'obovate': return 'Syzygium cumini'
     else: # elliptical
-      if others == 'medium': return "pomegranate"
-      elif others == 'serrulate': return "lemon"   
-      else: return 'arjun' # lanceolate
+      if others == 'medium': return "Punica granatum"
+      elif others == 'serrulate': return "Citrus limon"   
+      else: return 'Terminalia Arjuna' # lanceolate
 
 l11_margin = ["entire", "serrate", "lobed", "serrulate", "shallow", "undulate"]
 l11_shape = ["ovate", "obovate", "oblong", "elliptical"]
-l11_texture = ['narrow veins', 'medium', 'leathery', 'smooth', 'serrulate']
-l11_labels = ["alstonia scholaris", "arjun", "basil", "chinar", "guava", "jamun", 
-              "jatropha", "lemon", "mango", "pomegranate", "pongamia"]
-l11_dim = 672*64
+l11_texture = ['medium', 'leathery', 'smooth', 'serrulate']
+l11_labels = ['Jatropha curcas', 'Mangifera indica', 'Platanus orientalis', 'Ocimum basilicum', 'Psidium guajava', 
+              'Pongamia Pinnata', 'Syzygium cumini', 'Citrus limon', 'Terminalia Arjuna', 'Alstonia Scholaris', 'Punica granatum']
+l11_dim = 2304
 
 def classify_40(type, margin, shape, texture, venation):
   if type == 'palmate':
@@ -230,5 +234,4 @@ l40_labels = ["1. quercus suber", "2. salix atrocinerea", "3. populus nigra", "4
               "31. podocarpus", "32. acca sellowiana", "33. hydrangea", "34. pseudossa japonica", "35. magnolia grandiflora",
               "36. geranium", "37. aesculus californica", "38. chelidonium majus", "39. schinus terebinthifolius", "40. fragaria vesca",
               'unknown']
-l40_dim = 850*64
-  
+l40_dim = 3072

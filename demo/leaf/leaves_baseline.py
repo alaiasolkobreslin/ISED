@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Tuple
+from typing import Optional, Callable
 import os
 import random
 
@@ -34,19 +34,20 @@ class LeavesDataset(torch.utils.data.Dataset):
   ):
     self.transform = transform
     
+    # Get all image paths and their labels
     self.samples = []
-    n_group = 0
     data_dir = os.path.join(data_root, dara_dir)
-    for sample_group in os.listdir(data_dir):
+    data_dirs = os.listdir(data_dir)
+    for sample_group in data_dirs:
       sample_group_dir = os.path.join(data_dir, sample_group)
       if not os.path.isdir(sample_group_dir):
         continue
+      label = leaves_config.l11_labels.index(sample_group)
       sample_group_files = os.listdir(sample_group_dir)
       for idx in random.sample(range(len(sample_group_files)), min(n_train, len(sample_group_files))):
         sample_img_path = os.path.join(sample_group_dir, sample_group_files[idx])
         if sample_img_path.endswith('png') or sample_img_path.endswith('JPG'):
-          self.samples.append((sample_img_path, n_group))
-      n_group += 1
+          self.samples.append((sample_img_path, label))
     
     self.index_map = list(range(len(self.samples)))
     random.shuffle(self.index_map)
@@ -76,7 +77,7 @@ def leaves_loader(data_root, data_dir, n_train, batch_size, train_percentage):
   return (train_loader, test_loader)
 
 class LeavesNet(nn.Module):
-  def __init__(self,data_dir):
+  def __init__(self, data_dir):
     super(LeavesNet, self).__init__()
     if data_dir == 'leaf_11':
       self.num_classes = 11
@@ -162,7 +163,7 @@ class Trainer():
   def test_epoch(self, epoch):
     self.network.eval()
     num_items = 0
-    num_correct = 0.0
+    num_correct = 0
     test_loss = 0
     with torch.no_grad():
       iter = tqdm(self.test_loader, total=len(self.test_loader))
@@ -206,10 +207,15 @@ if __name__ == "__main__":
   random_seeds = [1234, 3177, 5848, 9175]
   train_nums = [50, 80, 75, 100, 150]
   train_percentages = [0.2, 0.25, 0.4, 0.5, 0.7]
-  data_dirs = ['leaf_plantvillage']
+  data_dirs = ['leaf_11', 'leaf_40', 'leaf_plantvillage']
   accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
   times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
   field_names = ['random seed', 'data_dir', 'num train'] + accuracies + times
+
+  with open('demo/leaf/leaf_baseline.csv', 'w', newline='') as csvfile:
+    writer = csv.DictWriter(csvfile, fieldnames=field_names)
+    writer.writeheader()
+    csvfile.close()
 
   for data_dir in data_dirs:
     for i in range(len(train_nums)): # 10, 20, 30, 50, 100
@@ -219,8 +225,7 @@ if __name__ == "__main__":
         
         data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
         model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
-        if not os.path.exists(model_dir):
-          os.makedirs(model_dir)
+        if not os.path.exists(model_dir): os.makedirs(model_dir)
         
         (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums[i], args.batch_size, train_percentages[i])
         trainer = Trainer(train_loader, test_loader, args.learning_rate, data_dir, args.gpu)
