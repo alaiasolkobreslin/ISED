@@ -134,6 +134,7 @@ class BlackBoxFunction(torch.nn.Module):
             function: Callable,
             input_mappings: Tuple[InputMapping],
             output_mapping: OutputMapping,
+            caching: bool = True,
             loss_aggregator: str = "add_mult",
             sample_count: int = 100):
         super(BlackBoxFunction, self).__init__()
@@ -144,6 +145,8 @@ class BlackBoxFunction(torch.nn.Module):
         self.sample_count = sample_count
         self.loss_aggregator = loss_aggregator
         self.inputs_permute = False
+        self.caching = caching
+        self.cache = {}
 
     def forward(self, *inputs):
         num_inputs = len(inputs)
@@ -206,7 +209,12 @@ class BlackBoxFunction(torch.nn.Module):
         """
         for r in inputs:
             try:
-                y = self.function(*r)
+                if self.caching and r in self.cache:
+                    y = self.cache[r]
+                else:
+                    y = self.function(*r)
+                    if self.caching:
+                        self.cache[r] = y
                 yield y
             except:
                 yield RESERVED_FAILURE

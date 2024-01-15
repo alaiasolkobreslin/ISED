@@ -2,6 +2,9 @@ from typing import Optional, Callable, Tuple
 import os
 import random
 
+import csv
+import time
+
 import torch
 import torchvision
 import torch.optim as optim
@@ -73,25 +76,41 @@ def leaves_loader(data_root, data_dir, n_train, batch_size, train_percentage):
   return (train_loader, test_loader)
 
 class LeavesNet(nn.Module):
-  def __init__(self):
+  def __init__(self,data_dir):
     super(LeavesNet, self).__init__()
-    self.num_classes = len(leaves_config.l11_labels)
-    self.dim = leaves_config.l11_dim
-
+    if data_dir == 'leaf_11':
+      self.num_classes = 11
+      self.dim = 2304
+    elif data_dir == 'leaf_40':
+      self.num_classes = 40
+      self.dim = 3072
+    elif data_dir == 'leaf_plantvillage':
+      self.num_classes = 11
+      self.dim = 3200
+    else:
+      raise Exception(f"Unknown directory: {data_dir}")
+  
+    # CNN
     self.cnn = nn.Sequential(
-      nn.Conv2d(3, 32, 3, 1),
+      nn.Conv2d(3, 32, 10, 1),
       nn.ReLU(),
       nn.MaxPool2d(3),
-      nn.Conv2d(32, 64, 3, 1),
+      nn.Conv2d(32, 64, 5, 1),
       nn.ReLU(),
       nn.MaxPool2d(3),
+      nn.Conv2d(64, 128, 3, 1),
+      nn.ReLU(),
+      nn.MaxPool2d(2),
+      nn.Conv2d(128, 128, 3, 1),
+      nn.ReLU(),
+      nn.MaxPool2d(2),
       nn.Flatten(),
     )
 
     self.last_fc = nn.Sequential(
-      nn.Linear(self.dim, 64),
+      nn.Linear(self.dim, 1024),
       nn.ReLU(),
-      nn.Linear(64, self.num_classes),
+      nn.Linear(1024, self.num_classes),
       nn.Softmax(dim=1)
     )
 
@@ -101,13 +120,13 @@ class LeavesNet(nn.Module):
     return x
 
 class Trainer():
-  def __init__(self, train_loader, test_loader, learning_rate, gpu, save_model=False):
+  def __init__(self, train_loader, test_loader, learning_rate, data_dir, gpu, save_model=False):
     if gpu >= 0:
       device = torch.device("cuda:%d" % gpu)
     else:
       device = torch.device("cpu")
     self.device = device
-    self.network = LeavesNet() #.to(self.device)
+    self.network = LeavesNet(data_dir) #.to(self.device)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -123,8 +142,9 @@ class Trainer():
     self.network.train()
     num_items = 0
     total_correct = 0
+    train_loss = 0
     iter = tqdm(self.train_loader, total=len(self.train_loader))
-    for (input, target) in iter:
+    for (i, (input, target)) in enumerate(iter):
       self.optimizer.zero_grad()
       input = input.to(self.device)
       target = target.to(self.device)
@@ -135,32 +155,43 @@ class Trainer():
       total_correct += (output.argmax(dim=1)==target).float().sum()
       num_items += output.shape[0]
       correct_perc = 100. * total_correct / num_items
-      iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}, Overall Accuracy: {correct_perc:.4f}%")
+      train_loss += loss.item()
+      avg_loss = train_loss / (i + 1)
+      iter.set_description(f"[Train Epoch {epoch}] Avg Loss: {avg_loss:.4f}, Overall Accuracy: {int(total_correct)}/{int(num_items)} ({correct_perc:.2f})%")
 
   def test_epoch(self, epoch):
     self.network.eval()
-    num_items = len(self.test_loader.dataset)
-    num_correct = 0
+    num_items = 0
+    num_correct = 0.0
     test_loss = 0
     with torch.no_grad():
       iter = tqdm(self.test_loader, total=len(self.test_loader))
-      for (input, target) in iter:
+      for i, (input, target) in enumerate(iter):
         input = input.to(self.device)
         target = target.to(self.device)
         output = self.network(input)
+        num_items += output.shape[0]
         test_loss += self.loss_fn(output, target).item()
         num_correct += (output.argmax(dim=1)==target).float().sum()
         perc = 100.*num_correct/num_items
-        iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {num_correct}/{num_items} ({perc:.2f})%")
+        avg_loss = test_loss / (i + 1)
+        iter.set_description(f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {int(num_correct)}/{int(num_items)} ({perc:.2f})%")
     
     # if self.save_model and test_loss < self.min_test_loss:
     #  self.min_test_loss = test_loss
     #  torch.save(self.network, "../model/leaves/leaves_net.pkl")
-
+    return float(num_correct/num_items)
+  
   def train(self, n_epochs):
+    dict = {}
     for epoch in range(1, n_epochs+1):
+      t0 = time.time()
       self.train_epoch(epoch)
-      self.test_epoch(epoch)
+      t1 = time.time()
+      dict["time epoch " + str(epoch)] = round(t1 - t0, ndigits=4)
+      acc = self.test_epoch(epoch)
+      dict["accuracy epoch " + str(epoch)] = round(acc, ndigits=6)
+    return dict
 
 if __name__ == "__main__":
   parser = ArgumentParser("leaves")
@@ -168,25 +199,40 @@ if __name__ == "__main__":
   parser.add_argument("--n-epochs", type=int, default=50)
   parser.add_argument("--gpu", type=int, default=-1)
   parser.add_argument("--batch-size", type=int, default=16)
-  parser.add_argument("--train-percentage", type=float, default=0.8)
-  parser.add_argument("--n-train", type=int, default=80)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
-  parser.add_argument("--seed", type=int, default=1234)
-  parser.add_argument("--data-dir", type=str, default="leaf_11")
   parser.add_argument("--cuda", action="store_true")
   args = parser.parse_args()
 
-  torch.manual_seed(args.seed)
-  random.seed(args.seed)
+  random_seeds = [1234, 3177, 5848, 9175]
+  train_nums = [50, 80, 75, 100, 150]
+  train_percentages = [0.2, 0.25, 0.4, 0.5, 0.7]
+  data_dirs = ['leaf_plantvillage']
+  accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
+  times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
+  field_names = ['random seed', 'data_dir', 'num train'] + accuracies + times
 
-  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
-  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
-  if not os.path.exists(model_dir):
-    os.makedirs(model_dir)
-  (train_loader, test_loader) = leaves_loader(data_root, args.data_dir, args.n_train, args.batch_size, args.train_percentage)
-  trainer = Trainer(train_loader, test_loader, args.learning_rate, args.gpu)
+  for data_dir in data_dirs:
+    for i in range(len(train_nums)): # 10, 20, 30, 50, 100
+      for seed in random_seeds:
+        torch.manual_seed(seed)
+        random.seed(seed)
+        
+        data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
+        model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
+        if not os.path.exists(model_dir):
+          os.makedirs(model_dir)
+        
+        (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums[i], args.batch_size, train_percentages[i])
+        trainer = Trainer(train_loader, test_loader, args.learning_rate, data_dir, args.gpu)
 
-  trainer.train(args.n_epochs)
+        dict = trainer.train(args.n_epochs)
+        dict["random seed"] = seed
+        dict['data_dir'] = data_dir
+        dict["num train"] = int(train_percentages[i]*train_nums[i])
+        with open('demo/leaf/leaf_baseline.csv', 'a', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=field_names)
+            writer.writerow(dict)
+            csvfile.close()
 
 
 
