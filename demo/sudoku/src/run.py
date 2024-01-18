@@ -194,10 +194,10 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
         raise Exception("unknown config")
     
     final_boards = []
-    if args.solver == 'prolog':
-        prolog_instance = Prolog()
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        prolog_instance.consult(dir_path + "/sudoku_solver/sudoku_prolog.pl")
+    # if args.solver == 'prolog':
+    #     prolog_instance = Prolog()
+    #     dir_path = os.path.dirname(os.path.realpath(__file__))
+    #     prolog_instance.consult(dir_path + "/sudoku_solver/sudoku_prolog.pl")
     for i in range(len(cleaned_sampled_boards)):
         # each i corresponds to one item in the batch
         final_boards_i = []
@@ -206,6 +206,9 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
             board_to_solver = Board(cleaned_sampled_boards[i][j].reshape((9, 9)).int())
             try:
                 if args.solver == 'prolog':
+                    prolog_instance = Prolog()
+                    dir_path = os.path.dirname(os.path.realpath(__file__))
+                    prolog_instance.consult(dir_path + "/sudoku_solver/sudoku_prolog.pl")
                     solver_success = board_to_solver.solve(solver ='prolog',prolog_instance = prolog_instance)
                 else:
                     solver_success = board_to_solver.solve(solver ='backtrack')
