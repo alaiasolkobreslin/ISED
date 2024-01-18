@@ -20,13 +20,6 @@ class HWFDataset(torch.utils.data.Dataset):
             torchvision.transforms.Normalize((0.5,), (1,))
         ])
 
-        self.metadata = [
-            meta
-            for meta
-            in self.metadata
-            if len(meta["img_paths"]) <= 3
-        ]
-
     def __getitem__(self, index):
         sample = self.metadata[index]
 
