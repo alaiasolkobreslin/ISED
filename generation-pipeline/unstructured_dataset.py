@@ -278,6 +278,9 @@ class HWFDataset(UnstructuredDataset):
     def confusion_matrix(self, network):
         pass
 
+    def get_full_dataset(self):
+        return self.data
+
 
 class MNISTVideoDataset(UnstructuredDataset):
 

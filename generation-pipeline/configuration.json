@@ -1203,8 +1203,9 @@
     "learning_rate": 0.0001,
     "batch_size_train": 16,
     "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
+    "dataset_size_train": 2000,
+    "dataset_size_test": 400,
+    "no_dataset_generation": true
   },
   "add_two_numbers_mnist": {
     "py_func": "add_two_numbers",

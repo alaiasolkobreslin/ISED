@@ -80,14 +80,26 @@ class TaskDataset:
         `dataset` before returning it
         """
         if self.no_dataset_generation:
-            original_dataset = self.unstructured_dataset.get_full_dataset()
-            length = len(original_dataset)
-            dataset = [None] * length
-            name = self.config[INPUTS][0][NAME]
-            for i in range(length):
-                (imgs, result) = original_dataset[i]
-                dataset[i] = ({name: imgs}, self.config[INPUTS], result)
-            return dataset
+            if self.unstructured_dataset.name == HWF_SYMBOL:
+                original_dataset = self.unstructured_dataset.get_full_dataset()
+                length = len(original_dataset)
+                dataset = [None] * length
+                name = self.config[INPUTS][0][NAME]
+                for i in range(length):
+                    (imgs, expr, result) = original_dataset[i]
+                    dataset[i] = ({name: imgs}, self.config[INPUTS], result)
+                return dataset
+            elif self.unstructured_dataset == COFFEE_LEAF_MINER or self.unstructured_dataset == COFFEE_LEAF_RUST:
+                original_dataset = self.unstructured_dataset.get_full_dataset()
+                length = len(original_dataset)
+                dataset = [None] * length
+                name = self.config[INPUTS][0][NAME]
+                for i in range(length):
+                    (imgs, result) = original_dataset[i]
+                    dataset[i] = ({name: imgs}, self.config[INPUTS], result)
+                return dataset
+            else:
+                raise Exception(f"Unsupported dataset {self.unstructured_dataset.name}")
         else:
             length = self.__len__()
             dataset = [None] * length

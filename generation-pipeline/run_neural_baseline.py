@@ -90,6 +90,8 @@ class TaskNet(nn.Module):
 
         self.joint_input_size = sum([self.flatten_shape(im.shape()) for im in self.input_mappings])
         self.output_size = output_mapping.dim()
+        print(self.joint_input_size)
+        print(self.output_size)
 
         self.reasoner = nn.Sequential(
             nn.Linear(self.joint_input_size, self.output_size),
@@ -254,6 +256,7 @@ if __name__ == "__main__":
     parser.add_argument("--symmetry", type=bool, default=False)
     parser.add_argument("--caching", type=bool, default=True)
     parser.add_argument("--threaded", type=int, default=0)
+    parser.add_argument("--task", type=str)
     args = parser.parse_args()
 
     # environment init
@@ -271,6 +274,8 @@ if __name__ == "__main__":
 
     # Dataloaders
     for task in configuration:
+        if args.task is not None and task != args.task:
+            continue
         print('Task: {}'.format(task))
 
         task_config = configuration[task]

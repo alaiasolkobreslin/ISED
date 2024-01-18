@@ -47,7 +47,7 @@ class ListInput:
 class InputMapping:
     def __init__(self): pass
 
-    def sample(self, input: Any, sample_count: int, sample_strategy: str) -> Tuple[torch.Tensor, List[Any]]: pass
+    def sample(self, input: Any, sample_count: int) -> Tuple[torch.Tensor, List[Any]]: pass
 
 
 class ListInputMapping(InputMapping):
@@ -55,7 +55,7 @@ class ListInputMapping(InputMapping):
         self.max_length = max_length
         self.element_input_mapping = element_input_mapping
 
-    def sample(self, list_input: ListInput, sample_count: int, sample_strategy: str) -> Tuple[torch.Tensor, List[List[Any]]]:
+    def sample(self, list_input: ListInput, sample_count: int, sample_strategy: str = "categorical") -> Tuple[torch.Tensor, List[List[Any]]]:
         # Sample the elements
         batch_size, list_length = list_input.tensor.shape[0], list_input.tensor.shape[1]
         assert list_length == self.max_length, "inputs must have the same number of columns as the max length"
@@ -84,7 +84,11 @@ class DiscreteInputMapping(InputMapping):
     def __init__(self, elements: List[Any]):
         self.elements = elements
 
-    def sample(self, inputs: torch.Tensor, sample_count: int, sample_strategy: str) -> Tuple[torch.Tensor, List[Any]]:
+    def sample(
+            self,
+            inputs: torch.Tensor,
+            sample_count: int,
+            sample_strategy: str = "categorical") -> Tuple[torch.Tensor, List[Any]]:
         if sample_strategy == "categorical":
             num_input_elements = inputs.shape[1]
             assert num_input_elements == len(self.elements), "inputs must have the same number of columns as the number of elements"
@@ -103,7 +107,7 @@ class DiscreteInputMapping(InputMapping):
 class OutputMapping:
     def __init__(self): pass
 
-    def vectorize(self, results: List, result_probs: torch.Tensor, strategy: str):
+    def vectorize(self, results: List, result_probs: torch.Tensor):
         """
         An output mapping should implement this function to vectorize the results and result probabilities
         """
@@ -115,31 +119,24 @@ class DiscreteOutputMapping(OutputMapping):
         self.elements = elements
         self.element_indices = {e: i for (i, e) in enumerate(elements)}
 
-    def vectorize(self, results: List, result_probs: torch.Tensor, strategy: str) -> torch.Tensor:
+    def vectorize(self, results: List, result_probs: torch.Tensor, aggr_strategy: str) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
         result_tensor = torch.zeros((batch_size, len(self.elements)), requires_grad=True)
         for i in range(batch_size):
             for j in range(sample_count):
                 if results[i][j] != RESERVED_FAILURE:
-                    if strategy == "minmax":
-                        if result_probs[i, j] > result_tensor[i, self.element_indices[results[i][j]]]:
-                            result_tensor[i, self.element_indices[results[i][j]]] = result_probs[i, j]
-                    elif strategy == "addmult":
+                    if aggr_strategy == "minmax":
+                        result_tensor[i, self.element_indices[results[i][j]]] = torch.max(result_tensor[i, self.element_indices[results[i][j]]], result_probs[i, j])
+                    elif aggr_strategy == "addmult":
                         result_tensor[i, self.element_indices[results[i][j]]] += result_probs[i, j]
-                    elif strategy == "maxmult":
-                        if result_probs[i, j] > result_tensor[i, self.element_indices[results[i][j]]]:
-                            result_tensor[i, self.element_indices[results[i][j]]] = result_probs[i, j]
-        if strategy == "addmult":
-            return torch.nn.functional.normalize(result_tensor, dim=1)
-        else:
-            return result_tensor
+        return torch.nn.functional.normalize(result_tensor, dim=1)
 
 
 class UnknownDiscreteOutputMapping(OutputMapping):
     def __init__(self, fallback):
         self.fallback = fallback
 
-    def vectorize(self, results: List[List], result_probs: torch.Tensor, strategy: str) -> torch.Tensor:
+    def vectorize(self, results: List, result_probs: torch.Tensor, aggr_strategy: str) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
 
         # Get the unique elements
@@ -156,18 +153,11 @@ class UnknownDiscreteOutputMapping(OutputMapping):
         for i in range(batch_size):
             for j in range(sample_count):
                 if results[i][j] != RESERVED_FAILURE:
-                    if strategy == "minmax":
-                        if result_probs[i, j] > result_tensor[i, element_indices[results[i][j]]]:
-                            result_tensor[i, element_indices[results[i][j]]] = result_probs[i, j]
-                    elif strategy == "addmult":
-                        result_tensor[i, element_indices[results[i][j]]] += result_probs[i, j]
-                    elif strategy == "maxmult":
-                        if result_probs[i, j] > result_tensor[i, element_indices[results[i][j]]]:
-                            result_tensor[i, element_indices[results[i][j]]] = result_probs[i, j]
-                    else:
-                        raise Exception(f"Unknown aggregation strategy {strategy}")
-        if strategy == "addmult":
-            result_tensor = torch.nn.functional.normalize(result_tensor, dim=1)
+                    if aggr_strategy == "minmax":
+                        result_tensor[i, self.element_indices[results[i][j]]] = torch.max(result_tensor[i, self.element_indices[results[i][j]]], result_probs[i, j])
+                    elif aggr_strategy == "addmult":
+                        result_tensor[i, self.element_indices[results[i][j]]] += result_probs[i, j]
+        result_tensor = torch.nn.functional.normalize(result_tensor, dim=1)
 
         # Return the elements mapping and also the result probability tensor
         return (elements, result_tensor)
@@ -180,9 +170,7 @@ class BlackBoxFunction(torch.nn.Module):
             input_mappings: Tuple[InputMapping],
             output_mapping: OutputMapping,
             sample_count: int = 100,
-            timeout_seconds: int = 1,
-            sample_strategy: str = "categorical",
-            aggregate_strategy: str = "maxmult"):
+            timeout_seconds: int = 1):
         super(BlackBoxFunction, self).__init__()
         assert type(input_mappings) == tuple, "input_mappings must be a tuple"
         self.function = function
@@ -190,8 +178,7 @@ class BlackBoxFunction(torch.nn.Module):
         self.output_mapping = output_mapping
         self.sample_count = sample_count
         self.timeout_decorator = timeout(seconds=timeout_seconds)
-        self.sample_strategy = sample_strategy
-        self.aggregate_strategy = aggregate_strategy
+        self.strategy = "minmax"
 
     def forward(self, *inputs):
         num_inputs = len(inputs)
@@ -205,7 +192,7 @@ class BlackBoxFunction(torch.nn.Module):
         # Prepare the inputs to the black-box function
         to_compute_inputs, sampled_indices = [], []
         for (input_i, input_mapping_i) in zip(inputs, self.input_mappings):
-            sampled_indices_i, sampled_elements_i = input_mapping_i.sample(input_i, sample_count=self.sample_count, sample_strategy=self.sample_strategy)
+            sampled_indices_i, sampled_elements_i = input_mapping_i.sample(input_i, sample_count=self.sample_count)
             to_compute_inputs.append(sampled_elements_i)
             sampled_indices.append(sampled_indices_i)
         to_compute_inputs = self.zip_batched_inputs(to_compute_inputs)
@@ -216,15 +203,13 @@ class BlackBoxFunction(torch.nn.Module):
         # Aggregate the probabilities
         result_probs = torch.ones((batch_size, self.sample_count))
         for (input_tensor, sampled_index) in zip(inputs, sampled_indices):
-            if self.aggregate_strategy == "minmax":
+            if self.strategy == "minmax":
                 result_probs = torch.min(input_tensor.gather(1, sampled_index), result_probs)
-            elif self.aggregate_strategy == "addmult":
-                result_probs *= input_tensor.gather(1, sampled_index)
-            elif self.aggregate_strategy == "maxmult":
+            elif self.strategy == "addmult":
                 result_probs *= input_tensor.gather(1, sampled_index)
 
         # Vectorize the results back into a tensor
-        return self.output_mapping.vectorize(results, result_probs, self.aggregate_strategy)
+        return self.output_mapping.vectorize(results, result_probs, aggr_strategy)
 
     def get_batch_size(self, input: Any):
         if type(input) == torch.Tensor:

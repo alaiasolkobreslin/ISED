@@ -1,6 +1,5 @@
 import os
 import json
-from typing import *
 import random
 from argparse import ArgumentParser
 from tqdm import tqdm
@@ -12,7 +11,7 @@ import torch.nn.functional as F
 import torchvision
 from PIL import Image
 
-import blackbox
+import math
 
 class HWFDataset(torch.utils.data.Dataset):
   def __init__(self, root: str, prefix: str, split: str):
@@ -22,7 +21,8 @@ class HWFDataset(torch.utils.data.Dataset):
     self.metadata = json.load(open(os.path.join(root, f"HWF/{prefix}_{split}.json")))
     self.img_transform = torchvision.transforms.Compose([
       torchvision.transforms.ToTensor(),
-      torchvision.transforms.Normalize((0.5,), (1,))])
+      torchvision.transforms.Normalize((0.5,), (1,))
+    ])
 
   def __getitem__(self, index):
     sample = self.metadata[index]
@@ -84,35 +84,45 @@ class SymbolNet(nn.Module):
     return F.softmax(x, dim=1)
 
 
-def hwf_eval(symbols: List[str]):
-  # Sanitize the input
-  for i, s in enumerate(symbols):
-    if i % 2 == 0 and not s.isdigit(): raise Exception("BAD")
-    if i % 2 == 1 and s not in ["+", "-", "*", "/"]: raise Exception("BAD")
-
-  # Evaluate the result
-  result = eval("".join(symbols))
-
-  return result
-
-
 class HWFNet(nn.Module):
   def __init__(self, sample_count):
     super(HWFNet, self).__init__()
+    self.sample_count = sample_count
+    self.mapping = [str(i) for i in range(10)] + ["+", "-", "*", "/"]
     self.symbol_cnn = SymbolNet()
-    self.eval_formula = blackbox.BlackBoxFunction(
-      hwf_eval,
-      (blackbox.ListInputMapping(7, blackbox.DiscreteInputMapping([str(i) for i in range(10)] + ["+", "-", "*", "/"])),),
-      blackbox.UnknownDiscreteOutputMapping(fallback=0),
-      sample_count=sample_count,
-      sample_strategy="categorical",
-      aggregate_strategy="minmax")
 
   def forward(self, img_seq, img_seq_len):
     batch_size, formula_length, _, _, _ = img_seq.shape
-    length = [l.item() for l in img_seq_len]
-    symbol = self.symbol_cnn(img_seq.flatten(start_dim=0, end_dim=1)).view(batch_size, formula_length, -1)
-    return self.eval_formula(blackbox.ListInput(symbol, length))
+    symbol = self.symbol_cnn(img_seq.flatten(start_dim=0, end_dim=1)) # .view(batch_size, formula_length, -1)
+
+    # Sample
+    distrs = torch.distributions.Categorical(symbol)
+    sampled_indices = distrs.sample((self.sample_count,)).reshape(batch_size, formula_length, -1)
+    symbol_prime = symbol.view(batch_size, formula_length, -1)
+
+    # Perform black-box computation
+    result_probs = torch.ones((batch_size, self.sample_count))
+    aggregated_probs = []
+    all_derived_results = set()
+    batched_results = [[] for _ in range(batch_size)]
+    for i in range(batch_size):
+      for j in range(self.sample_count):
+        sampled_formula = "".join([self.mapping[sampled_indices[i, k, j]] for k in range(img_seq_len[i])])
+        sampled_result = self.eval_formula(sampled_formula)
+        if sampled_result is not None:
+          batched_results[i].append(sampled_result)
+          all_derived_results.add(sampled_result)
+
+
+
+    exit()
+
+  def eval_formula(self, formula: str):
+    try:
+      result = eval(formula)
+      return result
+    except:
+      return None
 
 
 class Trainer():
@@ -206,6 +216,11 @@ class Trainer():
 
         # Prints
         iter.set_description(f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
+
+    # Save model
+    if test_loss < self.min_test_loss:
+      self.min_test_loss = test_loss
+      torch.save(self.network, os.path.join(self.model_root, self.model_name))
 
   def train(self, n_epochs):
     # self.test_epoch(0)

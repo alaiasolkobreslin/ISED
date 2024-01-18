@@ -1,707 +1,4 @@
 {
-  "sum_2": {
-    "py_func": "sum_2",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "discrete_output_mapping",
-      "range": [
-        0,
-        19
-      ]
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "sum_2_svhn": {
-    "py_func": "sum_2",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "SVHN",
-        "unstructured_input_type": "Tensor[3 x 32 x 32]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "SVHN",
-        "unstructured_input_type": "Tensor[3 x 32 x 32]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "discrete_output_mapping",
-      "range": [
-        0,
-        19
-      ]
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "sum_3": {
-    "py_func": "sum_3",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_3",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "discrete_output_mapping",
-      "range": [
-        0,
-        28
-      ]
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "sum_3_svhn": {
-    "py_func": "sum_3_svhn",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "SVHN",
-        "unstructured_input_type": "Tensor[3 x 32 x 32]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "SVHN",
-        "unstructured_input_type": "Tensor[3 x 32 x 32]"
-      },
-      {
-        "name": "digit_3",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "SVHN",
-        "unstructured_input_type": "Tensor[3 x 32 x 32]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "discrete_output_mapping",
-      "range": [
-        0,
-        28
-      ]
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "sum_4": {
-    "py_func": "sum_4",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_3",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_4",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "discrete_output_mapping",
-      "range": [
-        0,
-        37
-      ]
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "sum_5": {
-    "py_func": "sum_5",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_3",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_4",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_5",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "sum_6": {
-    "py_func": "sum_6",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_3",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_4",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_5",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_6",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "add_mod_3": {
-    "py_func": "add_mod_3",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "add_sub": {
-    "py_func": "add_sub",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_3",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "eq_2": {
-    "py_func": "eq_2",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "bool",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "how_many_3_or_4": {
-    "py_func": "how_many_3_or_4",
-    "inputs": [
-      {
-        "name": "x",
-        "type": "List[digit]",
-        "strategy": "list",
-        "preprocess": "id",
-        "length": 3,
-        "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "how_many_3": {
-    "py_func": "how_many_3",
-    "inputs": [
-      {
-        "name": "x",
-        "type": "List[digit]",
-        "strategy": "list",
-        "preprocess": "id",
-        "length": 3,
-        "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "how_many_not_3_and_not_4": {
-    "py_func": "how_many_not_3_and_not_4",
-    "inputs": [
-      {
-        "name": "x",
-        "type": "List[digit]",
-        "strategy": "list",
-        "preprocess": "id",
-        "length": 3,
-        "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "how_many_not_3": {
-    "py_func": "how_many_not_3",
-    "inputs": [
-      {
-        "name": "x",
-        "type": "List[digit]",
-        "strategy": "list",
-        "preprocess": "id",
-        "length": 3,
-        "dataset": "MNIST",
-        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "identity": {
-    "py_func": "identity",
-    "inputs": [
-      {
-        "name": "x",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "is_3_and_4": {
-    "py_func": "is_3_and_4",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "bool",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "not_3_or_4": {
-    "py_func": "not_3_or_4",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "bool",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "less_than": {
-    "py_func": "less_than",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "bool",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "mod_2": {
-    "py_func": "mod_2",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "mult_2": {
-    "py_func": "mult_2",
-    "inputs": [
-      {
-        "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      }
-    ],
-    "output": {
-      "type": "int",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
-  "hwf": {
-    "py_func": "hwf",
-    "inputs": [
-      {
-        "name": "expr",
-        "type": "str",
-        "max_length": 7,
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "HWF",
-        "unstructured_input_type": "List[Tensor[1 x 45 x 45]]"
-      }
-    ],
-    "output": {
-      "type": "float",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
   "add_two_numbers": {
     "py_func": "add_two_numbers",
     "inputs": [
@@ -726,9 +23,11 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "range",
+      "low": 0,
+      "high": 199
     },
-    "learning_rate": 0.0001,
+    "learning_rate": 0.001,
     "batch_size_train": 16,
     "batch_size_test": 16,
     "dataset_size_train": 5000,
@@ -748,8 +47,10 @@
       }
     ],
     "output": {
-      "type": "str",
-      "output_mapping": "unknown"
+      "type": "int",
+      "output_mapping": "range",
+      "low": 0,
+      "high": 8
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -781,7 +82,9 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "range",
+      "low": 0,
+      "high": 10
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -851,7 +154,9 @@
     ],
     "output": {
       "type": "bool",
-      "output_mapping": "unknown"
+      "output_mapping": "range",
+      "low": 0,
+      "high": 2
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1120,7 +425,9 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "range",
+      "low": 0,
+      "high": 46
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1167,7 +474,9 @@
     ],
     "output": {
       "type": "bool",
-      "output_mapping": "unknown"
+      "output_mapping": "range",
+      "low": 0,
+      "high": 2
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1213,7 +522,9 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "range",
+      "low": 0,
+      "high": 37
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1343,7 +654,9 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "range",
+      "low": 0,
+      "high": 55
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1389,7 +702,9 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "range",
+      "low": 0,
+      "high": 4
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1453,7 +768,9 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "range",
+      "low": 0,
+      "high": 10
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -1476,7 +793,9 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "range",
+      "low": 0,
+      "high": 7
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,

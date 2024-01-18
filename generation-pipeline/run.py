@@ -282,6 +282,7 @@ if __name__ == "__main__":
     parser.add_argument("--symmetry", type=bool, default=False)
     parser.add_argument("--caching", type=bool, default=True)
     parser.add_argument("--threaded", type=int, default=0)
+    parser.add_argument("--task", type=str)
     args = parser.parse_args()
 
     # environment init
@@ -300,6 +301,9 @@ if __name__ == "__main__":
     # Dataloaders
     for task in configuration:
         print('Task: {}'.format(task))
+
+        if args.task is not None and task != args.task:
+            continue
 
         task_config = configuration[task]
 

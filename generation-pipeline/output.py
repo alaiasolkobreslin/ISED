@@ -9,7 +9,7 @@ import util
 class OutputMapping:
     def __init__(self): pass
 
-    def dim(self): pass
+    def dim(self): raise Exception(f"Non-implemented dim for {self.__class__}")
 
     def get_elements(self): pass
 
@@ -95,6 +95,35 @@ class UnknownDiscreteOutputMapping(OutputMapping):
 
         om, y_pred = super().vectorize(elements, element_indices, results, result_probs)
         return (om, y_pred, y_pred)
+
+    def get_normalized_labels(self, y_pred, target, output_mapping):
+        batch_size, _ = y_pred.shape
+        y = torch.tensor([1.0 if self.eval_result_eq(
+            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping]).view(batch_size, -1)
+        return (y, y)
+
+class RangeOutputMapping(OutputMapping):
+    def __init__(self, range_low, range_high):
+        self.range_low = range_low
+        self.range_high = range_high
+
+    def dim(self):
+        return self.range_high - self.range_low
+
+    def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
+        # Get the unique elements
+        elements = list(
+            set([(util.get_hashable_elem(elem)) for batch in results for elem in batch if elem != RESERVED_FAILURE]))
+        element_indices = {e: i for (i, e) in enumerate(elements)}
+
+        om, y_pred = super().vectorize(elements, element_indices, results, result_probs)
+        return (om, y_pred, y_pred)
+
+    def vectorize_label(self, labels):
+        return torch.stack([
+            torch.tensor([1.0 if self.eval_result_eq(e, label)
+                         else 0.0 for e in range(self.range_low, self.range_high)])
+            for label in labels])
 
     def get_normalized_labels(self, y_pred, target, output_mapping):
         batch_size, _ = y_pred.shape
@@ -268,6 +297,8 @@ def get_output_mapping(output_config):
         length = output_config[LENGTH]
         n_classes = output_config[N_CLASSES]
         return IntOutputMapping(length=length, n_classes=n_classes, fallback=0)
+    elif om == "range":
+        return RangeOutputMapping(output_config["low"], output_config["high"])
     elif om == LIST_OUTPUT_MAPPING:
         length = output_config[LENGTH]
         n_classes = output_config[N_CLASSES]

@@ -198,7 +198,7 @@ class VideoInput(Input):
 class InputMapping:
     def __init__(self): pass
 
-    def shape(self): pass
+    def shape(self): raise Exception(f"Not implemented for type {self.__class__}")
 
     def sample(self, input: Any,
                sample_count: int) -> Tuple[torch.Tensor, List[Any]]: pass
@@ -335,6 +335,9 @@ class ListInputMapping(InputMapping):
         self.combine = combine
         self.does_permute = True
 
+    def shape(self):
+        return (self.length, *self.element_input_mapping.shape())
+
     def sample(self, list_input: ListInput, sample_count: int) -> Tuple[torch.Tensor, List[List[Any]]]:
         # Sample the elements
         batch_size, list_length = list_input.tensor.shape[0], list_input.tensor.shape[1]
@@ -423,6 +426,9 @@ class ListInputMapping2D(InputMapping):
         self.element_input_mapping = element_input_mapping
         self.combine = combine
         self.does_permute = True
+
+    def shape(self):
+        return (self.n_rows, self.n_cols, *self.element_input_mapping.shape())
 
     def sample(self, list_input: ListInput2D, sample_count: int) -> Tuple[torch.Tensor, List[List[Any]]]:
         # Sample the elements
