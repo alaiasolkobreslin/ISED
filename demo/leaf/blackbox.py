@@ -134,7 +134,7 @@ class BlackBoxFunction(torch.nn.Module):
             function: Callable,
             input_mappings: Tuple[InputMapping],
             output_mapping: OutputMapping,
-            caching: bool = True,
+            caching: bool = False,
             loss_aggregator: str = "add_mult",
             sample_count: int = 100):
         super(BlackBoxFunction, self).__init__()
@@ -189,7 +189,10 @@ class BlackBoxFunction(torch.nn.Module):
         result_probs = torch.sum(result_probs, dim=0)
 
         # Vectorize the results back into a tensor
-        return self.output_mapping.vectorize(self.loss_aggregator, results, result_probs)
+        if self.caching: 
+            return (self.cache, self.output_mapping.vectorize(self.loss_aggregator, results, result_probs)) 
+        else:
+            return self.output_mapping.vectorize(self.loss_aggregator, results, result_probs)
 
     def get_batch_size(self, input: Any):
         if type(input) == torch.Tensor:

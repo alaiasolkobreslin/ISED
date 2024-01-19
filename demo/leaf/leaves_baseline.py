@@ -111,7 +111,9 @@ class LeavesNet(nn.Module):
     self.last_fc = nn.Sequential(
       nn.Linear(self.dim, 1024),
       nn.ReLU(),
-      nn.Linear(1024, self.num_classes),
+      nn.Linear(1024, 256),
+      nn.ReLU(),
+      nn.Linear(256, self.num_classes),
       nn.Softmax(dim=1)
     )
 
@@ -205,9 +207,9 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   random_seeds = [1234, 3177, 5848, 9175]
-  train_nums = [50, 80, 75, 100, 150]
-  train_percentages = [0.2, 0.25, 0.4, 0.5, 0.7]
-  data_dirs = ['leaf_11', 'leaf_40', 'leaf_plantvillage']
+  train_nums = [20, 35, 45, 65, 115]
+  train_percentages = [0.5, 0.6, 0.7, 0.8, 0.9]
+  data_dirs = ['leaf_11']
   accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
   times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
   field_names = ['random seed', 'data_dir', 'num train'] + accuracies + times

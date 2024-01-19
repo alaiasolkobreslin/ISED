@@ -16,7 +16,7 @@ from argparse import ArgumentParser
 from tqdm import tqdm
 
 import blackbox
-import past as leaves_config
+import leaves_config
 
 leaves_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -44,9 +44,9 @@ class LeavesDataset(torch.utils.data.Dataset):
     data_dirs = os.listdir(data_dir)
     for sample_group in data_dirs:
       sample_group_dir = os.path.join(data_dir, sample_group)
-      if not os.path.isdir(sample_group_dir):
+      if not os.path.isdir(sample_group_dir) or not sample_group in leaves_config.l10_labels:
         continue
-      label = leaves_config.l11_labels.index(sample_group)
+      label = leaves_config.l10_labels.index(sample_group)
       sample_group_files = os.listdir(sample_group_dir)
       for idx in random.sample(range(len(sample_group_files)), min(n_train, len(sample_group_files))):
         sample_img_path = os.path.join(sample_group_dir, sample_group_files[idx])
@@ -85,20 +85,12 @@ class LeavesNet(nn.Module):
     super(LeavesNet, self).__init__()
 
     # features for classification
-    if data_dir == 'leaf_11':
-      self.margin = leaves_config.l11_margin
-      self.shape = leaves_config.l11_shape
-      self.texture = leaves_config.l11_texture
-      self.labels = leaves_config.l11_labels
-      self.dim = leaves_config.l11_dim
-    elif data_dir == 'leaf_40':
-      self.types = leaves_config.l40_type
-      self.margin = leaves_config.l40_margin
-      self.shape = leaves_config.l40_shape
-      self.texture = leaves_config.l40_texture
-      self.venation = leaves_config.l40_venation
-      self.labels = leaves_config.l40_labels
-      self.dim = leaves_config.l40_dim
+    if data_dir == 'leaf_10':
+        self.types = leaves_config.l10_type
+        self.margin = leaves_config.l10_margin
+        self.texture = leaves_config.l10_texture
+        self.labels = leaves_config.l10_labels
+        self.dim = 3072
     else:
       raise Exception(f"Unknown directory: {data_dir}")
   
@@ -118,20 +110,20 @@ class LeavesNet(nn.Module):
       nn.MaxPool2d(2),
       nn.Flatten(),
     )
+
+    # Fully connected for 'type'
+    self.type_fc = nn.Sequential(
+      nn.Linear(self.dim, 1024),
+      nn.ReLU(),
+      nn.Linear(1024, len(self.types)),
+      nn.Softmax(dim=1)
+    )
     
     # Fully connected for 'margin'
     self.margin_fc = nn.Sequential(
       nn.Linear(self.dim, 1024),
       nn.ReLU(),
       nn.Linear(1024, len(self.margin)),
-      nn.Softmax(dim=1)
-    )
-
-    # Fully connected for 'shape'
-    self.shape_fc = nn.Sequential(
-      nn.Linear(self.dim, 1024),
-      nn.ReLU(),
-      nn.Linear(1024, len(self.shape)),
       nn.Softmax(dim=1)
     )
 
@@ -144,24 +136,13 @@ class LeavesNet(nn.Module):
     )
 
     # Blackbox encoding identification chart
-    if data_dir == 'leaf_11':
+    if data_dir == 'leaf_10':
       self.bbox = blackbox.BlackBoxFunction(
-                  leaves_config.classify_11,
-                  (blackbox.DiscreteInputMapping(self.margin),
-                  blackbox.DiscreteInputMapping(self.shape),
-                  blackbox.DiscreteInputMapping(self.texture)),
-                  blackbox.DiscreteOutputMapping(self.labels),
-                  caching=caching,
-                  sample_count=sample_count)
-    elif data_dir == 'leaf_40':
-      self.bbox = blackbox.BlackBoxFunction(
-                  leaves_config.classify_40,
+                  leaves_config.classify_llm,
                   (blackbox.DiscreteInputMapping(self.types),
-                  blackbox.DiscreteInputMapping(self.margin),
-                  blackbox.DiscreteInputMapping(self.shape),
-                  blackbox.DiscreteInputMapping(self.texture),
-                  blackbox.DiscreteInputMapping(self.venation),),
-                  blackbox.DiscreteOutputMapping(self.labels),
+                   blackbox.DiscreteInputMapping(self.margin),
+                   blackbox.DiscreteInputMapping(self.texture)),
+                   blackbox.DiscreteOutputMapping(self.labels),
                   caching=caching,
                   sample_count=sample_count)
     else:
@@ -169,12 +150,10 @@ class LeavesNet(nn.Module):
 
   def forward(self, x):
     x = self.cnn(x)
-    # has_type = self.type_fc(x)
+    has_type = self.type_fc(x)
     has_margin = self.margin_fc(x)
-    has_shape = self.shape_fc(x)
     has_texture = self.texture_fc(x)
-    # has_venation = self.venation_fc(x)
-    return self.bbox(has_margin, has_shape, has_texture)
+    return self.bbox(has_type, has_margin, has_texture)
 
 class Trainer():
   def __init__(self, train_loader, test_loader, learning_rate, sample_count, data_dir, caching, gpu, save_model=False):
@@ -202,12 +181,13 @@ class Trainer():
     num_items = 0
     total_correct = 0
     train_loss = 0
+    dict = {}
     iter = tqdm(self.train_loader, total=len(self.train_loader))
     for (i, (input, target)) in enumerate(iter):
       self.optimizer.zero_grad()
       input = input.to(self.device)
       target = target.to(self.device)
-      output = self.network(input)
+      (c, output) = self.network(input)
       loss = self.loss_fn(output, target)
       loss.backward()
       self.optimizer.step()
@@ -217,7 +197,9 @@ class Trainer():
       train_loss += loss.item()
       avg_loss = train_loss / (i + 1)
       iter.set_description(f"[Train Epoch {epoch}] Loss: {avg_loss:.4f}, Overall Accuracy: {int(total_correct)}/{int(num_items)} ({correct_perc:.2f})%")
-
+      dict = c
+    return dict 
+  
   def test_epoch(self, epoch):
     self.network.eval()
     num_items = 0
@@ -228,7 +210,7 @@ class Trainer():
       for i, (input, target) in enumerate(iter):
         input = input.to(self.device)
         target = target.to(self.device)
-        output = self.network(input)
+        (_, output) = self.network(input)
         num_items += output.shape[0]
         test_loss += self.loss_fn(output, target).item()
         num_correct += (output.argmax(dim=1)==target).float().sum()
@@ -246,12 +228,12 @@ class Trainer():
     dict = {}
     for epoch in range(1, n_epochs+1):
       t0 = time.time()
-      self.train_epoch(epoch)
+      llm_db = self.train_epoch(epoch)
       t1 = time.time()
       dict["time epoch " + str(epoch)] = round(t1 - t0, ndigits=4)
       acc = self.test_epoch(epoch)
       dict["accuracy epoch " + str(epoch)] = round(acc, ndigits=6)
-    return dict
+    return (llm_db, dict)
 
 if __name__ == "__main__":
   # Argument parser
@@ -262,22 +244,17 @@ if __name__ == "__main__":
   parser.add_argument("--gpu", type=int, default=-1)
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
-  parser.add_argument("--caching", type=bool, default=False)
+  parser.add_argument("--caching", type=bool, default=True)
   parser.add_argument("--cuda", action="store_true")
   args = parser.parse_args()
 
-  random_seeds = [1234, 3177, 5848, 9175]
-  train_nums = [20, 35, 45, 65, 115]
-  train_percentages = [0.5, 0.6, 0.7, 0.8, 0.9]
-  data_dirs = ['leaf_11']
+  random_seeds = [1234, 3177, 5848, 9175] # 8725
+  train_nums = [30]
+  train_percentages = [0.7]
+  data_dirs = ['leaf_10']
   accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
   times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
   field_names = ['random seed', 'data_dir', 'num train'] + accuracies + times
-
-  with open('demo/leaf/leaf_bbox.csv', 'w', newline='') as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames=field_names)
-    writer.writeheader()
-    csvfile.close()
 
   for data_dir in data_dirs:
     for i in range(len(train_nums)): # 10, 20, 30, 50, 100
@@ -295,11 +272,17 @@ if __name__ == "__main__":
         trainer = Trainer(train_loader, test_loader, args.learning_rate, args.sample_count, data_dir, args.caching, args.gpu)
 
         # Run
-        dict = trainer.train(args.n_epochs)
+        (llm_db, dict) = trainer.train(args.n_epochs)
         dict["random seed"] = seed
         dict['data_dir'] = data_dir
         dict["num train"] = int(train_percentages[i]*train_nums[i])
-        with open('demo/leaf/leaf_bbox.csv', 'a', newline='') as csvfile:
+        with open('demo/leaf/leaf_llm.csv', 'a', newline='') as csvfile:
           writer = csv.DictWriter(csvfile, fieldnames=field_names)
           writer.writerow(dict)
           csvfile.close()
+        
+        with open('demo/leaf/llm_db.csv', 'a', newline='') as csvfile:
+            fieldnames = llm_db.keys()
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writerow(llm_db)
+            csvfile.close()
