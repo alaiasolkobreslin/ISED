@@ -303,8 +303,8 @@ def main():
     parser = init_parser()
     args = parser.parse_args()
     # ---------------------------------- checkpoint_best
-    #ckpt_path = f'outputs/rl/{args.data}/checkpoint_best_L.pth' # usually worse
-    ckpt_path = f'outputs/rl/{args.data}/checkpoint_best_R.pth' 
+    ckpt_path = f'outputs/rl/{args.data}/checkpoint_best_L.pth' # usually worse
+    # ckpt_path = f'outputs/rl/{args.data}/checkpoint_best_R.pth'
     # ----------------------------------
     if os.path.isfile(args.noise_setting):
         with open(args.noise_setting) as f:
