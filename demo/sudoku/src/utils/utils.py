@@ -41,8 +41,10 @@ def print_loss_graph_from_file_rl(file_name,out_file):
     stats ={'train_rewards':[],'valid_rewards':[],'best_rewards':[]}
     for line in lines:
         stats_line = json.loads(line.replace('\n',''))
-        stats['train_rewards'].append(float(stats_line['train_rewards']))
-        stats['valid_rewards'].append(float(stats_line['valid_rewards']))
+        # stats['train_rewards'].append(float(stats_line['train_rewards']))
+        stats['train_rewards'].append(0.0)
+        # stats['valid_rewards'].append(float(stats_line['valid_rewards']))
+        stats['valid_rewards'].append(0.0)
     file_in.close()
     best = stats['valid_rewards'][0]
     for r in stats['valid_rewards']:
@@ -65,7 +67,8 @@ def print_loss_graph_from_details_file_rl(mode,file_name,out_file):
     for line in lines:
         stats_line = json.loads(line.replace('\n',''))
         stats['avr_train_loss'].append(float(stats_line['avr_train_loss']))
-        stats['avr_train_reward'].append(float(stats_line['avr_train_reward']))
+        # stats['avr_train_reward'].append(float(stats_line['avr_train_reward']))
+        stats['avr_train_reward'].append(0.0)
     file_in.close()
     plt.figure(1)
     plt.title('Detailed rewards and loss RL')

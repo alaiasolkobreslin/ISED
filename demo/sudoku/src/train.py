@@ -50,22 +50,22 @@ def init_parser():
                         help='If true, use RL to train only the mask predictor')
 
     # Optimization hyperparams
-    parser.add_argument('--epochs', default=200, type=int,
+    parser.add_argument('--epochs', default=100, type=int,
                         help='number of total epochs to run')
     parser.add_argument('--warmup', default=10, type=int, 
                         help='number of warmup epochs')
     parser.add_argument('-b', '--batch-size', default=256, type=int,
                         help='mini-batch size (default: 256)', dest='batch_size')
-    parser.add_argument('--lr', default=0.00001, type=float, 
+    parser.add_argument('--lr', default=0.0001, type=float, 
                         help='initial learning rate')
     parser.add_argument('--weight-decay', default=3e-1, type=float, 
                         help='weight decay (default: 3e-1)')
     parser.add_argument('--clip-grad-norm', default=1., type=float, 
-                        help='gradient norm clipping (default: 1 (enabled))')
+                        help='gradient norm clipping (default: 1 (disabled))')
     parser.add_argument('--disable-cos', action='store_true',
                         help='disable cosine lr schedule')
-    parser.add_argument('--sample-count', default=1, type=int,
-                        help='number of samples to take (default: 1)')
+    parser.add_argument('--sample-count', default=5, type=int,
+                        help='number of samples to take (default: 5)')
     return parser
 
 def vectorize(results, sample_probs):
