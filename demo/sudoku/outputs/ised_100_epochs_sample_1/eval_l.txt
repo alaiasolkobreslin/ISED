@@ -1,0 +1,29 @@
+Beginning testing
+[Test][0/100]    AvgLoss: -6.6693
+[Test][10/100]   AvgLoss: -4.8203
+[Test][20/100]   AvgLoss: -4.4451
+[Test][30/100]   AvgLoss: -4.4769
+[Test][40/100]   AvgLoss: -4.4263
+[Test][50/100]   AvgLoss: -4.5009
+[Test][60/100]   AvgLoss: -4.4134
+[Test][70/100]   AvgLoss: -4.4622
+[Test][80/100]   AvgLoss: -4.3778
+[Test][90/100]   AvgLoss: -4.3984
+AvgLoss -4.5013                  Time: 0.15
+-------------------------------
+Improvement:
+-----------
+* Num. of correct solution boards from Neuro-Solver: 0/10000-- (0.00%)
+* Num. of correct solution boards from NASR: 0/10000-- (0.00%)
+* Num. of wrong solution boards (from Neuro-solver) 
+  that have been corrected with NASR: 0/10000 -- (0.00%)
+* Num correct cells (avg): 0.17247407407407406%
+-------------------------------
+100%|███████████████████████████████████████████████████████████████████| 10000/10000 [08:46<00:00, 18.99it/s]
+Num errors of the perception corrected by the SolverNN (avg): 1.0%)
+Num errors of the perception corrected by the Mask-Predictor (avg): 0.0%)
+
+---
+
+Num errors of the solverNN in the input corrected (avg): 0.0%)
+Num errors of the solverNN in the solutions corrected(avg): 0.0%)
