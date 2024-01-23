@@ -17,6 +17,7 @@ from tqdm import tqdm
 
 import blackbox
 import leaves_config
+import llm_configs
 
 leaves_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -37,6 +38,10 @@ class LeavesDataset(torch.utils.data.Dataset):
     transform: Optional[Callable] = leaves_img_transform,
   ):
     self.transform = transform
+    if data_dir == 'leaf_10': self.labels = llm_configs.l10_labels
+    elif data_dir == 'leaf_30': self.labels = llm_configs.l30_labels
+    elif data_dir == 'leaf_11': self.labels = llm_configs.l11_labels
+    else: self.labels = []
     
     # Get all image paths and their labels
     self.samples = []
@@ -44,9 +49,9 @@ class LeavesDataset(torch.utils.data.Dataset):
     data_dirs = os.listdir(data_dir)
     for sample_group in data_dirs:
       sample_group_dir = os.path.join(data_dir, sample_group)
-      if not os.path.isdir(sample_group_dir) or not sample_group in leaves_config.l10_labels:
+      if not os.path.isdir(sample_group_dir) or not sample_group in self.labels:
         continue
-      label = leaves_config.l10_labels.index(sample_group)
+      label = self.labels.index(sample_group)
       sample_group_files = os.listdir(sample_group_dir)
       for idx in random.sample(range(len(sample_group_files)), min(n_train, len(sample_group_files))):
         sample_img_path = os.path.join(sample_group_dir, sample_group_files[idx])
@@ -86,11 +91,24 @@ class LeavesNet(nn.Module):
 
     # features for classification
     if data_dir == 'leaf_10':
-        self.types = leaves_config.l10_type
-        self.margin = leaves_config.l10_margin
-        self.texture = leaves_config.l10_texture
-        self.labels = leaves_config.l10_labels
-        self.dim = 3072
+      self.f1 = llm_configs.l10_3_one
+      self.f2 = llm_configs.l10_3_two
+      self.f3 = llm_configs.l10_3_three
+      self.labels = llm_configs.l10_labels
+      self.dim = 3072
+    elif data_dir == 'leaf_11':
+      self.f1 = llm_configs.l11_4_one
+      self.f2 = llm_configs.l11_4_two
+      self.f3 = llm_configs.l11_4_three
+      self.labels = llm_configs.l11_labels
+      self.dim = 2304
+    elif data_dir == 'leaf_30':
+      self.f1 = llm_configs.l30_3_one
+      self.f2 = llm_configs.l30_3_two
+      self.f3 = llm_configs.l30_3_three
+      self.f4 = llm_configs.l30_3_four
+      self.labels = llm_configs.l30_labels
+      self.dim = 3072      
     else:
       raise Exception(f"Unknown directory: {data_dir}")
   
@@ -111,37 +129,50 @@ class LeavesNet(nn.Module):
       nn.Flatten(),
     )
 
-    # Fully connected for 'type'
-    self.type_fc = nn.Sequential(
-      nn.Linear(self.dim, 1024),
+    # Fully connected for 'f1'
+    self.f1_fc = nn.Sequential(
+      nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Linear(1024, len(self.types)),
+      nn.Dropout(),
+      nn.Linear(self.dim, len(self.f1)),
       nn.Softmax(dim=1)
     )
     
-    # Fully connected for 'margin'
-    self.margin_fc = nn.Sequential(
-      nn.Linear(self.dim, 1024),
+    # Fully connected for 'f2'
+    self.f2_fc = nn.Sequential(
+      nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Linear(1024, len(self.margin)),
+      nn.Dropout(),
+      nn.Linear(self.dim, len(self.f2)),
       nn.Softmax(dim=1)
     )
 
-    # Fully connected for 'texture'
-    self.texture_fc = nn.Sequential(
-      nn.Linear(self.dim, 1024),
+    # Fully connected for 'f3'
+    self.f3_fc = nn.Sequential(
+      nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Linear(1024, len(self.texture)),
+      nn.Dropout(),
+      nn.Linear(self.dim, len(self.f3)),
       nn.Softmax(dim=1)
     )
 
     # Blackbox encoding identification chart
-    if data_dir == 'leaf_10':
+    if data_dir == 'leaf_10' or data_dir == 'leaf_11':
       self.bbox = blackbox.BlackBoxFunction(
                   leaves_config.classify_llm,
-                  (blackbox.DiscreteInputMapping(self.types),
-                   blackbox.DiscreteInputMapping(self.margin),
-                   blackbox.DiscreteInputMapping(self.texture)),
+                  (blackbox.DiscreteInputMapping(self.f1),
+                   blackbox.DiscreteInputMapping(self.f2),
+                   blackbox.DiscreteInputMapping(self.f3)),
+                   blackbox.DiscreteOutputMapping(self.labels),
+                  caching=caching,
+                  sample_count=sample_count)
+    elif data_dir == 'leaf_30':
+      self.bbox = blackbox.BlackBoxFunction(
+                  leaves_config.classify_llm_4,
+                  (blackbox.DiscreteInputMapping(self.f1),
+                   blackbox.DiscreteInputMapping(self.f2),
+                   blackbox.DiscreteInputMapping(self.f3),
+                   blackbox.DiscreteInputMapping(self.f4)),
                    blackbox.DiscreteOutputMapping(self.labels),
                   caching=caching,
                   sample_count=sample_count)
@@ -150,10 +181,11 @@ class LeavesNet(nn.Module):
 
   def forward(self, x):
     x = self.cnn(x)
-    has_type = self.type_fc(x)
-    has_margin = self.margin_fc(x)
-    has_texture = self.texture_fc(x)
-    return self.bbox(has_type, has_margin, has_texture)
+    has_f1 = self.f1_fc(x)
+    has_f2 = self.f2_fc(x)
+    has_f3 = self.f3_fc(x)
+    # has_f4 = self.f4_fc(x)
+    return self.bbox(has_f1, has_f2, has_f3)
 
 class Trainer():
   def __init__(self, train_loader, test_loader, learning_rate, sample_count, data_dir, caching, gpu, save_model=False):
@@ -181,7 +213,6 @@ class Trainer():
     num_items = 0
     total_correct = 0
     train_loss = 0
-    dict = {}
     iter = tqdm(self.train_loader, total=len(self.train_loader))
     for (i, (input, target)) in enumerate(iter):
       self.optimizer.zero_grad()
@@ -197,8 +228,6 @@ class Trainer():
       train_loss += loss.item()
       avg_loss = train_loss / (i + 1)
       iter.set_description(f"[Train Epoch {epoch}] Loss: {avg_loss:.4f}, Overall Accuracy: {int(total_correct)}/{int(num_items)} ({correct_perc:.2f})%")
-      dict = c
-    return dict 
   
   def test_epoch(self, epoch):
     self.network.eval()
@@ -228,18 +257,18 @@ class Trainer():
     dict = {}
     for epoch in range(1, n_epochs+1):
       t0 = time.time()
-      llm_db = self.train_epoch(epoch)
+      self.train_epoch(epoch)
       t1 = time.time()
       dict["time epoch " + str(epoch)] = round(t1 - t0, ndigits=4)
       acc = self.test_epoch(epoch)
       dict["accuracy epoch " + str(epoch)] = round(acc, ndigits=6)
-    return (llm_db, dict)
+    return dict
 
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("leaves")
   parser.add_argument("--model-name", type=str, default="leaves.pkl")
-  parser.add_argument("--n-epochs", type=int, default=50)
+  parser.add_argument("--n-epochs", type=int, default=30)
   parser.add_argument("--sample-count", type=int, default=100)
   parser.add_argument("--gpu", type=int, default=-1)
   parser.add_argument("--batch-size", type=int, default=16)
@@ -248,13 +277,18 @@ if __name__ == "__main__":
   parser.add_argument("--cuda", action="store_true")
   args = parser.parse_args()
 
-  random_seeds = [1234, 3177, 5848, 9175] # 8725
-  train_nums = [30]
-  train_percentages = [0.7]
-  data_dirs = ['leaf_10']
+  random_seeds = [1234, 3177, 5848, 9175, 8725] 
+  train_nums = [20, 35, 45, 65, 115]
+  train_percentages = [0.5, 0.6, 0.7, 0.8, 0.9]
+  data_dirs = ['leaf_11']
   accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
   times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'data_dir', 'num train'] + accuracies + times
+  field_names = ['random seed', 'data_dir', 'sample_count', 'num train'] + accuracies + times
+
+  with open('demo/leaf/leaf_llm.csv', 'w', newline='') as csvfile:
+    writer = csv.DictWriter(csvfile, fieldnames=field_names)
+    writer.writeheader()
+    csvfile.close()
 
   for data_dir in data_dirs:
     for i in range(len(train_nums)): # 10, 20, 30, 50, 100
@@ -272,17 +306,12 @@ if __name__ == "__main__":
         trainer = Trainer(train_loader, test_loader, args.learning_rate, args.sample_count, data_dir, args.caching, args.gpu)
 
         # Run
-        (llm_db, dict) = trainer.train(args.n_epochs)
+        dict = trainer.train(args.n_epochs)
         dict["random seed"] = seed
         dict['data_dir'] = data_dir
+        dict['sample count'] = args.sample_count
         dict["num train"] = int(train_percentages[i]*train_nums[i])
         with open('demo/leaf/leaf_llm.csv', 'a', newline='') as csvfile:
           writer = csv.DictWriter(csvfile, fieldnames=field_names)
           writer.writerow(dict)
           csvfile.close()
-        
-        with open('demo/leaf/llm_db.csv', 'a', newline='') as csvfile:
-            fieldnames = llm_db.keys()
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writerow(llm_db)
-            csvfile.close()

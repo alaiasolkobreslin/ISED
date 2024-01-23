@@ -28,21 +28,25 @@ class LeavesDataset(torch.utils.data.Dataset):
   def __init__(
     self,
     data_root: str,
-    dara_dir: str,
+    data_dir: str,
     n_train: int,
     transform: Optional[Callable] = leaves_img_transform,
   ):
     self.transform = transform
+    if data_dir == 'leaf_10': self.labels = leaves_config.l10_labels
+    elif data_dir == 'leaf_30': self.labels = leaves_config.l30_labels
+    elif data_dir == 'leaf_11': self.labels = leaves_config.l11_labels
+    else: self.labels = []
     
     # Get all image paths and their labels
     self.samples = []
-    data_dir = os.path.join(data_root, dara_dir)
+    data_dir = os.path.join(data_root, data_dir)
     data_dirs = os.listdir(data_dir)
     for sample_group in data_dirs:
       sample_group_dir = os.path.join(data_dir, sample_group)
-      if not os.path.isdir(sample_group_dir):
+      if not os.path.isdir(sample_group_dir) or not sample_group in self.labels:
         continue
-      label = leaves_config.l11_labels.index(sample_group)
+      label = self.labels.index(sample_group)
       sample_group_files = os.listdir(sample_group_dir)
       for idx in random.sample(range(len(sample_group_files)), min(n_train, len(sample_group_files))):
         sample_img_path = os.path.join(sample_group_dir, sample_group_files[idx])
@@ -82,12 +86,12 @@ class LeavesNet(nn.Module):
     if data_dir == 'leaf_11':
       self.num_classes = 11
       self.dim = 2304
-    elif data_dir == 'leaf_40':
-      self.num_classes = 40
+    elif data_dir == 'leaf_10':
+      self.num_classes = 10
       self.dim = 3072
-    elif data_dir == 'leaf_plantvillage':
-      self.num_classes = 11
-      self.dim = 3200
+    elif data_dir == 'leaf_30':
+      self.num_classes = 30
+      self.dim = 3072
     else:
       raise Exception(f"Unknown directory: {data_dir}")
   
@@ -109,11 +113,10 @@ class LeavesNet(nn.Module):
     )
 
     self.last_fc = nn.Sequential(
-      nn.Linear(self.dim, 1024),
+      nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Linear(1024, 256),
-      nn.ReLU(),
-      nn.Linear(256, self.num_classes),
+      nn.Dropout(),
+      nn.Linear(self.dim, self.num_classes),
       nn.Softmax(dim=1)
     )
 
@@ -199,14 +202,14 @@ class Trainer():
 if __name__ == "__main__":
   parser = ArgumentParser("leaves")
   parser.add_argument("--model-name", type=str, default="leaves.pkl")
-  parser.add_argument("--n-epochs", type=int, default=50)
+  parser.add_argument("--n-epochs", type=int, default=30)
   parser.add_argument("--gpu", type=int, default=-1)
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--cuda", action="store_true")
   args = parser.parse_args()
 
-  random_seeds = [1234, 3177, 5848, 9175]
+  random_seeds = [1234, 3177, 5848, 9175, 8725]
   train_nums = [20, 35, 45, 65, 115]
   train_percentages = [0.5, 0.6, 0.7, 0.8, 0.9]
   data_dirs = ['leaf_11']
@@ -239,8 +242,4 @@ if __name__ == "__main__":
         with open('demo/leaf/leaf_baseline.csv', 'a', newline='') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=field_names)
             writer.writerow(dict)
-            csvfile.close()
-
-
-
-        
+            csvfile.close() 

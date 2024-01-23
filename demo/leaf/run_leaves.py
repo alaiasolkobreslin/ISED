@@ -16,7 +16,7 @@ from argparse import ArgumentParser
 from tqdm import tqdm
 
 import blackbox
-import past as leaves_config
+import leaves_config
 
 leaves_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -37,6 +37,10 @@ class LeavesDataset(torch.utils.data.Dataset):
     transform: Optional[Callable] = leaves_img_transform,
   ):
     self.transform = transform
+    if data_dir == 'leaf_10': self.labels = leaves_config.l10_labels
+    elif data_dir == 'leaf_30': self.labels = leaves_config.l30_labels
+    elif data_dir == 'leaf_11': self.labels = leaves_config.l11_labels
+    else: self.labels = []
     
     # Get all image paths and their labels
     self.samples = []
@@ -44,9 +48,9 @@ class LeavesDataset(torch.utils.data.Dataset):
     data_dirs = os.listdir(data_dir)
     for sample_group in data_dirs:
       sample_group_dir = os.path.join(data_dir, sample_group)
-      if not os.path.isdir(sample_group_dir):
+      if not os.path.isdir(sample_group_dir) or not sample_group in self.labels:
         continue
-      label = leaves_config.l11_labels.index(sample_group)
+      label = self.labels.index(sample_group)
       sample_group_files = os.listdir(sample_group_dir)
       for idx in random.sample(range(len(sample_group_files)), min(n_train, len(sample_group_files))):
         sample_img_path = os.path.join(sample_group_dir, sample_group_files[idx])
@@ -86,19 +90,24 @@ class LeavesNet(nn.Module):
 
     # features for classification
     if data_dir == 'leaf_11':
-      self.margin = leaves_config.l11_margin
-      self.shape = leaves_config.l11_shape
-      self.texture = leaves_config.l11_texture
+      self.f1 = leaves_config.l11_margin
+      self.f2 = leaves_config.l11_shape
+      self.f3 = leaves_config.l11_texture
       self.labels = leaves_config.l11_labels
       self.dim = leaves_config.l11_dim
-    elif data_dir == 'leaf_40':
-      self.types = leaves_config.l40_type
-      self.margin = leaves_config.l40_margin
-      self.shape = leaves_config.l40_shape
-      self.texture = leaves_config.l40_texture
-      self.venation = leaves_config.l40_venation
-      self.labels = leaves_config.l40_labels
-      self.dim = leaves_config.l40_dim
+    elif data_dir == 'leaf_30':
+      self.f1 = leaves_config.l30_margin
+      self.f2 = leaves_config.l30_shape
+      self.f3 = leaves_config.l30_texture
+      self.f4 = leaves_config.l30_venation
+      self.labels = leaves_config.l30_labels
+      self.dim = leaves_config.l30_dim
+    elif data_dir == 'leaf_10':
+      self.f1 = leaves_config.l10_type
+      self.f2 = leaves_config.l10_margin
+      self.f3 = leaves_config.l10_texture
+      self.labels = leaves_config.l10_labels
+      self.dim = leaves_config.l10_dim
     else:
       raise Exception(f"Unknown directory: {data_dir}")
   
@@ -119,27 +128,30 @@ class LeavesNet(nn.Module):
       nn.Flatten(),
     )
     
-    # Fully connected for 'margin'
-    self.margin_fc = nn.Sequential(
-      nn.Linear(self.dim, 1024),
+    # Fully connected for 'f1'
+    self.f1_fc = nn.Sequential(
+      nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Linear(1024, len(self.margin)),
+      nn.Dropout(),
+      nn.Linear(self.dim, len(self.f1)),
       nn.Softmax(dim=1)
     )
 
-    # Fully connected for 'shape'
-    self.shape_fc = nn.Sequential(
-      nn.Linear(self.dim, 1024),
+    # Fully connected for 'f2'
+    self.f2_fc = nn.Sequential(
+      nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Linear(1024, len(self.shape)),
+      nn.Dropout(),
+      nn.Linear(self.dim, len(self.f2)),
       nn.Softmax(dim=1)
     )
 
-    # Fully connected for 'texture'
-    self.texture_fc = nn.Sequential(
-      nn.Linear(self.dim, 1024),
+    # Fully connected for 'f3'
+    self.f3_fc = nn.Sequential(
+      nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Linear(1024, len(self.texture)),
+      nn.Dropout(),
+      nn.Linear(self.dim, len(self.f3)),
       nn.Softmax(dim=1)
     )
 
@@ -147,20 +159,28 @@ class LeavesNet(nn.Module):
     if data_dir == 'leaf_11':
       self.bbox = blackbox.BlackBoxFunction(
                   leaves_config.classify_11,
-                  (blackbox.DiscreteInputMapping(self.margin),
-                  blackbox.DiscreteInputMapping(self.shape),
-                  blackbox.DiscreteInputMapping(self.texture)),
-                  blackbox.DiscreteOutputMapping(self.labels),
+                  (blackbox.DiscreteInputMapping(self.f1),
+                   blackbox.DiscreteInputMapping(self.f2),
+                   blackbox.DiscreteInputMapping(self.f3)),
+                   blackbox.DiscreteOutputMapping(self.labels),
                   caching=caching,
                   sample_count=sample_count)
-    elif data_dir == 'leaf_40':
+    elif data_dir == 'leaf_10':
       self.bbox = blackbox.BlackBoxFunction(
-                  leaves_config.classify_40,
-                  (blackbox.DiscreteInputMapping(self.types),
-                  blackbox.DiscreteInputMapping(self.margin),
-                  blackbox.DiscreteInputMapping(self.shape),
-                  blackbox.DiscreteInputMapping(self.texture),
-                  blackbox.DiscreteInputMapping(self.venation),),
+                  leaves_config.classify_10,
+                  (blackbox.DiscreteInputMapping(self.f1),
+                   blackbox.DiscreteInputMapping(self.f2),
+                   blackbox.DiscreteInputMapping(self.f3)),
+                   blackbox.DiscreteOutputMapping(self.labels),
+                  caching=caching,
+                  sample_count=sample_count)
+    elif data_dir == 'leaf_30':
+      self.bbox = blackbox.BlackBoxFunction(
+                  leaves_config.classify_30,
+                  (blackbox.DiscreteInputMapping(self.f1),
+                   blackbox.DiscreteInputMapping(self.f2),
+                   blackbox.DiscreteInputMapping(self.f3),
+                   blackbox.DiscreteInputMapping(self.f4),),
                   blackbox.DiscreteOutputMapping(self.labels),
                   caching=caching,
                   sample_count=sample_count)
@@ -169,12 +189,11 @@ class LeavesNet(nn.Module):
 
   def forward(self, x):
     x = self.cnn(x)
-    # has_type = self.type_fc(x)
-    has_margin = self.margin_fc(x)
-    has_shape = self.shape_fc(x)
-    has_texture = self.texture_fc(x)
-    # has_venation = self.venation_fc(x)
-    return self.bbox(has_margin, has_shape, has_texture)
+    has_f1 = self.f1_fc(x)
+    has_f2 = self.f2_fc(x)
+    has_f3 = self.f3(x)
+    # has_f4 = self.f4_fc(x)
+    return self.bbox(has_f1, has_f2, has_f3)
 
 class Trainer():
   def __init__(self, train_loader, test_loader, learning_rate, sample_count, data_dir, caching, gpu, save_model=False):
@@ -257,7 +276,7 @@ if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("leaves")
   parser.add_argument("--model-name", type=str, default="leaves.pkl")
-  parser.add_argument("--n-epochs", type=int, default=50)
+  parser.add_argument("--n-epochs", type=int, default=30)
   parser.add_argument("--sample-count", type=int, default=100)
   parser.add_argument("--gpu", type=int, default=-1)
   parser.add_argument("--batch-size", type=int, default=16)
@@ -272,7 +291,7 @@ if __name__ == "__main__":
   data_dirs = ['leaf_11']
   accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
   times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'data_dir', 'num train'] + accuracies + times
+  field_names = ['random seed', 'data_dir', 'sample_count', 'num train'] + accuracies + times
 
   with open('demo/leaf/leaf_bbox.csv', 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=field_names)
@@ -298,6 +317,7 @@ if __name__ == "__main__":
         dict = trainer.train(args.n_epochs)
         dict["random seed"] = seed
         dict['data_dir'] = data_dir
+        dict['sample count'] = args.sample_count
         dict["num train"] = int(train_percentages[i]*train_nums[i])
         with open('demo/leaf/leaf_bbox.csv', 'a', newline='') as csvfile:
           writer = csv.DictWriter(csvfile, fieldnames=field_names)
