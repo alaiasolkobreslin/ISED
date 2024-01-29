@@ -1,5 +1,5 @@
-l10_labels = ['Acer negundo', 'Aesculus californica', 'Chelidonium majus', 'Eschscholzia californica', 'Fragaria vesca', 
-              'Fraxinus sp', 'Pinus sp', 'Polypodium vulgare', 'Schinus terebinthifolius', 'Taxus baccata']
+l10_labels = ["Acer negundo", "Aesculus californica", "Chelidonium majus", "Eschscholzia californica", "Fragaria vesca", 
+              "Fraxinus sp", "Pinus sp", "Polypodium vulgare", "Schinus terebinthifolius", "Taxus bacatta"]
 
 l10_4_system = "You are an expert in classifying plant species based on the type, margin, shape, and texture of the leaves. You are designed to output a single JSON."
 l10_4_one = ['finely divided feathery leaves', 'frond', 'needle-like', 'palmate', 'pinnately compound', 'trifoliate']

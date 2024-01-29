@@ -99,8 +99,8 @@ def classify_11(margin, shape, texture):
     elif shape == 'oblong': return 'Syzygium cumini'
     elif shape == 'obovate': return "Psidium guajava"
     else:
-      if texture == 'aristate': return "Alstonia Scholaris"
-      elif texture == 'round': return "Terminalia Arjuna"
+      if texture == 'leathery': return "Alstonia Scholaris"
+      elif texture == 'rough': return "Terminalia Arjuna"
       elif texture == 'glossy': return "Citrus limon"
       else: return "Punica granatum"
   else:
@@ -108,9 +108,9 @@ def classify_11(margin, shape, texture):
     elif shape == 'lanceolate': return "Mangifera indica"
     else: return 'Syzygium cumini'
 
-l11_margin = ["entire", "serrate", "lobed", 'indented', 'undulate', 'serrulate']
-l11_shape = ["ovate", "oblong", "elliptical", 'obovate', 'lanceolate']
-l11_texture = ["aristate", "round", 'glossy', "medium"]
+l11_margin = ['entire', 'indented', 'lobed', 'serrate', 'serrulate', 'undulate']
+l11_shape = ['elliptical', 'lanceolate', 'oblong', 'obovate', 'ovate']
+l11_texture = ['glossy', 'leathery', 'smooth', 'rough']
 l11_labels = ['Alstonia Scholaris', 'Citrus limon', 'Jatropha curcas', 'Mangifera indica', 'Ocimum basilicum',
               'Platanus orientalis', 'Pongamia Pinnata', 'Psidium guajava', 'Punica granatum', 'Syzygium cumini', 'Terminalia Arjuna']
 l11_dim = 2304
@@ -122,27 +122,27 @@ def classify_30(margin, shape, texture, venation):
   elif margin == 'toothed': return 'Urtica dioica'
   elif margin == 'doubly serrate': return 'Populus alba'
   elif margin == 'sinuate': return 'Erodium sp'
-  elif margin == 'lobed':
-    if venation == 'nearly invisible': return 'Crataegus monogyna'
-    return 'Quercus robur'
-  if shape == 'cordate': return 'Tilia tomentosa'
-  elif shape == 'spear': return 'Arisarum vulgare'
+  elif margin == 'crenate': return 'Primula vulgaris'
+  elif margin == 'lobed': 
+    if shape == 'deltoid': return 'Crataegus monogyna'
+    else: return 'Quercus robur' 
+  if shape == 'cordate': 
+    if margin == 'serrate': return 'Tilia tomentosa'
+    else: return 'Arisarum vulgare'
   elif shape == 'deltoid':
     if margin == 'serrate': return 'Betula pubescens'
     else: return 'Populus nigra' 
-  elif margin == 'dentate': 
-    if shape == 'orbicular' or shape == 'ovate': return 'Euonymus japonicus'
-    elif shape == 'elliptical' or shape == 'oblong': return 'Quercus suber'
-    else: return 'Primula vulgaris'
-  elif margin == 'undulate':
-    if shape == 'lanceolate' or shape == 'linear': return 'Magnolia soulangeana'
-    elif shape == 'orbicular' or shape == 'ovate': return 'Alnus sp'
-    else: return 'Primula vulgaris'
   elif margin == 'serrate': 
     if shape == 'obovate' or shape == 'oblong': return 'Castanea sativa'
     elif shape == 'ovate': return 'Hydrangea sp'
     elif shape == 'orbicular': return 'Alnus sp'
     else: return 'Celtis sp'
+  elif margin == 'dentate': 
+    if shape == 'orbicular' or shape == 'ovate': return 'Euonymus japonicus'
+    else: return 'Quercus suber'
+  elif margin == 'undulate':
+    if shape == 'orbicular' or shape == 'ovate': return 'Alnus sp'
+    else: return 'Magnolia soulangeana'
   elif margin == 'entire':
     if shape == 'obovate': return 'Salix atrocinerea'
     elif shape == 'lanceolate': return 'Magnolia grandiflora'
@@ -153,25 +153,24 @@ def classify_30(margin, shape, texture, venation):
       if texture == 'thin': return 'Corylus avellana'
       return 'Hydrangea sp'
     elif shape == 'linear':
-      if texture == 'papery': return 'Pseudosasa japonica'
-      else:
-        if venation == 'parallel': return 'Nerium oleander'
-        else: return 'Podocarpus sp'
+      if venation == 'parallel': return 'Nerium oleander'
+      elif venation == 'nearly invisible': return 'Podocarpus sp'
+      else: return 'Pseudosasa japonica'
     elif shape == 'oblong': return 'Ilex perado ssp azorica'
     elif shape == 'elliptical':
       if texture == 'waxy': return 'Buxus sempervirens'
       else: return 'Acca sellowiana' 
 
-l30_margin = ['palmate', 'dissected', 'spiny', 'toothed', 'doubly serrate', 'sinuate', 'lobed', 'dentate', 'undulate', 'serrate', 'entire']
-l30_shape = ['orbicular', 'elliptical', 'lanceolate', 'cordate', 'deltoid', 'obovate', 'ovate', 'spear', 'linear', 'oblong']
-l30_venation = ['parallel', 'nearly invisible']
-l30_texture = ['smooth', 'leathery', 'thin', 'papery' 'waxy']
+l30_margin = ['palmate', 'dissected', 'spiny', 'toothed', 'doubly serrate', 'sinuate', 'lobed', 'crenate',
+              'dentate', 'undulate', 'serrate', 'entire']
+l30_shape = ['orbicular', 'elliptical', 'lanceolate', 'obovate', 'ovate', 'oblong', 'cordate', 'deltoid', 'linear']
+l30_venation = ['parallel', 'nearly invisible', 'others']
+l30_texture = ['smooth', 'leathery', 'thin', 'waxy']
 l30_labels = ['Acca sellowiana', 'Acer palmaturu', 'Alnus sp', 'Arisarum vulgare', 'Betula pubescens', 'Bougainvillea sp', 
               'Buxus sempervirens', 'Castanea sativa', 'Celtis sp', 'Corylus avellana', 'Crataegus monogyna', 'Erodium sp', 
               'Euonymus japonicus', 'Geranium sp', 'Hydrangea sp', 'Ilex aquifolium', 'Ilex perado ssp azorica', 'Magnolia grandiflora', 
               'Magnolia soulangeana', 'Nerium oleander', 'Podocarpus sp', 'Populus alba', 'Populus nigra', 'Primula vulgaris', 
               'Pseudosasa japonica', 'Quercus robur', 'Quercus suber', 'Salix atrocinerea', 'Tilia tomentosa', 'Urtica dioica']
-l30_dim = 3072
 
 def classify_10(arrangement, margin, texture):
   if arrangement == 'pinnate':
@@ -194,5 +193,5 @@ l10_type = ["pinnate", "trifiolate", "palmate", "needle", "others", "feathery"]
 l10_margin = ["entire", "toothed", 'dissected', 'serrate']
 l10_texture = ["glossy", "leathery"]
 l10_labels = ["Acer negundo", "Aesculus californica", "Chelidonium majus", "Eschscholzia californica", "Fragaria vesca", 
-                   "Fraxinus sp", "Pinus sp", "Polypodium vulgare", "Schinus terebinthifolius", "Taxus bacatta"]
+              "Fraxinus sp", "Pinus sp", "Polypodium vulgare", "Schinus terebinthifolius", "Taxus bacatta"]
 l10_dim = 3072

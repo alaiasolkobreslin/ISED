@@ -94,6 +94,7 @@ class LeavesNet(nn.Module):
       self.dim = 3072
     else:
       raise Exception(f"Unknown directory: {data_dir}")
+    self.num_features = 64
   
     # CNN
     self.cnn = nn.Sequential(
@@ -112,16 +113,21 @@ class LeavesNet(nn.Module):
       nn.Flatten(),
     )
 
-    self.last_fc = nn.Sequential(
+    self.features_fc = nn.Sequential(
       nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Dropout(),
-      nn.Linear(self.dim, self.num_classes),
+      nn.Linear(self.dim, self.num_features),
+      nn.ReLU(),
+    )
+
+    self.last_fc = nn.Sequential(
+      nn.Linear(self.num_features, self.num_classes),
       nn.Softmax(dim=1)
     )
 
   def forward(self, x):
     x = self.cnn(x)
+    x = self.features_fc(x)
     x = self.last_fc(x)
     return x
 

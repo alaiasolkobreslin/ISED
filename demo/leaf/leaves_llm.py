@@ -76,11 +76,9 @@ class LeavesDataset(torch.utils.data.Dataset):
     labels = torch.stack([torch.tensor(item[1]).long() for item in batch])
     return (imgs, labels)
 
-def leaves_loader(data_root, data_dir, n_train, batch_size, train_percentage):
-  dataset = LeavesDataset(data_root, data_dir, n_train)
-  num_train = int(len(dataset) * train_percentage)
-  num_test = len(dataset) - num_train
-  (train_dataset, test_dataset) = torch.utils.data.random_split(dataset, [num_train, num_test])
+def leaves_loader(data_root, data_dir, num_train, batch_size, num_test):
+  dataset = LeavesDataset(data_root, data_dir, num_train + num_test)
+  (train_dataset, test_dataset) = torch.utils.data.random_split(dataset, [num_train*11, num_test*11])
   train_loader = torch.utils.data.DataLoader(train_dataset, collate_fn=LeavesDataset.collate_fn, batch_size=batch_size, shuffle=True)
   test_loader = torch.utils.data.DataLoader(test_dataset, collate_fn=LeavesDataset.collate_fn, batch_size=batch_size, shuffle=True)
   return (train_loader, test_loader)
@@ -133,7 +131,6 @@ class LeavesNet(nn.Module):
     self.f1_fc = nn.Sequential(
       nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Dropout(),
       nn.Linear(self.dim, len(self.f1)),
       nn.Softmax(dim=1)
     )
@@ -142,7 +139,6 @@ class LeavesNet(nn.Module):
     self.f2_fc = nn.Sequential(
       nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Dropout(),
       nn.Linear(self.dim, len(self.f2)),
       nn.Softmax(dim=1)
     )
@@ -151,7 +147,6 @@ class LeavesNet(nn.Module):
     self.f3_fc = nn.Sequential(
       nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Dropout(),
       nn.Linear(self.dim, len(self.f3)),
       nn.Softmax(dim=1)
     )
@@ -184,7 +179,6 @@ class LeavesNet(nn.Module):
     has_f1 = self.f1_fc(x)
     has_f2 = self.f2_fc(x)
     has_f3 = self.f3_fc(x)
-    # has_f4 = self.f4_fc(x)
     return self.bbox(has_f1, has_f2, has_f3)
 
 class Trainer():
@@ -278,12 +272,12 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   random_seeds = [1234, 3177, 5848, 9175, 8725] 
-  train_nums = [20, 35, 45, 65, 115]
-  train_percentages = [0.5, 0.6, 0.7, 0.8, 0.9]
+  train_nums = [30]
+  test_nums = [10]
   data_dirs = ['leaf_11']
   accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
   times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'data_dir', 'sample_count', 'num train'] + accuracies + times
+  field_names = ['random seed', 'data_dir', 'sample count', 'num train'] + accuracies + times
 
   with open('demo/leaf/leaf_llm.csv', 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=field_names)
@@ -302,7 +296,7 @@ if __name__ == "__main__":
         model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
         if not os.path.exists(model_dir): os.makedirs(model_dir)
         
-        (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums[i], args.batch_size, train_percentages[i])
+        (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums[i], args.batch_size, test_nums[i])
         trainer = Trainer(train_loader, test_loader, args.learning_rate, args.sample_count, data_dir, args.caching, args.gpu)
 
         # Run
@@ -310,7 +304,7 @@ if __name__ == "__main__":
         dict["random seed"] = seed
         dict['data_dir'] = data_dir
         dict['sample count'] = args.sample_count
-        dict["num train"] = int(train_percentages[i]*train_nums[i])
+        dict["num train"] = train_nums[i]
         with open('demo/leaf/leaf_llm.csv', 'a', newline='') as csvfile:
           writer = csv.DictWriter(csvfile, fieldnames=field_names)
           writer.writerow(dict)

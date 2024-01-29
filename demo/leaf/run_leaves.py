@@ -132,7 +132,6 @@ class LeavesNet(nn.Module):
     self.f1_fc = nn.Sequential(
       nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Dropout(),
       nn.Linear(self.dim, len(self.f1)),
       nn.Softmax(dim=1)
     )
@@ -141,7 +140,6 @@ class LeavesNet(nn.Module):
     self.f2_fc = nn.Sequential(
       nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Dropout(),
       nn.Linear(self.dim, len(self.f2)),
       nn.Softmax(dim=1)
     )
@@ -150,7 +148,6 @@ class LeavesNet(nn.Module):
     self.f3_fc = nn.Sequential(
       nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Dropout(),
       nn.Linear(self.dim, len(self.f3)),
       nn.Softmax(dim=1)
     )
@@ -192,7 +189,6 @@ class LeavesNet(nn.Module):
     has_f1 = self.f1_fc(x)
     has_f2 = self.f2_fc(x)
     has_f3 = self.f3(x)
-    # has_f4 = self.f4_fc(x)
     return self.bbox(has_f1, has_f2, has_f3)
 
 class Trainer():
@@ -291,7 +287,7 @@ if __name__ == "__main__":
   data_dirs = ['leaf_11']
   accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
   times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'data_dir', 'sample_count', 'num train'] + accuracies + times
+  field_names = ['random seed', 'data_dir', 'sample count', 'num train'] + accuracies + times
 
   with open('demo/leaf/leaf_bbox.csv', 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=field_names)
