@@ -1564,7 +1564,7 @@
         "type": "int",
         "num_digits": 3,
         "strategy": "list",
-        "preprocess": "palindrome",
+        "preprocess": "id",
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
@@ -1587,7 +1587,7 @@
         "type": "int",
         "num_digits": 3,
         "strategy": "list",
-        "preprocess": "palindrome",
+        "preprocess": "id",
         "dataset": "SVHN",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
