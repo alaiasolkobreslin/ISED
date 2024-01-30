@@ -953,14 +953,6 @@
         "preprocess": "id",
         "dataset": "MNIST",
         "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "MNIST",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
       }
     ],
     "output": {
@@ -978,14 +970,6 @@
     "inputs": [
       {
         "name": "digit_1",
-        "type": "digit",
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "SVHN",
-        "unstructured_input_type": "Tensor[1 x 28 x 28]"
-      },
-      {
-        "name": "digit_2",
         "type": "digit",
         "strategy": "single_sample",
         "preprocess": "id",

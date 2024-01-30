@@ -63,8 +63,8 @@ def is_3_and_4(digit_1, digit_2):
     return (digit_1 == 3) and (digit_2 == 4)
 
 
-def not_3_or_4(digit_1, digit_2):
-    return (digit_1 != 3) and (digit_2 != 4)
+def not_3_or_4(digit_1):
+    return digit_1 != 3 and digit_1 != 4
 
 
 def less_than(digit_1, digit_2):
