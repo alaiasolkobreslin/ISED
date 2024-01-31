@@ -84,33 +84,12 @@ def leaves_loader(data_root, data_dir, n_train, batch_size, train_percentage):
   test_loader = torch.utils.data.DataLoader(test_dataset, collate_fn=LeavesDataset.collate_fn, batch_size=batch_size, shuffle=True)
   return (train_loader, test_loader)
 
-class LeavesNet(nn.Module):
-  def __init__(self, sample_count, data_dir, caching):
-    super(LeavesNet, self).__init__()
+class LeafNet(nn.Module):
+  def __init__(self, num_features):
+    super(LeafNet, self).__init__()
+    self.num_features = num_features
+    self.dim = leaves_config.l11_dim
 
-    # features for classification
-    if data_dir == 'leaf_11':
-      self.f1 = leaves_config.l11_margin
-      self.f2 = leaves_config.l11_shape
-      self.f3 = leaves_config.l11_texture
-      self.labels = leaves_config.l11_labels
-      self.dim = leaves_config.l11_dim
-    elif data_dir == 'leaf_30':
-      self.f1 = leaves_config.l30_margin
-      self.f2 = leaves_config.l30_shape
-      self.f3 = leaves_config.l30_texture
-      self.f4 = leaves_config.l30_venation
-      self.labels = leaves_config.l30_labels
-      self.dim = leaves_config.l30_dim
-    elif data_dir == 'leaf_10':
-      self.f1 = leaves_config.l10_type
-      self.f2 = leaves_config.l10_margin
-      self.f3 = leaves_config.l10_texture
-      self.labels = leaves_config.l10_labels
-      self.dim = leaves_config.l10_dim
-    else:
-      raise Exception(f"Unknown directory: {data_dir}")
-  
     # CNN
     self.cnn = nn.Sequential(
       nn.Conv2d(3, 32, 10, 1),
@@ -127,68 +106,48 @@ class LeavesNet(nn.Module):
       nn.MaxPool2d(2),
       nn.Flatten(),
     )
+
+    # Fully connected for 'features'
+    self.features_fc = nn.Sequential(
+      nn.Linear(self.dim, self.dim),
+      nn.ReLU(),
+      nn.Linear(self.dim, self.num_features),
+      nn.Softmax(dim=1)
+    )
     
-    # Fully connected for 'f1'
-    self.f1_fc = nn.Sequential(
-      nn.Linear(self.dim, self.dim),
-      nn.ReLU(),
-      nn.Linear(self.dim, len(self.f1)),
-      nn.Softmax(dim=1)
-    )
-
-    # Fully connected for 'f2'
-    self.f2_fc = nn.Sequential(
-      nn.Linear(self.dim, self.dim),
-      nn.ReLU(),
-      nn.Linear(self.dim, len(self.f2)),
-      nn.Softmax(dim=1)
-    )
-
-    # Fully connected for 'f3'
-    self.f3_fc = nn.Sequential(
-      nn.Linear(self.dim, self.dim),
-      nn.ReLU(),
-      nn.Linear(self.dim, len(self.f3)),
-      nn.Softmax(dim=1)
-    )
-
-    # Blackbox encoding identification chart
-    if data_dir == 'leaf_11':
-      self.bbox = blackbox.BlackBoxFunction(
-                  leaves_config.classify_11,
-                  (blackbox.DiscreteInputMapping(self.f1),
-                   blackbox.DiscreteInputMapping(self.f2),
-                   blackbox.DiscreteInputMapping(self.f3)),
-                   blackbox.DiscreteOutputMapping(self.labels),
-                  caching=caching,
-                  sample_count=sample_count)
-    elif data_dir == 'leaf_10':
-      self.bbox = blackbox.BlackBoxFunction(
-                  leaves_config.classify_10,
-                  (blackbox.DiscreteInputMapping(self.f1),
-                   blackbox.DiscreteInputMapping(self.f2),
-                   blackbox.DiscreteInputMapping(self.f3)),
-                   blackbox.DiscreteOutputMapping(self.labels),
-                  caching=caching,
-                  sample_count=sample_count)
-    elif data_dir == 'leaf_30':
-      self.bbox = blackbox.BlackBoxFunction(
-                  leaves_config.classify_30,
-                  (blackbox.DiscreteInputMapping(self.f1),
-                   blackbox.DiscreteInputMapping(self.f2),
-                   blackbox.DiscreteInputMapping(self.f3),
-                   blackbox.DiscreteInputMapping(self.f4),),
-                  blackbox.DiscreteOutputMapping(self.labels),
-                  caching=caching,
-                  sample_count=sample_count)
-    else:
-      raise Exception(f"Unknown directory: {data_dir}")
-
   def forward(self, x):
     x = self.cnn(x)
-    has_f1 = self.f1_fc(x)
-    has_f2 = self.f2_fc(x)
-    has_f3 = self.f3(x)
+    x = self.features_fc(x)   
+    return x
+
+class LeavesNet(nn.Module):
+  def __init__(self, sample_count, data_dir, caching):
+    super(LeavesNet, self).__init__()
+
+    # features for classification
+    self.f1 = leaves_config.l11_margin
+    self.f2 = leaves_config.l11_shape
+    self.f3 = leaves_config.l11_texture
+    self.labels = leaves_config.l11_labels
+
+    self.net1 = LeafNet(len(self.f1))
+    self.net2 = LeafNet(len(self.f2))
+    self.net3 = LeafNet(len(self.f3))
+
+    # Blackbox encoding identification chart
+    self.bbox = blackbox.BlackBoxFunction(
+                leaves_config.classify_11,
+                (blackbox.DiscreteInputMapping(self.f1),
+                 blackbox.DiscreteInputMapping(self.f2),
+                 blackbox.DiscreteInputMapping(self.f3)),
+                 blackbox.DiscreteOutputMapping(self.labels),
+                caching=caching,
+                sample_count=sample_count)
+
+  def forward(self, x):
+    has_f1 = self.net1(x)
+    has_f2 = self.net2(x)
+    has_f3 = self.net3(x)
     return self.bbox(has_f1, has_f2, has_f3)
 
 class Trainer():
