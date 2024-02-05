@@ -83,6 +83,41 @@ def leaves_loader(data_root, data_dir, num_train, batch_size, num_test):
   test_loader = torch.utils.data.DataLoader(test_dataset, collate_fn=LeavesDataset.collate_fn, batch_size=batch_size, shuffle=True)
   return (train_loader, test_loader)
 
+class LeafNet(nn.Module):
+  def __init__(self, num_features):
+    super(LeafNet, self).__init__()
+    self.num_features = num_features
+    self.dim = leaves_config.l11_dim
+
+    # CNN
+    self.cnn = nn.Sequential(
+      nn.Conv2d(3, 32, 10, 1),
+      nn.ReLU(),
+      nn.MaxPool2d(3),
+      nn.Conv2d(32, 64, 5, 1),
+      nn.ReLU(),
+      nn.MaxPool2d(3),
+      nn.Conv2d(64, 128, 3, 1),
+      nn.ReLU(),
+      nn.MaxPool2d(2),
+      nn.Conv2d(128, 128, 3, 1),
+      nn.ReLU(),
+      nn.MaxPool2d(2),
+      nn.Flatten(),
+    )
+
+    # Fully connected for 'features'
+    self.features_fc = nn.Sequential(
+      nn.Linear(self.dim, self.dim),
+      nn.ReLU(),
+      nn.Linear(self.dim, self.num_features),
+      nn.Softmax(dim=1)
+    )
+  def forward(self, x):
+    x = self.cnn(x)
+    x = self.features_fc(x)   
+    return x
+
 class LeavesNet(nn.Module):
   def __init__(self, sample_count, data_dir, caching):
     super(LeavesNet, self).__init__()
@@ -110,46 +145,9 @@ class LeavesNet(nn.Module):
     else:
       raise Exception(f"Unknown directory: {data_dir}")
   
-    # CNN
-    self.cnn = nn.Sequential(
-      nn.Conv2d(3, 32, 10, 1),
-      nn.ReLU(),
-      nn.MaxPool2d(3),
-      nn.Conv2d(32, 64, 5, 1),
-      nn.ReLU(),
-      nn.MaxPool2d(3),
-      nn.Conv2d(64, 128, 3, 1),
-      nn.ReLU(),
-      nn.MaxPool2d(2),
-      nn.Conv2d(128, 128, 3, 1),
-      nn.ReLU(),
-      nn.MaxPool2d(2),
-      nn.Flatten(),
-    )
-
-    # Fully connected for 'f1'
-    self.f1_fc = nn.Sequential(
-      nn.Linear(self.dim, self.dim),
-      nn.ReLU(),
-      nn.Linear(self.dim, len(self.f1)),
-      nn.Softmax(dim=1)
-    )
-    
-    # Fully connected for 'f2'
-    self.f2_fc = nn.Sequential(
-      nn.Linear(self.dim, self.dim),
-      nn.ReLU(),
-      nn.Linear(self.dim, len(self.f2)),
-      nn.Softmax(dim=1)
-    )
-
-    # Fully connected for 'f3'
-    self.f3_fc = nn.Sequential(
-      nn.Linear(self.dim, self.dim),
-      nn.ReLU(),
-      nn.Linear(self.dim, len(self.f3)),
-      nn.Softmax(dim=1)
-    )
+    self.net1 = LeafNet(len(self.f1))
+    self.net2 = LeafNet(len(self.f2))
+    self.net3 = LeafNet(len(self.f3))
 
     # Blackbox encoding identification chart
     if data_dir == 'leaf_10' or data_dir == 'leaf_11':
@@ -175,10 +173,9 @@ class LeavesNet(nn.Module):
       raise Exception(f"Unknown directory: {data_dir}")
 
   def forward(self, x):
-    x = self.cnn(x)
-    has_f1 = self.f1_fc(x)
-    has_f2 = self.f2_fc(x)
-    has_f3 = self.f3_fc(x)
+    has_f1 = self.net1(x)
+    has_f2 = self.net2(x)
+    has_f3 = self.net3(x)
     return self.bbox(has_f1, has_f2, has_f3)
 
 class Trainer():
