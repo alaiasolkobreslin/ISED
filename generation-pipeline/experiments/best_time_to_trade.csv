@@ -1,0 +1,7 @@
+task name,random seed,accuracy epoch 1,accuracy epoch 2,accuracy epoch 3,accuracy epoch 4,accuracy epoch 5,accuracy epoch 6,accuracy epoch 7,accuracy epoch 8,accuracy epoch 9,accuracy epoch 10,time epoch 1,time epoch 2,time epoch 3,time epoch 4,time epoch 5,time epoch 6,time epoch 7,time epoch 8,time epoch 9,time epoch 10
+best_time_to_buy_and_sell_stock_mnist,3177,0.204,0.204,0.182,0.194,0.206,0.188,0.192,0.194,0.204,0.186,,,,,,,,,,
+best_time_to_buy_and_sell_stock_mnist,5848,0.242,0.242,0.242,0.242,0.242,0.242,0.242,0.242,0.242,0.242,,,,,,,,,,
+best_time_to_buy_and_sell_stock_mnist,9175,0.194,0.144,0.158,0.146,0.152,0.126,0.146,0.146,0.15,0.138,,,,,,,,,,
+best_time_to_buy_and_sell_stock_svhn,3177,0.148,0.14,0.13,0.13,0.132,0.232,0.232,0.232,0.232,0.232,,,,,,,,,,
+best_time_to_buy_and_sell_stock_svhn,5848,0.194,0.196,0.19,0.184,0.184,0.184,0.18,0.182,0.184,0.184,,,,,,,,,,
+best_time_to_buy_and_sell_stock_svhn,9175,0.234,0.228,0.254,0.254,0.254,0.244,0.238,0.266,0.21,0.216,,,,,,,,,,
