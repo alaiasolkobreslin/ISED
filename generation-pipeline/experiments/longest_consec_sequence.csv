@@ -1,0 +1,7 @@
+task name,random seed,accuracy epoch 1,accuracy epoch 2,accuracy epoch 3,accuracy epoch 4,accuracy epoch 5,accuracy epoch 6,accuracy epoch 7,accuracy epoch 8,accuracy epoch 9,accuracy epoch 10,time epoch 1,time epoch 2,time epoch 3,time epoch 4,time epoch 5,time epoch 6,time epoch 7,time epoch 8,time epoch 9,time epoch 10
+longest_consecutive_sequence_svhn,3177,0.532,0.534,0.534,0.534,0.534,0.534,0.534,0.534,0.534,0.534,,,,,,,,,,
+longest_consecutive_sequence_svhn,5848,0.242,0.244,0.244,0.244,0.242,0.246,0.244,0.238,0.244,0.242,,,,,,,,,,
+longest_consecutive_sequence_svhn,9175,0.244,0.244,0.242,0.242,0.242,0.242,0.242,0.242,0.242,0.242,,,,,,,,,,
+longest_consecutive_sequence_mnist,3177,0.542,0.542,0.542,0.542,0.542,0.542,0.542,0.542,0.542,0.542,,,,,,,,,,
+longest_consecutive_sequence_mnist,5848,0.25,0.248,0.218,0.24,0.24,0.206,0.192,0.19,0.222,0.212,,,,,,,,,,
+longest_consecutive_sequence_mnist,9175,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,,,,,,,,,,
