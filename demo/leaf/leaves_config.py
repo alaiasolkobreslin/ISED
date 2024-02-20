@@ -21,17 +21,17 @@ def classify_llm(feature1, feature2, feature3):
   plants1 = parse_response(result1, feature1)
   if len(plants1) == 1: return plants1[0]
   elif len(plants1) == 0: 
-    plants1 = labels # return 'unknown'
+    plants1 = labels
   else:
     results2 = call_llm(plants1, features_2)
     plants2 = parse_response(results2, feature2)
     if len(plants2) == 1: return plants2[0]
     elif len(plants2) == 0: 
-      plants2 = plants1  # return 'unknown'
+      plants2 = plants1 
     results3 = call_llm(plants2, features_3)
     plants3 = parse_response(results3, feature3)
     if len(plants3) == 1: return plants3[0]
-    elif len(plants3) == 0: return plants2[random.randrange(len(plants2))] # return 'unknown'
+    elif len(plants3) == 0: return plants2[random.randrange(len(plants2))]
     else: return plants3[random.randrange(len(plants3))]
 
 def call_llm(plants, features):

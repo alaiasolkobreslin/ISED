@@ -2,9 +2,6 @@ from typing import Optional, Callable
 import os
 import random
 
-import csv
-import time
-
 import torch
 import torchvision
 import torch.optim as optim
@@ -115,7 +112,7 @@ class LeafNet(nn.Module):
     return x
 
 class LeavesNet(nn.Module):
-  def __init__(self, data_dir):
+  def __init__(self):
     super(LeavesNet, self).__init__()
     self.num_classes = 11
     self.num_features = 64
@@ -132,13 +129,13 @@ class LeavesNet(nn.Module):
     return x
 
 class Trainer():
-  def __init__(self, train_loader, test_loader, learning_rate, data_dir, gpu, save_model=False):
+  def __init__(self, train_loader, test_loader, learning_rate, gpu, save_model=False):
     if gpu >= 0:
       device = torch.device("cuda:%d" % gpu)
     else:
       device = torch.device("cpu")
     self.device = device
-    self.network = LeavesNet(data_dir) #.to(self.device)
+    self.network = LeavesNet() #.to(self.device)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -188,61 +185,37 @@ class Trainer():
         perc = 100.*num_correct/num_items
         avg_loss = test_loss / (i + 1)
         iter.set_description(f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {int(num_correct)}/{int(num_items)} ({perc:.2f})%")
-    
-    return float(num_correct/num_items)
   
   def train(self, n_epochs):
-    dict = {}
     for epoch in range(1, n_epochs+1):
-      t0 = time.time()
       self.train_epoch(epoch)
-      t1 = time.time()
-      dict["time epoch " + str(epoch)] = round(t1 - t0, ndigits=4)
-      acc = self.test_epoch(epoch)
-      dict["accuracy epoch " + str(epoch)] = round(acc, ndigits=6)
-    return dict
+      self.test_epoch(epoch)
 
 if __name__ == "__main__":
   parser = ArgumentParser("leaves")
   parser.add_argument("--model-name", type=str, default="leaves.pkl")
   parser.add_argument("--n-epochs", type=int, default=30)
+  parser.add_argument("--seed", type=int, default=1234)               # 3177, 5848, 9175, 8725
+  parser.add_argument("--train-nums", type=int, default=30)           # 10, 20, 30, 50, 100
+  parser.add_argument("--test-nums", type=int, default=10)
+  parser.add_argument("--data-dir", type=str, default='leaf_11')
   parser.add_argument("--gpu", type=int, default=-1)
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--cuda", action="store_true")
   args = parser.parse_args()
 
-  random_seeds = [1234, 3177, 5848, 9175, 8725]
-  train_nums = [10, 20, 30, 50, 100]
-  test_nums = 10
-  data_dirs = ['leaf_11']
-  accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
-  times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'data_dir', 'num train'] + accuracies + times
+  # Setup parameters
+  torch.manual_seed(args.seed)
+  random.seed(args.seed)
 
-  with open('demo/leaf/leaf_baseline.csv', 'w', newline='') as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames=field_names)
-    writer.writeheader()
-    csvfile.close()
+  # Load data
+  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
+  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
+  if not os.path.exists(model_dir): os.makedirs(model_dir)
 
-  for data_dir in data_dirs:
-    for i in range(len(train_nums)): # 10, 20, 30, 50, 100
-      for seed in random_seeds:
-        torch.manual_seed(seed)
-        random.seed(seed)
-        
-        data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
-        model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
-        if not os.path.exists(model_dir): os.makedirs(model_dir)
-        
-        (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums[i], args.batch_size, test_nums)
-        trainer = Trainer(train_loader, test_loader, args.learning_rate, data_dir, args.gpu)
+  (train_loader, test_loader) = leaves_loader(data_root, args.data_dir, args.train_nums, args.batch_size, args.test_nums)
+  trainer = Trainer(train_loader, test_loader, args.learning_rate, args.gpu)
 
-        dict = trainer.train(args.n_epochs)
-        dict["random seed"] = seed
-        dict['data_dir'] = data_dir
-        dict["num train"] = train_nums[i]
-        with open('demo/leaf/leaf_baseline.csv', 'a', newline='') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=field_names)
-            writer.writerow(dict)
-            csvfile.close() 
+  # Run
+  trainer.train(args.n_epochs)
