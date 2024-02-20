@@ -33,9 +33,7 @@ class LeavesDataset(torch.utils.data.Dataset):
     transform: Optional[Callable] = leaves_img_transform,
   ):
     self.transform = transform
-    if data_dir == 'leaf_10': self.labels = leaves_config.l10_labels
-    elif data_dir == 'leaf_30': self.labels = leaves_config.l30_labels
-    elif data_dir == 'leaf_11': self.labels = leaves_config.l11_labels
+    if data_dir == 'leaf_11': self.labels = leaves_config.l11_labels
     else: self.labels = []
     
     # Get all image paths and their labels
@@ -71,31 +69,21 @@ class LeavesDataset(torch.utils.data.Dataset):
     labels = torch.stack([torch.tensor(item[1]).long() for item in batch])
     return (imgs, labels)
 
-def leaves_loader(data_root, data_dir, n_train, batch_size, train_percentage):
-  dataset = LeavesDataset(data_root, data_dir, n_train)
-  num_train = int(len(dataset) * train_percentage)
+def leaves_loader(data_root, data_dir, n_train, batch_size, n_test):
+  dataset = LeavesDataset(data_root, data_dir, (n_train+n_test))
+  num_train = n_train*11
   num_test = len(dataset) - num_train
   (train_dataset, test_dataset) = torch.utils.data.random_split(dataset, [num_train, num_test])
   train_loader = torch.utils.data.DataLoader(train_dataset, collate_fn=LeavesDataset.collate_fn, batch_size=batch_size, shuffle=True)
   test_loader = torch.utils.data.DataLoader(test_dataset, collate_fn=LeavesDataset.collate_fn, batch_size=batch_size, shuffle=True)
   return (train_loader, test_loader)
 
-class LeavesNet(nn.Module):
-  def __init__(self, data_dir):
-    super(LeavesNet, self).__init__()
-    if data_dir == 'leaf_11':
-      self.num_classes = 11
-      self.dim = 2304
-    elif data_dir == 'leaf_10':
-      self.num_classes = 10
-      self.dim = 3072
-    elif data_dir == 'leaf_30':
-      self.num_classes = 30
-      self.dim = 3072
-    else:
-      raise Exception(f"Unknown directory: {data_dir}")
-    self.num_features = 64
-  
+class LeafNet(nn.Module):
+  def __init__(self, num_features):
+    super(LeafNet, self).__init__()
+    self.num_features = num_features
+    self.dim = 2304
+
     # CNN
     self.cnn = nn.Sequential(
       nn.Conv2d(3, 32, 10, 1),
@@ -113,15 +101,33 @@ class LeavesNet(nn.Module):
       nn.Flatten(),
     )
 
-    self.last_fc = nn.Sequential(
+    # Fully connected for 'features'
+    self.features_fc = nn.Sequential(
       nn.Linear(self.dim, self.dim),
       nn.ReLU(),
-      nn.Linear(self.dim, self.num_classes),
+      nn.Linear(self.dim, self.num_features),
+      nn.ReLU()
+    )
+    
+  def forward(self, x):
+    x = self.cnn(x)
+    x = self.features_fc(x)   
+    return x
+
+class LeavesNet(nn.Module):
+  def __init__(self, data_dir):
+    super(LeavesNet, self).__init__()
+    self.num_classes = 11
+    self.num_features = 64
+    self.net = LeafNet(self.num_features)
+
+    self.last_fc = nn.Sequential(
+      nn.Linear(self.num_features, self.num_classes),
       nn.Softmax(dim=1)
     )
 
   def forward(self, x):
-    x = self.cnn(x)
+    x = self.net(x)
     x = self.last_fc(x)
     return x
 
@@ -183,9 +189,6 @@ class Trainer():
         avg_loss = test_loss / (i + 1)
         iter.set_description(f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {int(num_correct)}/{int(num_items)} ({perc:.2f})%")
     
-    # if self.save_model and test_loss < self.min_test_loss:
-    #  self.min_test_loss = test_loss
-    #  torch.save(self.network, "../model/leaves/leaves_net.pkl")
     return float(num_correct/num_items)
   
   def train(self, n_epochs):
@@ -210,8 +213,8 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   random_seeds = [1234, 3177, 5848, 9175, 8725]
-  train_nums = [20, 35, 45, 65, 115]
-  train_percentages = [0.5, 0.6, 0.7, 0.8, 0.9]
+  train_nums = [10, 20, 30, 50, 100]
+  test_nums = 10
   data_dirs = ['leaf_11']
   accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
   times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
@@ -232,13 +235,13 @@ if __name__ == "__main__":
         model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
         if not os.path.exists(model_dir): os.makedirs(model_dir)
         
-        (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums[i], args.batch_size, train_percentages[i])
+        (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums[i], args.batch_size, test_nums)
         trainer = Trainer(train_loader, test_loader, args.learning_rate, data_dir, args.gpu)
 
         dict = trainer.train(args.n_epochs)
         dict["random seed"] = seed
         dict['data_dir'] = data_dir
-        dict["num train"] = int(train_percentages[i]*train_nums[i])
+        dict["num train"] = train_nums[i]
         with open('demo/leaf/leaf_baseline.csv', 'a', newline='') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=field_names)
             writer.writerow(dict)

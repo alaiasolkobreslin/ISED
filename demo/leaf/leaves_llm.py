@@ -17,7 +17,6 @@ from tqdm import tqdm
 
 import blackbox
 import leaves_config
-import llm_configs
 
 leaves_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -38,9 +37,7 @@ class LeavesDataset(torch.utils.data.Dataset):
     transform: Optional[Callable] = leaves_img_transform,
   ):
     self.transform = transform
-    if data_dir == 'leaf_10': self.labels = llm_configs.l10_labels
-    elif data_dir == 'leaf_30': self.labels = llm_configs.l30_labels
-    elif data_dir == 'leaf_11': self.labels = llm_configs.l11_labels
+    if data_dir == 'leaf_11': self.labels = leaves_config.l11_labels
     else: self.labels = []
     
     # Get all image paths and their labels
@@ -76,9 +73,11 @@ class LeavesDataset(torch.utils.data.Dataset):
     labels = torch.stack([torch.tensor(item[1]).long() for item in batch])
     return (imgs, labels)
 
-def leaves_loader(data_root, data_dir, num_train, batch_size, num_test):
-  dataset = LeavesDataset(data_root, data_dir, num_train + num_test)
-  (train_dataset, test_dataset) = torch.utils.data.random_split(dataset, [num_train*11, num_test*11])
+def leaves_loader(data_root, data_dir, n_train, batch_size, n_test):
+  dataset = LeavesDataset(data_root, data_dir, n_train + n_test)
+  num_train = n_train*11
+  num_test = len(dataset) - num_train
+  (train_dataset, test_dataset) = torch.utils.data.random_split(dataset, [num_train, num_test])
   train_loader = torch.utils.data.DataLoader(train_dataset, collate_fn=LeavesDataset.collate_fn, batch_size=batch_size, shuffle=True)
   test_loader = torch.utils.data.DataLoader(test_dataset, collate_fn=LeavesDataset.collate_fn, batch_size=batch_size, shuffle=True)
   return (train_loader, test_loader)
@@ -123,54 +122,24 @@ class LeavesNet(nn.Module):
     super(LeavesNet, self).__init__()
 
     # features for classification
-    if data_dir == 'leaf_10':
-      self.f1 = llm_configs.l10_3_one
-      self.f2 = llm_configs.l10_3_two
-      self.f3 = llm_configs.l10_3_three
-      self.labels = llm_configs.l10_labels
-      self.dim = 3072
-    elif data_dir == 'leaf_11':
-      self.f1 = llm_configs.l11_4_one
-      self.f2 = llm_configs.l11_4_two
-      self.f3 = llm_configs.l11_4_three
-      self.labels = llm_configs.l11_labels
-      self.dim = 2304
-    elif data_dir == 'leaf_30':
-      self.f1 = llm_configs.l30_3_one
-      self.f2 = llm_configs.l30_3_two
-      self.f3 = llm_configs.l30_3_three
-      self.f4 = llm_configs.l30_3_four
-      self.labels = llm_configs.l30_labels
-      self.dim = 3072      
-    else:
-      raise Exception(f"Unknown directory: {data_dir}")
+    self.f1 = leaves_config.features_1
+    self.f2 = leaves_config.features_2
+    self.f3 = leaves_config.features_3
+    self.labels = leaves_config.labels
   
     self.net1 = LeafNet(len(self.f1))
     self.net2 = LeafNet(len(self.f2))
     self.net3 = LeafNet(len(self.f3))
 
     # Blackbox encoding identification chart
-    if data_dir == 'leaf_10' or data_dir == 'leaf_11':
-      self.bbox = blackbox.BlackBoxFunction(
-                  leaves_config.classify_llm,
-                  (blackbox.DiscreteInputMapping(self.f1),
-                   blackbox.DiscreteInputMapping(self.f2),
-                   blackbox.DiscreteInputMapping(self.f3)),
-                   blackbox.DiscreteOutputMapping(self.labels),
-                  caching=caching,
-                  sample_count=sample_count)
-    elif data_dir == 'leaf_30':
-      self.bbox = blackbox.BlackBoxFunction(
-                  leaves_config.classify_llm_4,
-                  (blackbox.DiscreteInputMapping(self.f1),
-                   blackbox.DiscreteInputMapping(self.f2),
-                   blackbox.DiscreteInputMapping(self.f3),
-                   blackbox.DiscreteInputMapping(self.f4)),
-                   blackbox.DiscreteOutputMapping(self.labels),
-                  caching=caching,
-                  sample_count=sample_count)
-    else:
-      raise Exception(f"Unknown directory: {data_dir}")
+    self.bbox = blackbox.BlackBoxFunction(
+                leaves_config.classify_llm,
+                (blackbox.DiscreteInputMapping(self.f1),
+                 blackbox.DiscreteInputMapping(self.f2),
+                 blackbox.DiscreteInputMapping(self.f3)),
+                blackbox.DiscreteOutputMapping(self.labels),
+                caching=caching,
+                sample_count=sample_count)
 
   def forward(self, x):
     has_f1 = self.net1(x)
@@ -239,9 +208,10 @@ class Trainer():
         iter.set_description(f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, {int(num_correct)}/{int(num_items)} ({perc:.2f})%")
     
     # Save the model
-    # if self.save_model and test_loss < self.min_test_loss:
-    #  self.min_test_loss = test_loss
-    #  torch.save(self.network, "../model/leaves/leaves_net.pkl")
+    if self.save_model and test_loss < self.min_test_loss:
+      self.min_test_loss = test_loss
+      torch.save(self.network, "../model/leaves/leaves_net.pkl")
+    
     return float(num_correct/num_items)
 
   def train(self, n_epochs):
@@ -263,26 +233,21 @@ if __name__ == "__main__":
   parser.add_argument("--sample-count", type=int, default=100)
   parser.add_argument("--gpu", type=int, default=-1)
   parser.add_argument("--batch-size", type=int, default=16)
-  parser.add_argument("--learning-rate", type=float, default=0.0001)
+  parser.add_argument("--learning-rate", type=float, default=0.0002)
   parser.add_argument("--caching", type=bool, default=True)
   parser.add_argument("--cuda", action="store_true")
   args = parser.parse_args()
 
   random_seeds = [1234, 3177, 5848, 9175, 8725] 
   train_nums = [30]
-  test_nums = [10]
+  test_nums = 10
   data_dirs = ['leaf_11']
   accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
   times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
   field_names = ['random seed', 'data_dir', 'sample count', 'num train'] + accuracies + times
 
-  with open('demo/leaf/leaf_llm.csv', 'w', newline='') as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames=field_names)
-    writer.writeheader()
-    csvfile.close()
-
   for data_dir in data_dirs:
-    for i in range(len(train_nums)): # 10, 20, 30, 50, 100
+    for i in range(len(train_nums)):
       for seed in random_seeds:
         # Setup parameters
         torch.manual_seed(seed)
@@ -293,7 +258,7 @@ if __name__ == "__main__":
         model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
         if not os.path.exists(model_dir): os.makedirs(model_dir)
         
-        (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums[i], args.batch_size, test_nums[i])
+        (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums[i], args.batch_size, test_nums)
         trainer = Trainer(train_loader, test_loader, args.learning_rate, args.sample_count, data_dir, args.caching, args.gpu)
 
         # Run

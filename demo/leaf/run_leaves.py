@@ -37,9 +37,7 @@ class LeavesDataset(torch.utils.data.Dataset):
     transform: Optional[Callable] = leaves_img_transform,
   ):
     self.transform = transform
-    if data_dir == 'leaf_10': self.labels = leaves_config.l10_labels
-    elif data_dir == 'leaf_30': self.labels = leaves_config.l30_labels
-    elif data_dir == 'leaf_11': self.labels = leaves_config.l11_labels
+    if data_dir == 'leaf_11': self.labels = leaves_config.l11_labels
     else: self.labels = []
     
     # Get all image paths and their labels
@@ -75,9 +73,9 @@ class LeavesDataset(torch.utils.data.Dataset):
     labels = torch.stack([torch.tensor(item[1]).long() for item in batch])
     return (imgs, labels)
 
-def leaves_loader(data_root, data_dir, n_train, batch_size, train_percentage):
-  dataset = LeavesDataset(data_root, data_dir, n_train)
-  num_train = int(len(dataset) * train_percentage)
+def leaves_loader(data_root, data_dir, n_train, batch_size, n_test):
+  dataset = LeavesDataset(data_root, data_dir, (n_train+n_test))
+  num_train = n_train*11
   num_test = len(dataset) - num_train
   (train_dataset, test_dataset) = torch.utils.data.random_split(dataset, [num_train, num_test])
   train_loader = torch.utils.data.DataLoader(train_dataset, collate_fn=LeavesDataset.collate_fn, batch_size=batch_size, shuffle=True)
@@ -211,9 +209,10 @@ class Trainer():
         iter.set_description(f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, {int(num_correct)}/{int(num_items)} ({perc:.2f})%")
     
     # Save the model
-    # if self.save_model and test_loss < self.min_test_loss:
-    #  self.min_test_loss = test_loss
-    #  torch.save(self.network, "../model/leaves/leaves_net.pkl")
+    if self.save_model and test_loss < self.min_test_loss:
+      self.min_test_loss = test_loss
+      torch.save(self.network, "../model/leaves/leaves_net.pkl")
+    
     return float(num_correct/num_items)
 
   def train(self, n_epochs):
@@ -235,14 +234,14 @@ if __name__ == "__main__":
   parser.add_argument("--sample-count", type=int, default=100)
   parser.add_argument("--gpu", type=int, default=-1)
   parser.add_argument("--batch-size", type=int, default=16)
-  parser.add_argument("--learning-rate", type=float, default=0.0001)
+  parser.add_argument("--learning-rate", type=float, default=0.0003)
   parser.add_argument("--caching", type=bool, default=False)
   parser.add_argument("--cuda", action="store_true")
   args = parser.parse_args()
 
-  random_seeds = [1234, 3177, 5848, 9175]
-  train_nums = [20, 35, 45, 65, 115]
-  train_percentages = [0.5, 0.6, 0.7, 0.8, 0.9]
+  random_seeds = [1234, 3177, 5848, 9175, 8725]
+  train_nums = [30]
+  test_nums = 10
   data_dirs = ['leaf_11']
   accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
   times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
@@ -265,7 +264,7 @@ if __name__ == "__main__":
         model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
         if not os.path.exists(model_dir): os.makedirs(model_dir)
         
-        (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums[i], args.batch_size, train_percentages[i])
+        (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums[i], args.batch_size, test_nums)
         trainer = Trainer(train_loader, test_loader, args.learning_rate, args.sample_count, data_dir, args.caching, args.gpu)
 
         # Run
@@ -273,7 +272,7 @@ if __name__ == "__main__":
         dict["random seed"] = seed
         dict['data_dir'] = data_dir
         dict['sample count'] = args.sample_count
-        dict["num train"] = int(train_percentages[i]*train_nums[i])
+        dict["num train"] = train_nums[i]
         with open('demo/leaf/leaf_bbox.csv', 'a', newline='') as csvfile:
           writer = csv.DictWriter(csvfile, fieldnames=field_names)
           writer.writerow(dict)
