@@ -8,7 +8,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.multiprocessing import Pool
 
 from argparse import ArgumentParser
 from tqdm import tqdm
@@ -22,6 +21,9 @@ import output
 import blackbox
 from constants import *
 
+def data_to_device(data):
+    for key in data:
+        data[key] = data[key].to(DEVICE)
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(
@@ -104,8 +106,6 @@ class TaskNet(nn.Module):
                                       caching=caching,
                                       sample_count=sample_count)
 
-        self.pool = Pool(processes=batch_size_train)
-
     def get_nets_list(self):
         nets = []
 
@@ -138,8 +138,9 @@ class TaskNet(nn.Module):
         for net in self.nets_dict.values():
             net.train()
 
-    def close(self):
-        self.pool.close()
+    # def close(self):
+    #     pass
+    #     # self.pool.close()
 
     def confusion_matrix(self):
         # Just print one confusion matrix for the first UD
@@ -182,6 +183,7 @@ class Trainer():
         total_correct = 0
         iter = tqdm(self.train_loader, total=len(self.train_loader))
         for (i, (data, target)) in enumerate(iter):
+            data_to_device(data)
             (output_mapping, y_pred_sim, y_pred) = self.network(data)
 
             # Normalize label format
@@ -227,6 +229,7 @@ class Trainer():
         with torch.no_grad():
             iter = tqdm(self.test_loader, total=len(self.test_loader))
             for i, (data, target) in enumerate(iter):
+                data_to_device(data)
                 (output_mapping, y_pred_sim, y_pred) = self.network(data)
 
                 # Normalize label format
