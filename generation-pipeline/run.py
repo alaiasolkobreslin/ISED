@@ -138,10 +138,6 @@ class TaskNet(nn.Module):
         for net in self.nets_dict.values():
             net.train()
 
-    # def close(self):
-    #     pass
-    #     # self.pool.close()
-
     def confusion_matrix(self):
         # Just print one confusion matrix for the first UD
         self.unstructured_datasets[0].confusion_matrix(self.nets[0])
