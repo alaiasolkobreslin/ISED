@@ -356,7 +356,9 @@
     "output": {
       "type": "List[List[int]]",
       "output_mapping": "2d_list_output_mapping",
-      "dim": 729
+      "dim": 729,
+      "n_rows": 6,
+      "n_cols": 3
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -380,7 +382,9 @@
     "output": {
       "type": "List[List[int]]",
       "output_mapping": "2d_list_output_mapping",
-      "dim": 729
+      "dim": 729,
+      "n_rows": 6,
+      "n_cols": 3
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,

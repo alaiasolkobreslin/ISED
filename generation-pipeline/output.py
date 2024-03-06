@@ -291,7 +291,9 @@ class SudokuOutputMapping(OutputMapping):
 
 class OutputMappingList2D(OutputMapping):
     
-    def __init__(self, dim, fallback):
+    def __init__(self, rows, cols, dim, fallback):
+        self.rows = rows
+        self.cols = cols
         self.dim_om = dim
         self.labels_dict = self.get_labels_dict()
         self.fallback = fallback
@@ -344,7 +346,9 @@ def get_output_mapping(output_config):
             return DiscreteOutputMapping(elements=list(range(output_config["range"][0], output_config["range"][1])))
     elif om == OUTPUT_MAPPING_LIST_2D:
         dim = output_config[DIM]
-        return OutputMappingList2D(dim, fallback=0)
+        rows = output_config[N_ROWS]
+        cols = output_config[N_COLS]
+        return OutputMappingList2D(rows, cols, dim, fallback=0)
     elif om == SUDOKU_OUTPUT_MAPPING:
         size = output_config[N_ROWS]
         n_classes = output_config[N_CLASSES]
