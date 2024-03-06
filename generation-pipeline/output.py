@@ -4,7 +4,7 @@ import torch
 
 from constants import *
 import util
-
+from frozendict import frozendict
 
 class OutputMapping:
     def __init__(self): pass
@@ -289,6 +289,42 @@ class SudokuOutputMapping(OutputMapping):
         return y_sim, y
 
 
+class OutputMappingList2D(OutputMapping):
+    
+    def __init__(self, dim, fallback):
+        self.dim_om = dim
+        self.labels_dict = self.get_labels_dict()
+        self.fallback = fallback
+
+    def dim(self):
+        return self.dim_om
+
+    def generate_lists(self, length):
+        if length == 0:
+            return [[]]  # Base case: an empty list
+        else:
+            smaller_lists = self.generate_lists(length - 1)
+            all_lists = []
+            for lst in smaller_lists:
+                for i in range(10):
+                    new_list = lst + [i]
+                    all_lists.append(new_list)
+            return all_lists
+
+    def get_labels_dict(self):
+        d = {}
+        length = self.cols
+        lsts = self.generate_lists(length)
+        for i, lst in enumerate(lsts):
+            d[tuple(lst)] = i
+        return d
+
+    def vectorize_label(self, labels):
+        return torch.stack([
+            torch.tensor([1.0 if self.labels_dict[tuple(label[0])] == e
+                          else 0.0 for e in range(self.dim())])
+            for label in labels])
+
 def get_output_mapping(output_config):
     om = output_config[OUTPUT_MAPPING]
     if om == UNKNOWN:
@@ -306,6 +342,9 @@ def get_output_mapping(output_config):
     elif om == DISCRETE_OUTPUT_MAPPING:
         if "range" in output_config:
             return DiscreteOutputMapping(elements=list(range(output_config["range"][0], output_config["range"][1])))
+    elif om == OUTPUT_MAPPING_LIST_2D:
+        dim = output_config[DIM]
+        return OutputMappingList2D(dim, fallback=0)
     elif om == SUDOKU_OUTPUT_MAPPING:
         size = output_config[N_ROWS]
         n_classes = output_config[N_CLASSES]

@@ -79,11 +79,13 @@ RANGE = "range"
 OUTPUT_MAPPING_RANGE = "output_mapping_range"
 START = "start"
 END = "end"
+DIM = "dim"
 UNKNOWN = "unknown"
 FALLBACK = "fallback"
 SUDOKU_OUTPUT_MAPPING = "sudoku_output_mapping"
 LIST_OUTPUT_MAPPING = "list_output_mapping"
 INT_OUTPUT_MAPPING = 'int_output_mapping'
+OUTPUT_MAPPING_LIST_2D = "2d_list_output_mapping"
 DISCRETE_OUTPUT_MAPPING = "discrete_output_mapping"
 N_CLASSES = "n_classes"
 
