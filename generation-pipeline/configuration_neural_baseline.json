@@ -187,7 +187,7 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
-  "longest_common_prefix": {
+  "longest_common_prefix_mnist": {
     "py_func": "longest_common_prefix",
     "inputs": [
       {
@@ -198,6 +198,33 @@
         "n_rows": 3,
         "n_cols": 3,
         "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "str",
+      "n_classes": 10,
+      "output_mapping": "list_output_mapping",
+      "length": 3,
+      "dim": 1111
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "longest_common_prefix_svhn": {
+    "py_func": "longest_common_prefix",
+    "inputs": [
+      {
+        "name": "strs",
+        "type": "List[List[digit]]",
+        "strategy": "2d_list",
+        "preprocess": "id",
+        "n_rows": 3,
+        "n_cols": 3,
+        "dataset": "SVHN",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
