@@ -1,4 +1,0 @@
-task name,random seed,sample count,accuracy epoch 1,accuracy epoch 2,accuracy epoch 3,accuracy epoch 4,accuracy epoch 5,accuracy epoch 6,accuracy epoch 7,accuracy epoch 8,accuracy epoch 9,accuracy epoch 10,time epoch 1,time epoch 2,time epoch 3,time epoch 4,time epoch 5,time epoch 6,time epoch 7,time epoch 8,time epoch 9,time epoch 10
-longest_palindromic_substring_emnist,3177,100,0.26,0.338,0.352,0.44,0.402,0.394,0.45,0.478,0.476,0.48,125.651,119.0377,115.2871,112.8793,115.5722,114.5056,112.5338,116.2201,113.8322,112.6793
-longest_palindromic_substring_emnist,5848,100,0.246,0.338,0.378,0.424,0.426,0.434,0.458,0.438,0.476,0.474,123.2375,122.6689,115.242,121.8636,117.5954,121.554,122.7621,120.1994,122.7923,117.4758
-longest_palindromic_substring_emnist,9175,100,0.218,0.332,0.36,0.38,0.392,0.412,0.43,0.428,0.436,0.424,118.8707,118.1622,122.1626,119.308,116.1536,112.9581,110.7847,115.4032,121.0216,111.0792
