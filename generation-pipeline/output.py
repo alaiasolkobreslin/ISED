@@ -180,7 +180,7 @@ class IntOutputMapping(OutputMapping):
         return y_sim, y
 
 
-class ListOutputMapping(OutputMapping):
+class StringOutputMapping(OutputMapping):
     def __init__(self, length, n_classes, fallback):
         self.length = length
         self.n_classes = n_classes
@@ -281,7 +281,7 @@ class SudokuOutputMapping(OutputMapping):
         return y_sim, y
 
 
-class OutputMappingList2D(OutputMapping):
+class OutputMappingPermutations(OutputMapping):
     
     def __init__(self, rows, cols, dim, fallback):
         self.rows = rows
@@ -318,6 +318,15 @@ class OutputMappingList2D(OutputMapping):
             torch.tensor([1.0 if self.labels_dict[tuple(label[0])] == e
                           else 0.0 for e in range(self.dim())])
             for label in labels])
+        
+class ListOutputMapping(OutputMapping):
+    
+    def __init__(self, length, n_classes, fallback):
+        self.length = length
+        self.n_classes = n_classes
+        self.labels_dict = self.get_labels_dict()
+        self.fallback = fallback
+
 
 def get_output_mapping(output_config):
     om = output_config[OUTPUT_MAPPING]
@@ -333,6 +342,10 @@ def get_output_mapping(output_config):
         length = output_config[LENGTH]
         n_classes = output_config[N_CLASSES]
         return ListOutputMapping(length=length, n_classes=n_classes, fallback=0)
+    elif om == STRING_OUTPUT_MAPPING:
+        length = output_config[LENGTH]
+        n_classes = output_config[N_CLASSES]
+        return StringOutputMapping(length=length, n_classes=n_classes, fallback=0)
     elif om == DISCRETE_OUTPUT_MAPPING:
         if "range" in output_config:
             return DiscreteOutputMapping(elements=list(range(output_config["range"][0], output_config["range"][1])))
@@ -341,6 +354,11 @@ def get_output_mapping(output_config):
         rows = output_config[N_ROWS]
         cols = output_config[N_COLS]
         return OutputMappingList2D(rows, cols, dim, fallback=0)
+    elif om == PERMUTATIONS_OUTPUT_MAPPING:
+        dim = output_config[DIM]
+        rows = output_config[N_ROWS]
+        cols = output_config[N_COLS]
+        return OutputMappingPermutations(rows, cols, dim, fallback=0)
     elif om == SUDOKU_OUTPUT_MAPPING:
         size = output_config[N_ROWS]
         n_classes = output_config[N_CLASSES]

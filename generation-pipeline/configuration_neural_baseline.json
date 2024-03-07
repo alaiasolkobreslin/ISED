@@ -192,11 +192,12 @@
     "inputs": [
       {
         "name": "strs",
-        "type": "List[str]",
+        "type": "List[List[digit]]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 7,
-        "dataset": "EMNIST",
+        "n_rows": 3,
+        "n_cols": 3,
+        "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
@@ -355,7 +356,7 @@
     ],
     "output": {
       "type": "List[List[int]]",
-      "output_mapping": "2d_list_output_mapping",
+      "output_mapping": "permutations_output_mapping",
       "dim": 729,
       "n_rows": 6,
       "n_cols": 3
@@ -381,7 +382,7 @@
     ],
     "output": {
       "type": "List[List[int]]",
-      "output_mapping": "2d_list_output_mapping",
+      "output_mapping": "permutations_output_mapping",
       "dim": 729,
       "n_rows": 6,
       "n_cols": 3
@@ -1235,7 +1236,7 @@
     "output": {
       "type": "str",
       "n_classes": 47,
-      "output_mapping": "list_output_mapping",
+      "output_mapping": "string_output_mapping",
       "length": 3,
       "dim": 103823
     },
