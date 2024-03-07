@@ -1218,5 +1218,31 @@
     "batch_size_test": 16,
     "dataset_size_train": 1000,
     "dataset_size_test": 100
+  },
+  "reverse_string": {
+    "py_func": "reverse_string",
+    "inputs": [
+      {
+        "name": "x",
+        "type": "str",
+        "length": 3,
+        "strategy": "list",
+        "preprocess": "id",
+        "dataset": "EMNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "str",
+      "n_classes": 47,
+      "output_mapping": "list_output_mapping",
+      "length": 3,
+      "dim": 103823
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
   }
 }

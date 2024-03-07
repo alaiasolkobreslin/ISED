@@ -1,3 +1,4 @@
+import string
 
 # Function
 PY_PROGRAM = "py_func"
@@ -91,3 +92,9 @@ N_CLASSES = "n_classes"
 
 # Reserved failure
 RESERVED_FAILURE = "__RESERVED_FAILURE__"
+
+# EMNIST mapping
+digits_im = [str(i) for i in range(10)]
+uppercase_im = list(string.ascii_uppercase)
+lowercase_im = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'n', 'q', 'r', 't']
+EMNIST_MAPPING = digits_im + uppercase_im + lowercase_im

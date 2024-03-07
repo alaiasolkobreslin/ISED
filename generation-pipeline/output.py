@@ -184,46 +184,38 @@ class ListOutputMapping(OutputMapping):
     def __init__(self, length, n_classes, fallback):
         self.length = length
         self.n_classes = n_classes
+        self.mapping = EMNIST_MAPPING
+        self.labels_dict = self.get_labels_dict()
         self.fallback = fallback
 
-    def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
-        batch_size, _ = result_probs.shape
+    def dim(self):
+        return self.n_classes ** self.length
 
-        elements = list(
-            set([(util.get_hashable_elem(elem)) for batch in results for elem in batch if elem != RESERVED_FAILURE]))
-        element_indices = {e: i for (i, e) in enumerate(elements)}
-        if len(elements) == 0:
-            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True))
+    def generate_lists(self, length):
+        if length == 0:
+            return [[]]  # Base case: an empty list
+        else:
+            smaller_lists = self.generate_lists(length - 1)
+            all_lists = []
+            for lst in smaller_lists:
+                for i in range(self.n_classes):
+                    new_list = lst + [self.mapping[i]]
+                    all_lists.append(new_list)
+            return all_lists
 
-        result_tensor_sim = torch.zeros(
-            (batch_size, self.length, self.n_classes))
-        for i, result in enumerate(results):
-            for j, r in enumerate(result):
-                result_prob = result_probs[i][j]
-                for idx in range(self.length):
-                    elt = r[idx]
-                    result_tensor_sim[i][idx][elt] += result_prob
+    def get_labels_dict(self):
+        d = {}
+        lsts = self.generate_lists(self.length)
+        lsts = [''.join(lst) for lst in lsts]
+        for i, lst in enumerate(lsts):
+            d[tuple(lst)] = i
+        return d
 
-        result_tensor_sim = torch.nn.functional.normalize(
-            result_tensor_sim, dim=2)
-
-        # Vectorize the results
-        _, result_tensor = super().vectorize(
-            elements, element_indices, results, result_probs)
-
-        # Return the elements mapping and also the result probability tensor
-        return (elements, result_tensor_sim, result_tensor)
-
-    def get_normalized_labels(self, y_pred, target, output_mapping):
-        batch_size = y_pred.shape[0]
-        y_sim = torch.zeros((batch_size, self.length, self.n_classes))
-        for i, l in enumerate(target):
-            for idx in range(self.length):
-                elt = int(l[idx])
-                y_sim[i][idx][elt] = 1.0
-        y = super().get_normalized_labels(y_pred, target, output_mapping)
-        return y_sim, y
-
+    def vectorize_label(self, labels):
+        return torch.stack([
+            torch.tensor([1.0 if self.labels_dict[tuple(label)] == e
+                          else 0.0 for e in range(self.dim())])
+            for label in labels])
 
 class SudokuOutputMapping(OutputMapping):
     def __init__(self, size, fallback):
