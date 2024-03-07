@@ -1,0 +1,4 @@
+task name,random seed,sample count,accuracy epoch 1,accuracy epoch 2,accuracy epoch 3,accuracy epoch 4,accuracy epoch 5,accuracy epoch 6,accuracy epoch 7,accuracy epoch 8,accuracy epoch 9,accuracy epoch 10,time epoch 1,time epoch 2,time epoch 3,time epoch 4,time epoch 5,time epoch 6,time epoch 7,time epoch 8,time epoch 9,time epoch 10
+longest_substring_without_repeating_characters_emnist,3177,100,0.626,0.626,0.626,0.626,0.626,0.626,0.626,0.626,0.626,0.626,119.9702,115.5313,114.6184,112.6394,115.1477,112.7664,117.3639,113.8288,114.5149,114.1271
+longest_substring_without_repeating_characters_emnist,5848,100,0.624,0.634,0.634,0.634,0.634,0.634,0.634,0.634,0.634,0.634,125.1758,122.8423,121.7524,125.6317,122.8154,122.7265,125.0421,123.6924,124.9145,120.2494
+longest_substring_without_repeating_characters_emnist,9175,100,0.656,0.656,0.656,0.656,0.654,0.656,0.656,0.656,0.656,0.656,126.2982,120.816,121.0318,123.1992,116.5017,122.8237,123.9271,115.3405,122.2509,118.8236
