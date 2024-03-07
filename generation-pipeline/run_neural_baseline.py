@@ -22,6 +22,8 @@ import output
 import blackbox
 from constants import *
 
+import csv
+import time
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(
@@ -177,6 +179,8 @@ class Trainer():
             y = self.output_mapping.vectorize_label(target)
 
             # Compute loss
+            # y_pred shape is 16x18
+            # we want it to actually be 16 x 18 x 10
             loss = self.loss_fn(y_pred, y)
             for optimizer in self.optimizers:
                 optimizer.zero_grad()
@@ -237,13 +241,18 @@ class Trainer():
                 iter.set_description(
                     f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
 
-        # self.network.confusion_matrix()
+        return total_correct / num_items
 
     def train(self, n_epochs):
-        # self.test_epoch(0)
+        dict = {}
         for epoch in range(1, n_epochs + 1):
+            t0 = time.time()
             self.train_epoch(epoch)
-            self.test_epoch(epoch)
+            t1 = time.time()
+            dict["time epoch " + str(epoch)] = round(t1 - t0, ndigits=4)
+            acc = self.test_epoch(epoch)
+            dict["accuracy epoch " + str(epoch)] = round(acc, ndigits=6)
+        return dict
 
 
 if __name__ == "__main__":
@@ -258,6 +267,20 @@ if __name__ == "__main__":
     parser.add_argument("--threaded", type=int, default=0)
     parser.add_argument("--task", type=str)
     args = parser.parse_args()
+    
+    fname = 'longest_common_prefix.csv'
+
+    random_seeds = [3177, 5848, 9175]
+    tasks = ['longest_common_prefix_mnist', 'longest_common_prefix_svhn']
+
+    accuracies = ["accuracy epoch " + str(i+1) for i in range(10)]
+    times = ["time epoch " + str(i+1) for i in range(10)]
+    field_names = ['task name', 'random seed'] + accuracies + times
+
+    with open(fname, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=field_names)
+        writer.writeheader()
+        csvfile.close()
 
     # environment init
     torch.multiprocessing.set_start_method('spawn')
@@ -273,33 +296,39 @@ if __name__ == "__main__":
     random.seed(args.seed)
 
     # Dataloaders
-    for task in configuration:
-        if args.task is not None and task != args.task:
-            continue
-        print('Task: {}'.format(task))
+    for task in tasks:
+        for seed in random_seeds:
+            print('Task: {}'.format(task))
 
-        task_config = configuration[task]
+            task_config = configuration[task]
 
-        # Initialize the train and test loaders
-        batch_size_train = task_config[BATCH_SIZE_TRAIN]
-        batch_size_test = task_config[BATCH_SIZE_TEST]
-        train_loader, test_loader = train_test_loader(
-            task_config, batch_size_train, batch_size_test)
+            # Initialize the train and test loaders
+            batch_size_train = task_config[BATCH_SIZE_TRAIN]
+            batch_size_test = task_config[BATCH_SIZE_TEST]
+            train_loader, test_loader = train_test_loader(
+                task_config, batch_size_train, batch_size_test)
 
-        # Set the output mapping
-        output_config = task_config[OUTPUT]
-        om = output.get_output_mapping(output_config)
+            # Set the output mapping
+            output_config = task_config[OUTPUT]
+            om = output.get_output_mapping(output_config)
 
-        # Create trainer and train
-        py_func = task_config[PY_PROGRAM]
-        learning_rate = task_config[LEARNING_RATE]
-        config = task_config[INPUTS]
-        unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
-            input, train=True) for input in task_config[INPUTS]]
-        trainer = Trainer(train_loader=train_loader,
-                          test_loader=test_loader,
-                          unstructured_datasets=unstructured_datasets,
-                          learning_rate=learning_rate,
-                          config=config,
-                          output_mapping=om)
-        trainer.train(n_epochs)
+            # Create trainer and train
+            py_func = task_config[PY_PROGRAM]
+            learning_rate = task_config[LEARNING_RATE]
+            config = task_config[INPUTS]
+            unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
+                input, train=True) for input in task_config[INPUTS]]
+            trainer = Trainer(train_loader=train_loader,
+                            test_loader=test_loader,
+                            unstructured_datasets=unstructured_datasets,
+                            learning_rate=learning_rate,
+                            config=config,
+                            output_mapping=om)
+            dict = trainer.train(n_epochs)
+            dict["task name"] = task
+            dict["random seed"] = seed
+
+            with open(fname, 'a', newline='') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=field_names)
+                writer.writerow(dict)
+                csvfile.close()
