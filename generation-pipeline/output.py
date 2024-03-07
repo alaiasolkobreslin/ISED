@@ -184,28 +184,38 @@ class StringOutputMapping(OutputMapping):
     def __init__(self, length, n_classes, fallback):
         self.length = length
         self.n_classes = n_classes
-        self.mapping = EMNIST_MAPPING
+        if self.n_classes > 10:
+            self.mapping = EMNIST_MAPPING
+        else:
+            self.mapping = [str(i) for i in range(self.n_classes)]
         self.labels_dict = self.get_labels_dict()
         self.fallback = fallback
 
     def dim(self):
         return self.n_classes ** self.length
 
-    def generate_lists(self, length):
+    def generate_lists_rev_string(self, length):
         if length == 0:
             return [[]]  # Base case: an empty list
         else:
-            smaller_lists = self.generate_lists(length - 1)
+            smaller_lists = self.generate_lists_rev_string(length - 1)
             all_lists = []
             for lst in smaller_lists:
                 for i in range(self.n_classes):
                     new_list = lst + [self.mapping[i]]
                     all_lists.append(new_list)
             return all_lists
+        
+    def generate_lists_common_prefix(self, length):
+        all_lists = []
+        for i in range(length, -1, -1):
+            all_lists += self.generate_lists_rev_string(i)
+        return all_lists
 
     def get_labels_dict(self):
         d = {}
-        lsts = self.generate_lists(self.length)
+        lsts = self.generate_lists_common_prefix(self.length)
+        # lsts = self.generate_lists_rev_string(self.length)
         lsts = [''.join(lst) for lst in lsts]
         for i, lst in enumerate(lsts):
             d[tuple(lst)] = i
@@ -327,6 +337,39 @@ class ListOutputMapping(OutputMapping):
         self.labels_dict = self.get_labels_dict()
         self.fallback = fallback
 
+    def dim(self):
+        return self.n_classes ** self.length
+
+    def generate_lists(self, length):
+        if length == 0:
+            return [[]]
+        else:
+            smaller_lists = self.generate_lists(length - 1)
+            all_lists = []
+            for lst in smaller_lists:
+                for i in range(self.n_classes):
+                    new_list = lst + [i]
+                    all_lists.append(new_list)
+            return all_lists
+        
+    def generate_lists_all_lengths(self, length):
+        all_lists = []
+        for i in range(length, -1, -1):
+            all_lists += self.generate_lists(i)
+        return all_lists
+
+    def get_labels_dict(self):
+        d = {}
+        lsts = self.generate_lists_all_lengths(self.length)
+        for i, lst in enumerate(lsts):
+            d[tuple(lst)] = i
+        return d
+
+    def vectorize_label(self, labels):
+        return torch.stack([
+            torch.tensor([1.0 if self.labels_dict[tuple(label)] == e
+                          else 0.0 for e in range(self.dim())])
+            for label in labels])
 
 def get_output_mapping(output_config):
     om = output_config[OUTPUT_MAPPING]

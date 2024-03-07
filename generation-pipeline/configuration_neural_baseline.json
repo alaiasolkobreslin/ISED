@@ -193,7 +193,7 @@
       {
         "name": "strs",
         "type": "List[List[digit]]",
-        "strategy": "list",
+        "strategy": "2d_list",
         "preprocess": "id",
         "n_rows": 3,
         "n_cols": 3,
@@ -203,7 +203,10 @@
     ],
     "output": {
       "type": "str",
-      "output_mapping": "unknown"
+      "n_classes": 10,
+      "output_mapping": "list_output_mapping",
+      "length": 3,
+      "dim": 1111
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
