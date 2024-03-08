@@ -1,4 +1,0 @@
-task name,random seed,accuracy epoch 1,accuracy epoch 2,accuracy epoch 3,accuracy epoch 4,accuracy epoch 5,accuracy epoch 6,accuracy epoch 7,accuracy epoch 8,accuracy epoch 9,accuracy epoch 10,time epoch 1,time epoch 2,time epoch 3,time epoch 4,time epoch 5,time epoch 6,time epoch 7,time epoch 8,time epoch 9,time epoch 10
-reverse_string,3177,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,221.002,221.6409,215.7317,221.2647,211.4807,229.4417,222.7414,212.7907,220.423,218.8772
-reverse_string,5848,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,220.2163,222.1892,216.6065,233.4282,227.1347,212.9884,227.472,222.3755,216.0421,221.6025
-reverse_string,9175,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,224.9601,215.0215,221.3987,221.2973,223.5307,216.5211,221.4254,225.561,239.4453,229.9926

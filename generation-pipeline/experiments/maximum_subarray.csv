@@ -1,7 +1,0 @@
-task name,random seed,accuracy epoch 1,accuracy epoch 2,accuracy epoch 3,accuracy epoch 4,accuracy epoch 5,accuracy epoch 6,accuracy epoch 7,accuracy epoch 8,accuracy epoch 9,accuracy epoch 10,time epoch 1,time epoch 2,time epoch 3,time epoch 4,time epoch 5,time epoch 6,time epoch 7,time epoch 8,time epoch 9,time epoch 10
-maximum_subarray_mnist,3177,0.014,0.014,0.016,0.01,0.018,0.012,0.014,0.022,0.02,0.018,,,,,,,,,,
-maximum_subarray_mnist,5848,0.034,0.04,0.036,0.032,0.026,0.02,0.03,0.032,0.026,0.04,,,,,,,,,,
-maximum_subarray_mnist,9175,0.0,0.0,0.016,0.0,0.0,0.0,0.0,0.002,0.0,0.002,,,,,,,,,,
-maximum_subarray_svhn,3177,0.034,0.048,0.048,0.048,0.048,0.048,0.048,0.048,0.046,0.038,,,,,,,,,,
-maximum_subarray_svhn,5848,0.01,0.028,0.004,0.022,0.044,0.022,0.018,0.014,0.024,0.026,,,,,,,,,,
-maximum_subarray_svhn,9175,0.046,0.032,0.046,0.044,0.038,0.036,0.036,0.032,0.036,0.034,,,,,,,,,,

@@ -1,7 +1,0 @@
-task name,random seed,accuracy epoch 1,accuracy epoch 2,accuracy epoch 3,accuracy epoch 4,accuracy epoch 5,accuracy epoch 6,accuracy epoch 7,accuracy epoch 8,accuracy epoch 9,accuracy epoch 10,time epoch 1,time epoch 2,time epoch 3,time epoch 4,time epoch 5,time epoch 6,time epoch 7,time epoch 8,time epoch 9,time epoch 10
-longest_common_prefix_mnist,3177,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,56.5821,60.0481,57.2336,57.8617,59.2305,57.7664,53.6109,57.7698,61.6419,61.3134
-longest_common_prefix_mnist,5848,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,64.4039,58.9091,58.3998,53.6076,57.9717,58.9786,57.5798,53.8612,60.4452,61.318
-longest_common_prefix_mnist,9175,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,60.4967,56.8504,56.3025,56.382,58.9858,58.0811,61.1929,58.2191,55.9052,56.2873
-longest_common_prefix_svhn,3177,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,66.4886,58.5158,58.9423,58.2418,64.0259,46.8687,62.3923,60.0388,60.1483,58.7732
-longest_common_prefix_svhn,5848,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,61.4229,60.6903,60.9285,64.9886,61.586,69.8392,76.0208,65.8276,62.0637,65.6033
-longest_common_prefix_svhn,9175,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,80.686,66.9609,63.2458,64.3861,66.7213,62.564,67.163,66.3065,64.5005,64.3861
