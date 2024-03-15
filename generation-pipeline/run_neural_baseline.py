@@ -268,10 +268,13 @@ if __name__ == "__main__":
     parser.add_argument("--task", type=str)
     args = parser.parse_args()
     
-    fname = 'longest_common_prefix.csv'
+    fname = 'leetcode_neural_redo_first_half.csv'
 
-    random_seeds = [3177, 5848, 9175]
-    tasks = ['longest_common_prefix_mnist', 'longest_common_prefix_svhn']
+    random_seeds = [1234, 1357, 2468]
+    tasks = ['longest_consecutive_sequence_mnist', 'longest_consecutive_sequence_svhn',
+             'best_time_to_buy_and_sell_stock_mnist', 'best_time_to_buy_and_sell_stock_svhn',
+             'maximum_subarray_mnist', 'maximum_subarray_svhn',
+             'permutations_ii_mnist', 'permutations_ii_svhn',]
 
     accuracies = ["accuracy epoch " + str(i+1) for i in range(10)]
     times = ["time epoch " + str(i+1) for i in range(10)]
