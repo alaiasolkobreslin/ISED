@@ -470,7 +470,7 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
-  "maximum_subarray": {
+  "maximum_subarray_mnist": {
     "py_func": "maximum_subarray",
     "inputs": [
       {
@@ -480,6 +480,31 @@
         "preprocess": "id",
         "length": 8,
         "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "range",
+      "low": 0,
+      "high": 46
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "maximum_subarray_svhn": {
+    "py_func": "maximum_subarray",
+    "inputs": [
+      {
+        "name": "nums",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 8,
+        "dataset": "SVHN",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
@@ -813,7 +838,7 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
-  "best_time_to_buy_and_sell_stock": {
+  "best_time_to_buy_and_sell_stock_mnist": {
     "py_func": "best_time_to_buy_and_sell_stock",
     "inputs": [
       {
@@ -838,7 +863,32 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
-  "longest_consecutive_sequence": {
+  "best_time_to_buy_and_sell_stock_svhn": {
+    "py_func": "best_time_to_buy_and_sell_stock",
+    "inputs": [
+      {
+        "name": "prices",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 10,
+        "dataset": "SVHN",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "range",
+      "low": 0,
+      "high": 10
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "longest_consecutive_sequence_mnist": {
     "py_func": "longest_consecutive_sequence",
     "inputs": [
       {
@@ -848,6 +898,31 @@
         "preprocess": "id",
         "length": 6,
         "dataset": "MNIST",
+        "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
+      }
+    ],
+    "output": {
+      "type": "int",
+      "output_mapping": "range",
+      "low": 0,
+      "high": 7
+    },
+    "learning_rate": 0.0001,
+    "batch_size_train": 16,
+    "batch_size_test": 16,
+    "dataset_size_train": 5000,
+    "dataset_size_test": 500
+  },
+  "longest_consecutive_sequence_svhn": {
+    "py_func": "longest_consecutive_sequence",
+    "inputs": [
+      {
+        "name": "nums",
+        "type": "List[digit]",
+        "strategy": "list",
+        "preprocess": "id",
+        "length": 6,
+        "dataset": "SVHN",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
