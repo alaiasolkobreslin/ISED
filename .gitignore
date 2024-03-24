@@ -14,9 +14,15 @@ __pycache__
 # Scallop
 *.sclcmpl
 
-benchmarks/data
 generation-pipeline/data
 
 model
-data
+data/*
+benchmarks/data/MNIST
+benchmarks/data/CLEVR/*
 .tmp
+
+!benchmarks/data/CLEVR/questions
+benchmarks/data/CLEVR/questions/CLEVR_test_questions.json
+benchmarks/data/CLEVR/questions/CLEVR_train_questions.json
+benchmarks/data/CLEVR/questions/CLEVR_val_questions.json

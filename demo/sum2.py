@@ -11,6 +11,11 @@ import torch.optim as optim
 from argparse import ArgumentParser
 from tqdm import tqdm
 
+import sys
+lib_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../demo/leaf"))
+assert os.path.exists(lib_dir)
+
+sys.path.append(lib_dir)
 import blackbox
 
 mnist_img_transform = torchvision.transforms.Compose([
