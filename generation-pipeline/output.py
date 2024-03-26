@@ -4,7 +4,6 @@ import torch
 
 from constants import *
 import util
-from frozendict import frozendict
 
 class OutputMapping:
     def __init__(self): pass
