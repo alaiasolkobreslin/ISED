@@ -93,7 +93,7 @@ class SudokuDataset_RL(data.Dataset):
             print('------>> Data tranform not implemented for satnet dataset') 
             quit()
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        path = dir_path + '/../' + data_path
+        path = dir_path + '/../../' + data_path
         self.images = h5py.File(path+filename+'/'+filename+'_imgs'+ data_type +'.hdf5','r')
         self.labels = np.load(path+filename+'/'+filename+'_sol'+ data_type+'.npy',allow_pickle=True).item()
         self.data_type = data_type

@@ -46,11 +46,11 @@ def init_parser():
                         help='dataset name between big_kaggle, minimal_17, multiple_sol and satnet')
     parser.add_argument('--noise-setting', default='xxx/yyy.json', type=str,
                         help='Json file of noise setting (dict)')
-    parser.add_argument('--train-only-mask', default = False, type = bool,
+    parser.add_argument('--train-only-mask', default = True, type = bool,
                         help='If true, use RL to train only the mask predictor')
 
     # Optimization hyperparams
-    parser.add_argument('--epochs', default=100, type=int,
+    parser.add_argument('--epochs', default=20, type=int,
                         help='number of total epochs to run')
     parser.add_argument('--warmup', default=10, type=int, 
                         help='number of warmup epochs')
@@ -64,8 +64,8 @@ def init_parser():
                         help='gradient norm clipping (default: 1 (disabled))')
     parser.add_argument('--disable-cos', action='store_true',
                         help='disable cosine lr schedule')
-    parser.add_argument('--sample-count', default=5, type=int,
-                        help='number of samples to take (default: 5)')
+    parser.add_argument('--sample-count', default=2, type=int,
+                        help='number of samples to take (default: 2)')
     return parser
 
 def vectorize(results, sample_probs):
