@@ -19,6 +19,7 @@ assert os.path.exists(lib_dir)
 sys.path.append(lib_dir)
 
 import blackbox
+import scallopy
 from torch import nn, optim
 import torch.nn.functional as F
 from tqdm import tqdm
@@ -56,6 +57,10 @@ all_colors = ["gray", "red", "blue", "green", "brown", "purple", "cyan", "yellow
 all_sizes = ["large", "small"]
 all_mats = ["metal", "rubber"]
 all_relas = ["left", "behind"]
+all_bools = ["true", "false", "True", "False"]
+all_nums = [str(i) for i in range(10)]
+all_answers = all_shapes + all_colors + all_sizes + all_mats + all_relas + all_bools + all_nums
+# all_answers = [tuple(i) for i in all_answers]
 
 all_attributes = {
   'shape': all_shapes,
@@ -276,7 +281,8 @@ class CLEVRProgram:
     # Last expression is root expression
     if expr_id == len(program) - 1:
       self.root_expr = [(expr_id,)]
-      self.result_type = self._expression_result_type(expr)
+      # self.result_type = self._expression_result_type(expr)
+      self.result_type = "result"
 
   def facts(self):
     return {x: y for (x, y) in self.__dict__.items() if x != "result_type"}
@@ -554,7 +560,7 @@ class CLEVRVisionOnlyNet(nn.Module):
 
     # Setup scallopy forward function
     # self.reason = self.ctx.forward_function(dispatch='single', debug_provenance=True)
-    self.reason = self.ctx.forward_function()
+    self.reason = self.ctx.forward_function(output="result", output_mapping=all_answers)
 
     # TODO: Setup blackbox here 
 
@@ -600,12 +606,13 @@ class CLEVRVisionOnlyNet(nn.Module):
           disjunctions[sg_key].append(list(disj_group.values()))
 
     # y_pred_values, y_pred_probs = self.reason(output_relations=output_relations, **facts, disjunctions=disjunctions)
-    y_pred_values, y_pred_probs = self.reason(output_relations=output_relations, **facts)
+    y_pred_probs = self.reason(**facts)
+    y_pred_values = all_answers
 
     missing_pred = []
     for y in ys:
-      if not tuple([y]) in y_pred_values:
-        missing_pred.append(tuple([y]))
+      if not str(y) in y_pred_values:
+        missing_pred.append(y)
     if not len(missing_pred) == 0:
       to_extend = torch.zeros(y_pred_probs.shape[0], len(missing_pred))
       y_pred_probs = torch.cat((y_pred_probs, to_extend), dim=1)
@@ -635,7 +642,22 @@ class Trainer():
     self.phase = phase
 
   def _loss_fn(self, y_pred_values, y_pred_probs, y_values):
-    y = torch.stack([torch.tensor([1.0 if u[0] == v else 0.0 for u in y_pred_values]) for v in y_values]).to(self.device)
+    y_batched = []
+    for v in y_values:
+      y = []
+      recorded = False
+      for u in y_pred_values:
+        if str(u) == str(v):
+          y.append(torch.tensor([1.0]))
+          if recorded: 
+            print('here')
+          recorded = True
+        else: 
+          y.append(torch.tensor([0.0]))
+      y_batched.append(torch.stack(y))
+
+    y = torch.stack(y_batched).to(self.device)
+    y = y.reshape(y_pred_probs.shape[0], y_pred_probs.shape[1])
     # print(y_pred_probs)
     assert torch.sum(y) == y.shape[0]
     return self.loss_fn(y_pred_probs, y)

@@ -48,4 +48,4 @@ rel eval_query(e, s) = query_shape_expr(e, f), eval_objs(f, o), shape(o, s)
 // Final result
 rel result(y as String) = root_expr(e), eval_yn(e, y)
 rel result(y as String) = root_expr(e), eval_num(e, y)
-rel result(y) = root_expr(e), eval_query(e, y)
+rel result(y as String) = root_expr(e), eval_query(e, y)
