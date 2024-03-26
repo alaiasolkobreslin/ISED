@@ -46,7 +46,7 @@ def init_parser():
                         help='dataset name between big_kaggle, minimal_17, multiple_sol and satnet')
     parser.add_argument('--noise-setting', default='xxx/yyy.json', type=str,
                         help='Json file of noise setting (dict)')
-    parser.add_argument('--train-only-mask', default = True, type = bool,
+    parser.add_argument('--train-only-mask', default = False, type = bool,
                         help='If true, use RL to train only the mask predictor')
 
     # Optimization hyperparams
@@ -72,7 +72,7 @@ def vectorize(results, sample_probs):
     batch_size, _ = sample_probs.shape
     size = results.shape[2]
     n_digits = int(math.sqrt(size))
-    result_tensor = torch.zeros((batch_size, size, n_digits), device='cuda')
+    result_tensor = torch.zeros((batch_size, size, n_digits), device='cuda:0')
     for i, result in enumerate(results):
         for j, r in enumerate(result):
             result_prob = sample_probs[i][j]
