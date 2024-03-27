@@ -73,16 +73,19 @@ class BlackBoxFunction(torch.nn.Module):
         # Prepare the inputs to the black-box function
         to_compute_inputs, sampled_indices = [], []
         for (input_i, input_mapping_i) in zip(inputs, self.input_mappings):
-            sampled_indices_i, sampled_elements_i = input_mapping_i.sample(
-                input_i, sample_count=self.sample_count)
-            input_for_pooling = input_i.get_input_for_pooling()
-            if input_for_pooling:
-                to_compute = [[(s, input_for_pooling[idx]) for s in sampled_element]
-                              for idx, sampled_element in enumerate(sampled_elements_i)]
+            if isinstance(input_mapping_i, NonProbabilistic):
+                to_compute_inputs.append([input_i for _ in range(self.sample_count)])
             else:
-                to_compute = sampled_elements_i
-            to_compute_inputs.append(to_compute)
-            sampled_indices.append(sampled_indices_i)
+                sampled_indices_i, sampled_elements_i = input_mapping_i.sample(
+                    input_i, sample_count=self.sample_count)
+                input_for_pooling = input_i.get_input_for_pooling()
+                if input_for_pooling:
+                    to_compute = [[(s, input_for_pooling[idx]) for s in sampled_element]
+                                for idx, sampled_element in enumerate(sampled_elements_i)]
+                else:
+                    to_compute = sampled_elements_i
+                to_compute_inputs.append(to_compute)
+                sampled_indices.append(sampled_indices_i)
         to_compute_inputs = self.zip_batched_inputs(to_compute_inputs)
 
         # Get the outputs from the black-box function

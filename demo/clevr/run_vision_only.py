@@ -13,7 +13,7 @@ import numpy as np
 
 
 import sys
-lib_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../leaf"))
+lib_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../generation-pipeline"))
 assert os.path.exists(lib_dir)
 
 sys.path.append(lib_dir)
@@ -61,7 +61,7 @@ all_bools = ["true", "false", "True", "False"]
 all_nums = [str(i) for i in range(10)]
 all_answers = all_shapes + all_colors + all_sizes + all_mats + all_relas + all_bools + all_nums
 # all_answers = [tuple(i) for i in all_answers]
-
+all_obj_pair_idx = [(i, j) for i in range(10) for j in range(10)]
 all_attributes = {
   'shape': all_shapes,
   'color': all_colors,
@@ -333,6 +333,92 @@ class CLEVRProgram:
     return repr(self.__dict__)
 
 
+class DiscreteClevrEvaluator:
+  def __init__(self):
+
+    self.ctx = scallopy.ScallopContext("unit")
+    self.ctx.import_file(os.path.abspath(os.path.join(os.path.abspath(__file__), "../scl/clevr_eval_vision_only.scl")))
+
+    # Setup scallopy forward function
+
+  def __call__(
+      self, 
+      program, # [("Count", 0, 1), ...]
+      objs_mask, # 10 bool mask
+      rela_objs_mask, # 100 bool mask 
+      shape, # ["sphere", "cube", ..., "cube"] (size 10)
+      color, # ["blue", "blue", ..., "red"] (size 10)
+      mat, # ["rubber", "metal", ..., "metal"] (size 10)
+      size, # ["large", "small", ..., "small"] (size 10)
+      rela, # ["left", "behind", ""] (size 100)
+  ):
+    
+    shape = [(i, s) for (i, s) in enumerate(shape) if objs_mask[i]]
+    colors = [(i, c) for (i, c) in enumerate(color) if objs_mask[i]]
+    mats = [(i, c) for (i, c) in enumerate(mat) if objs_mask[i]]
+    sizes = [(i, c) for (i, c) in enumerate(size) if objs_mask[i]]
+    relas = [(*all_obj_pair_idx.index(i), c) for (i, c) in enumerate(rela) if rela_objs_mask[i]]
+
+    objs = [tuple(i) for i in enumerate(objs_mask)]
+
+    scene_graph = [{"obj": objs, "shape": shapes, "color": colors, "material": mats, "size": sizes, "relate": relas} for objs, shapes, colors, mats, sizes, relas in zip(objs, shapes, colors, mats, sizes, relas)]
+
+    list_facts = {**program.facts(), **scene_graph}
+    facts = {k: [fs[k] for fs in list_facts] for k in self.relations}
+
+    disjunctions = {}
+    for sg_key, batched_sg_facts in facts.items():
+      if sg_key in ['shape', 'color', 'material', 'size']:
+        if not sg_key in disjunctions:
+          disjunctions[sg_key] = []
+
+        for sg_facts in batched_sg_facts:
+          disj_group = {}
+          for fid, (prob, sg_fact) in enumerate(sg_facts):
+            if not sg_key == 'relate':
+                oid, _ = sg_fact
+                if not oid in disj_group:
+                    disj_group[oid] = []
+                disj_group[oid].append(fid)
+          disjunctions[sg_key].append(list(disj_group.values()))
+
+    # y_pred_values, y_pred_probs = self.reason(output_relations=output_relations, **facts, disjunctions=disjunctions)
+    
+    temp_ctx = self.ctx.clone()
+    self.reason = temp_ctx.forward_function(output="result")
+    result = self.reason(**facts)
+    result_idx = all_answers.index(result)
+    return result_idx
+
+
+bb_evaluate = blackbox.BlackBoxFunction(
+  DiscreteClevrEvaluator(),
+  input_mappings=(
+    blackbox.NonProbabilisticInput(combine=id),
+    blackbox.NonProbabilisticInput(combine=id),
+    blackbox.NonProbabilisticInput(combine=id),
+
+    # batch_size * 10 * 3
+    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_shapes, combine=id), combine=id),
+
+    # batch_size * 10 * 8
+    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_colors, combine=id), combine=id),
+
+    # batch_size * 10 * 2
+    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_mats, combine=id), combine=id),
+
+    # batch_size * 10 * 2
+    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_sizes, combine=id), combine=id),
+
+    # batch_size * 100 * 2
+    blackbox.PaddedListInputMapping(100, blackbox.DiscreteInputMapping(all_relas, combine=id), combine=id),
+
+  ),
+  output_mapping=blackbox.DiscreteOutputMapping(all_answers, "add_mult"),
+  batch_size=32,
+  loss_aggregator="add_mult",
+)
+
 
 class CLEVRVisionOnlyDataset(torch.utils.data.Dataset):
   def __init__(self, root: str, question_path: str, train: bool = True, device: str = "cpu"):
@@ -578,7 +664,12 @@ class CLEVRVisionOnlyNet(nn.Module):
   def forward(self, x, ys):
     (programs, images, orig_boxes, pred_boxes, rela_objs, batch_split) = x
     output_relations = [p.result_type for p in programs]
+    
+    total_obj_ct = sum([len(bbox) for bbox in orig_boxes])
+    total_rela_ct =  sum([len(bbox) * len(bbox) - 1 for bbox in orig_boxes])
+
     shape_prob, color_prob, mat_prob, size_prob, rela_prob, objs, batched_rela_objs, batch_rela_split, = self.sg_model(images, orig_boxes, pred_boxes, rela_objs, batch_split)
+    
     shapes = self.prob_mat_to_clauses(shape_prob, batch_split, all_shapes)
     colors = self.prob_mat_to_clauses(color_prob, batch_split, all_colors)
     mats = self.prob_mat_to_clauses(mat_prob, batch_split, all_mats)
@@ -623,6 +714,53 @@ class CLEVRVisionOnlyNet(nn.Module):
     softmaxed_probs = torch.nan_to_num(softmaxed_probs, 0)
 
     return y_pred_values, softmaxed_probs
+
+  def bb_forward(self, x, ys, max_obj_num=10):
+    (programs, images, orig_boxes, pred_boxes, rela_objs, batch_split) = x
+    # output_relations = [p.result_type for p in programs]
+    # total_obj_ct = sum([len(bbox) for bbox in orig_boxes])
+    # total_rela_ct =  sum(rela_objs)
+    
+    shape_prob, color_prob, mat_prob, size_prob, rela_prob, objs, batched_rela_objs, batch_rela_split, = self.sg_model(images, orig_boxes, pred_boxes, rela_objs, batch_split)
+    batch_size = len(objs)
+    objs_mask = torch.zeros(batch_size, max_obj_num, dtype=torch.bool)
+    for i, obj_ls in enumerate(objs):
+      for obj in obj_ls:
+        objs_mask[i][obj] = True
+    
+    rela_objs_mask = torch.zeros(batch_size, max_obj_num ** 2, dtype=torch.bool)
+    for i, rela_obj_ls in enumerate(rela_objs):
+      for rela_obj in rela_obj_ls:
+        rela_objs_mask[i][all_obj_pair_idx.index(tuple(rela_obj))]  = True
+
+    splits = [(0, r) if i == 0 else (batch_split[i - 1], r) for (i, r) in enumerate(batch_split)]
+    
+    batched_shape_probs = torch.zeros(batch_size, max_obj_num, len(all_shapes))
+    batched_color_probs = torch.zeros(batch_size, max_obj_num, len(all_colors))
+    batched_mat_probs = torch.zeros(batch_size, max_obj_num, len(all_mats))
+    batched_size_probs = torch.zeros(batch_size, max_obj_num, len(all_sizes))
+    batched_rela_probs = torch.zeros(batch_size, max_obj_num, len(all_relas))
+
+    for batch_num, (begin, end) in enumerate(splits):
+      obj_ct = end - begin
+      batched_shape_probs[batch_num][:obj_ct, :] = shape_prob[begin: end, :]
+      batched_color_probs[batch_num][:obj_ct, :] = color_prob[begin: end, :]
+      batched_mat_probs[batch_num][:obj_ct, :] = mat_prob[begin: end, :]
+      batched_size_probs[batch_num][:obj_ct, :] = size_prob[begin: end, :]
+      batched_rela_probs[batch_num][:obj_ct, :] = rela_prob[begin: end, :]
+      
+    result = bb_evaluate(
+      programs, # [("Count", 0, 1), ...]
+      objs_mask, # 10 bool mask
+      rela_objs_mask, # 100 bool mask 
+      batched_shape_probs, # ["sphere", "cube", ..., "cube"] (size 10)
+      batched_color_probs, # ["blue", "blue", ..., "red"] (size 10)
+      batched_mat_probs, # ["rubber", "metal", ..., "metal"] (size 10)
+      batched_size_probs, # ["large", "small", ..., "small"] (size 10)
+      batched_rela_probs, # ["left", "behind", ""] (size 100)
+    )
+
+    return result
 
 
 class Trainer():
@@ -677,7 +815,7 @@ class Trainer():
       batch_size = len(y)
 
       # Do the prediction and obtain the loss/accuracy
-      (y_pred_values, y_pred_probs) = self.network(x, y)
+      (y_pred_values, y_pred_probs) = self.network.bb_forward(x, y)
       loss = self._loss_fn(y_pred_values, y_pred_probs, y)
       num_correct = self._num_correct(y_pred_values, y_pred_probs, y)
 

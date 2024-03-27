@@ -196,6 +196,13 @@ class InputMapping:
     # def permute(self) -> List[Any]: pass
 
 
+class NonProbabilisticInput(InputMapping):
+    def __init__(self, combine: Callable):
+        self.combine = combine
+
+    def shape(self): pass
+
+
 class PaddedListInputMappingCoffee(InputMapping):
     def __init__(self, max_length: int, element_input_mapping: InputMapping, combine: Callable):
         self.max_length = max_length
