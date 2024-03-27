@@ -391,6 +391,7 @@ class DiscreteClevrEvaluator:
     return result_idx
 
 
+# TODO: There seems some error with the initialization setup for PaddedListInputMapping. 
 bb_evaluate = blackbox.BlackBoxFunction(
   DiscreteClevrEvaluator(),
   input_mappings=(
