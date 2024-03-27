@@ -44,6 +44,15 @@ class BlackBoxFunction(torch.nn.Module):
         self.timeout_decorator = self.decorator
         self.error_message = os.strerror(errno.ETIME)
 
+    def get_batch_size(self, input: Any):
+        if type(input) == torch.Tensor:
+            return input.shape[0]
+        elif type(input) == ListInput:
+            return len(input.lengths)
+        elif type(input) == list:
+            return len(input)
+        raise Exception("Unknown input type")
+
     def decorator(self, func):
         def _handle_timeout(signum, frame):
             raise TimeoutError(self.error_message)
@@ -65,15 +74,19 @@ class BlackBoxFunction(torch.nn.Module):
             self.input_mappings), "inputs and input_mappings must have the same length"
 
         # Get the batch size
-        batch_size = inputs[0].batch_size()
+        # batch_size = inputs[0].batch_size()
+        # for i in range(1, num_inputs):
+        #     assert batch_size == inputs[i].batch_size(
+        #     ), "all inputs must have the same batch size"
+
+        batch_size = self.get_batch_size(inputs[0])
         for i in range(1, num_inputs):
-            assert batch_size == inputs[i].batch_size(
-            ), "all inputs must have the same batch size"
+            assert batch_size == self.get_batch_size(inputs[i]), "all inputs must have the same batch size"
 
         # Prepare the inputs to the black-box function
         to_compute_inputs, sampled_indices = [], []
         for (input_i, input_mapping_i) in zip(inputs, self.input_mappings):
-            if isinstance(input_mapping_i, NonProbabilistic):
+            if isinstance(input_mapping_i, NonProbabilisticInput):
                 to_compute_inputs.append([input_i for _ in range(self.sample_count)])
             else:
                 sampled_indices_i, sampled_elements_i = input_mapping_i.sample(
