@@ -302,16 +302,16 @@ if __name__ == "__main__":
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
 
-    random_seeds = [3177, 5848, 9175, 8725, 1234]
-    sample_counts = [50, 100, 500, 1000]
-    tasks = ['sort_list_indices_length2_mnist', 'sort_list_indices_length3_mnist']
+    random_seeds = [3177, 5848]
+    sample_counts = [1000]
+    tasks = ['sort_list_indices_length9_mnist', 'sort_list_indices_length10_mnist']
 
-    accuracies = ["accuracy epoch " + str(i+1) for i in range(10)]
-    times = ["time epoch " + str(i+1) for i in range(10)]
+    accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
+    times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
     field_names = ['task name', 'random seed',
                    'sample count'] + accuracies + times
 
-    with open('sample_count_experiment23.csv', 'w', newline='') as csvfile:
+    with open('sort_9_10.csv', 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writeheader()
         csvfile.close()
