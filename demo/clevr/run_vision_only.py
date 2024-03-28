@@ -39,6 +39,9 @@ from detectron2.modeling import GeneralizedRCNN
 from detectron2.structures.boxes import Boxes
 import detectron2.data.transforms as T
 
+def identity(x):
+  return x
+
 def check_valid(y_pred_values, y_values):
   y = torch.stack([torch.tensor([1.0 if u[0] == v else 0.0 for u in y_pred_values]) for v in y_values])
   assert torch.sum(y) == y.shape[0]
@@ -396,24 +399,24 @@ class DiscreteClevrEvaluator:
 bb_evaluate = blackbox.BlackBoxFunction(
   DiscreteClevrEvaluator(),
   input_mappings=(
-    blackbox.NonProbabilisticInput(combine=id),
-    blackbox.NonProbabilisticInput(combine=id),
-    blackbox.NonProbabilisticInput(combine=id),
+    blackbox.NonProbabilisticInput(combine=identity),
+    blackbox.NonProbabilisticInput(combine=identity),
+    blackbox.NonProbabilisticInput(combine=identity),
 
     # batch_size * 10 * 3
-    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_shapes, combine=id), combine=id),
+    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_shapes, combine=identity), combine=identity),
 
     # batch_size * 10 * 8
-    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_colors, combine=id), combine=id),
+    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_colors, combine=identity), combine=identity),
 
     # batch_size * 10 * 2
-    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_mats, combine=id), combine=id),
+    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_mats, combine=identity), combine=identity),
 
     # batch_size * 10 * 2
-    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_sizes, combine=id), combine=id),
+    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_sizes, combine=identity), combine=identity),
 
     # batch_size * 100 * 2
-    blackbox.PaddedListInputMapping(100, blackbox.DiscreteInputMapping(all_relas, combine=id), combine=id),
+    blackbox.PaddedListInputMapping(100, blackbox.DiscreteInputMapping(all_relas, combine=identity), combine=identity),
 
   ),
   output_mapping=blackbox.DiscreteOutputMapping(all_answers, "add_mult"),
