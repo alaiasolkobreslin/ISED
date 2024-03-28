@@ -26,6 +26,8 @@ def sum_5(digit_1, digit_2, digit_3, digit_4, digit_5):
 def sum_6(digit_1, digit_2, digit_3, digit_4, digit_5, digit_6):
     return digit_1 + digit_2 + digit_3 + digit_4 + digit_5 + digit_6
 
+def sum_15(*digits):
+    return sum(digits)
 
 def add_mod_3(digit_1, digit_2):
     return (digit_1 + digit_2) % 3
@@ -892,6 +894,7 @@ dispatcher = {
     'sum_4': sum_4,
     'sum_5': sum_5,
     'sum_6': sum_6,
+    'sum_15': sum_15,
     'add_mod_3': add_mod_3,
     'add_sub': add_sub,
     'eq_2': eq_2,
