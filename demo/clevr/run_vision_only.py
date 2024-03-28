@@ -753,10 +753,13 @@ class CLEVRVisionOnlyNet(nn.Module):
       batched_color_probs[batch_num][:obj_ct, :] = color_prob[begin: end, :]
       batched_mat_probs[batch_num][:obj_ct, :] = mat_prob[begin: end, :]
       batched_size_probs[batch_num][:obj_ct, :] = size_prob[begin: end, :]
-      objs = batched_rela_objs[begin:end]
-      rela_idxs = [all_obj_pair_idx.index((i,j)) for i,j in objs]
-      batched_rela_probs[batch_num][rela_idxs,:] = rela_prob[begin: end, :]
-      # batched_rela_probs[batch_num][:obj_ct, :] = rela_prob[begin: end, :]
+
+      current_idx = 0
+      for batch_num, next_idx in enumerate(batch_rela_split):
+        obj_pairs = batched_rela_objs[current_idx:next_idx]
+        rela_idxs = [all_obj_pair_idx.index((i,j)) for i,j in obj_pairs]
+        batched_rela_probs[batch_num][rela_idxs,:] = rela_prob[current_idx:next_idx, :]
+        current_idx = next_idx
 
     
     batched_shape_inputs = inp.PaddedListInput(batched_shape_probs,batched_lens)
