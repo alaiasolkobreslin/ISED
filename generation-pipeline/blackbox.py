@@ -49,6 +49,8 @@ class BlackBoxFunction(torch.nn.Module):
             return input.shape[0]
         elif type(input) == ListInput:
             return len(input.lengths)
+        elif type(input) == PaddedListInput:
+            return len(input.lengths)
         elif type(input) == list:
             return len(input)
         raise Exception("Unknown input type")
@@ -106,7 +108,7 @@ class BlackBoxFunction(torch.nn.Module):
 
         # Aggregate the probabilities
         result_probs = torch.ones((batch_size, self.sample_count), device=DEVICE)
-        for (input_tensor, sampled_index) in zip(inputs, sampled_indices):
+        for i, (input_tensor, sampled_index) in enumerate(zip(inputs[3:], sampled_indices)):
             gathered_probs = input_tensor.gather(1, sampled_index)
             if self.loss_aggregator == ADD_MULT:
                 result_probs *= gathered_probs

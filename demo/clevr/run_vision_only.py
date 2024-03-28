@@ -742,7 +742,7 @@ class CLEVRVisionOnlyNet(nn.Module):
     batched_color_probs = torch.ones(batch_size, max_obj_num, len(all_colors))*(1/len(all_colors))
     batched_mat_probs = torch.ones(batch_size, max_obj_num, len(all_mats))*(1/len(all_mats))
     batched_size_probs = torch.ones(batch_size, max_obj_num, len(all_sizes))*(1/len(all_sizes))
-    batched_rela_probs = torch.ones(batch_size, max_obj_num, len(all_relas))*(1/len(all_relas))
+    batched_rela_probs = torch.ones(batch_size, max_obj_num ** 2, len(all_relas))*(1/len(all_relas))
 
 
     for batch_num, (begin, end) in enumerate(splits):
@@ -753,7 +753,10 @@ class CLEVRVisionOnlyNet(nn.Module):
       batched_color_probs[batch_num][:obj_ct, :] = color_prob[begin: end, :]
       batched_mat_probs[batch_num][:obj_ct, :] = mat_prob[begin: end, :]
       batched_size_probs[batch_num][:obj_ct, :] = size_prob[begin: end, :]
-      batched_rela_probs[batch_num][:obj_ct, :] = rela_prob[begin: end, :]
+      objs = batched_rela_objs[begin:end]
+      rela_idxs = [all_obj_pair_idx.index((i,j)) for i,j in objs]
+      batched_rela_probs[batch_num][rela_idxs,:] = rela_prob[begin: end, :]
+      # batched_rela_probs[batch_num][:obj_ct, :] = rela_prob[begin: end, :]
 
     
     batched_shape_inputs = inp.PaddedListInput(batched_shape_probs,batched_lens)
