@@ -1,8 +1,8 @@
-import os
 import json
 import pickle
 import random
 from argparse import ArgumentParser
+import os
 from matplotlib import image
 
 import torch
@@ -19,6 +19,7 @@ assert os.path.exists(lib_dir)
 sys.path.append(lib_dir)
 
 import blackbox
+import input as inp
 import scallopy
 from torch import nn, optim
 import torch.nn.functional as F
@@ -736,29 +737,40 @@ class CLEVRVisionOnlyNet(nn.Module):
 
     splits = [(0, r) if i == 0 else (batch_split[i - 1], r) for (i, r) in enumerate(batch_split)]
     
-    batched_shape_probs = torch.zeros(batch_size, max_obj_num, len(all_shapes))
-    batched_color_probs = torch.zeros(batch_size, max_obj_num, len(all_colors))
-    batched_mat_probs = torch.zeros(batch_size, max_obj_num, len(all_mats))
-    batched_size_probs = torch.zeros(batch_size, max_obj_num, len(all_sizes))
-    batched_rela_probs = torch.zeros(batch_size, max_obj_num, len(all_relas))
+    batched_lens = []
+    batched_shape_probs = torch.ones(batch_size, max_obj_num, len(all_shapes))*(1/len(all_shapes))
+    batched_color_probs = torch.ones(batch_size, max_obj_num, len(all_colors))*(1/len(all_colors))
+    batched_mat_probs = torch.ones(batch_size, max_obj_num, len(all_mats))*(1/len(all_mats))
+    batched_size_probs = torch.ones(batch_size, max_obj_num, len(all_sizes))*(1/len(all_sizes))
+    batched_rela_probs = torch.ones(batch_size, max_obj_num, len(all_relas))*(1/len(all_relas))
+
 
     for batch_num, (begin, end) in enumerate(splits):
       obj_ct = end - begin
+      batched_lens.append(obj_ct)
+      # batched_shape_inputs.append(inp.PaddedListInput(batched_shape_probs,))
       batched_shape_probs[batch_num][:obj_ct, :] = shape_prob[begin: end, :]
       batched_color_probs[batch_num][:obj_ct, :] = color_prob[begin: end, :]
       batched_mat_probs[batch_num][:obj_ct, :] = mat_prob[begin: end, :]
       batched_size_probs[batch_num][:obj_ct, :] = size_prob[begin: end, :]
       batched_rela_probs[batch_num][:obj_ct, :] = rela_prob[begin: end, :]
+
+    
+    batched_shape_inputs = inp.PaddedListInput(batched_shape_probs,batched_lens)
+    batched_color_inputs = inp.PaddedListInput(batched_color_probs,batched_lens)
+    batched_mat_inputs = inp.PaddedListInput(batched_mat_probs,batched_lens)
+    batched_size_inputs = inp.PaddedListInput(batched_size_probs,batched_lens)
+    batched_rela_inputs = inp.PaddedListInput(batched_rela_probs,batched_lens)
       
     result = bb_evaluate(
       programs, # [("Count", 0, 1), ...]
       objs_mask, # 10 bool mask
       rela_objs_mask, # 100 bool mask 
-      batched_shape_probs, # ["sphere", "cube", ..., "cube"] (size 10)
-      batched_color_probs, # ["blue", "blue", ..., "red"] (size 10)
-      batched_mat_probs, # ["rubber", "metal", ..., "metal"] (size 10)
-      batched_size_probs, # ["large", "small", ..., "small"] (size 10)
-      batched_rela_probs, # ["left", "behind", ""] (size 100)
+      batched_shape_inputs, # ["sphere", "cube", ..., "cube"] (size 10)
+      batched_color_inputs, # ["blue", "blue", ..., "red"] (size 10)
+      batched_mat_inputs, # ["rubber", "metal", ..., "metal"] (size 10)
+      batched_size_inputs, # ["large", "small", ..., "small"] (size 10)
+      batched_rela_inputs, # ["left", "behind", ""] (size 100)
     )
 
     return result
