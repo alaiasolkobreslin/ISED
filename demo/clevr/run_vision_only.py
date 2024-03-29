@@ -340,7 +340,7 @@ class CLEVRProgram:
 class DiscreteClevrEvaluator:
   def __init__(self):
 
-    self.ctx = scallopy.ScallopContext("unit")
+    self.ctx = scallopy.ScallopContext("difftopkproofs")
     self.ctx.import_file(os.path.abspath(os.path.join(os.path.abspath(__file__), "../scl/clevr_eval_vision_only.scl")))
 
     # Setup scallopy forward function
@@ -357,34 +357,43 @@ class DiscreteClevrEvaluator:
       rela, # ["left", "behind", ""] (size 100)
   ):
     
-    shape = [(i, s) for (i, s) in enumerate(shape) if objs_mask[i]]
+    shapes = [(i, s) for (i, s) in enumerate(shape) if objs_mask[i]]
     colors = [(i, c) for (i, c) in enumerate(color) if objs_mask[i]]
     mats = [(i, c) for (i, c) in enumerate(mat) if objs_mask[i]]
     sizes = [(i, c) for (i, c) in enumerate(size) if objs_mask[i]]
-    relas = [(*all_obj_pair_idx.index(i), c) for (i, c) in enumerate(rela) if rela_objs_mask[i]]
-
+    # relas = [(*all_obj_pair_idx.index(i), c) for (i, c) in enumerate(rela) if rela_objs_mask[i]]
+    rela_a = [all_obj_pair_idx[i] for i,v in enumerate(rela_objs_mask) if v]
+    a,b = zip(*rela_a)
+    relas = list(zip(a,b,rela))
     objs = [tuple(i) for i in enumerate(objs_mask)]
 
     scene_graph = [{"obj": objs, "shape": shapes, "color": colors, "material": mats, "size": sizes, "relate": relas} for objs, shapes, colors, mats, sizes, relas in zip(objs, shapes, colors, mats, sizes, relas)]
+    combined_dict = {}
+    for d in scene_graph:
+        for key, value in d.items():
+            if key in combined_dict:
+                combined_dict[key].append(value)
+            else:
+                combined_dict[key] = [value]
+    facts = {**program.facts(), **combined_dict}
+    # facts = {k: [fs[k] for fs in list_facts] for k in self.ctx.relations()}
+    # facts = {k: list_facts[k] for k in self.ctx.relations()}
 
-    list_facts = {**program.facts(), **scene_graph}
-    facts = {k: [fs[k] for fs in list_facts] for k in self.relations}
+    # disjunctions = {}
+    # for sg_key, batched_sg_facts in list(facts.items()):
+    #   if sg_key in ['shape', 'color', 'material', 'size']:
+    #     if not sg_key in disjunctions:
+    #       disjunctions[sg_key] = []
 
-    disjunctions = {}
-    for sg_key, batched_sg_facts in facts.items():
-      if sg_key in ['shape', 'color', 'material', 'size']:
-        if not sg_key in disjunctions:
-          disjunctions[sg_key] = []
-
-        for sg_facts in batched_sg_facts:
-          disj_group = {}
-          for fid, (prob, sg_fact) in enumerate(sg_facts):
-            if not sg_key == 'relate':
-                oid, _ = sg_fact
-                if not oid in disj_group:
-                    disj_group[oid] = []
-                disj_group[oid].append(fid)
-          disjunctions[sg_key].append(list(disj_group.values()))
+    #     for sg_facts in batched_sg_facts:
+    #       disj_group = {}
+    #       for fid, (prob, sg_fact) in enumerate(sg_facts):
+    #         if not sg_key == 'relate':
+    #             oid, _ = sg_fact
+    #             if not oid in disj_group:
+    #                 disj_group[oid] = []
+    #             disj_group[oid].append(fid)
+    #       disjunctions[sg_key].append(list(disj_group.values()))
 
     # y_pred_values, y_pred_probs = self.reason(output_relations=output_relations, **facts, disjunctions=disjunctions)
     

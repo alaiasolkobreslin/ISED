@@ -27,7 +27,7 @@ class BlackBoxFunction(torch.nn.Module):
             check_symmetry: bool = True,
             caching: bool = True,
             sample_count: int = 100,
-            timeout_seconds: int = 1):
+            timeout_seconds: int = 5000):
         super(BlackBoxFunction, self).__init__()
         assert type(input_mappings) == tuple, "input_mappings must be a tuple"
         self.function = function
@@ -129,7 +129,8 @@ class BlackBoxFunction(torch.nn.Module):
         Note that function may fail on some inputs, and we skip those.
         """
         for r in input_args:
-            try:
+                #TODO: fix
+            # try:
                 fn_input = (self.input_mappings[i].combine(
                     elt) for i, elt in enumerate(r))
                 if not self.caching:
@@ -142,13 +143,16 @@ class BlackBoxFunction(torch.nn.Module):
                         y = self.timeout_decorator(self.function)(*fn_input)
                         self.fn_cache[hashable_fn_input] = y
                         yield y
-            except:
-                yield RESERVED_FAILURE
+            # except:
+            #     yield RESERVED_FAILURE
 
     def process_batch(self, batch):
         return list(self.invoke_function_on_inputs(batch))
 
     def invoke_function_on_batched_inputs(self, batched_inputs):
+        #TODO: fix
+        return [self.process_batch(i) for i in batched_inputs]
+
         return self.pool.map(self.process_batch, batched_inputs)
 
     def __getstate__(self):

@@ -75,7 +75,7 @@ class DiscreteOutputMapping(OutputMapping):
         result_tensor = torch.zeros((batch_size, len(self.elements)), device=DEVICE)
         for i in range(batch_size):
             for j in range(sample_count):
-                if results[i][j] != RESERVED_FAILURE:
+                 if results[i][j] != RESERVED_FAILURE:
                     result_tensor[i, self.element_indices[results[i]
                                                           [j]]] += result_probs[i, j]
         y_pred = torch.nn.functional.normalize(result_tensor, dim=1)
