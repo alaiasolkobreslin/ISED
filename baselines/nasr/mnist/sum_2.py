@@ -43,6 +43,7 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
   def __init__(
     self,
     root: str,
+    length: int,
     train: bool = True,
     transform: Optional[Callable] = None,
     target_transform: Optional[Callable] = None,
@@ -56,11 +57,12 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
       target_transform=target_transform,
       download=download,
     )
-    self.index_map = list(range(len(self.mnist_dataset)))
+    self.length = length # will be 5000
+    self.index_map = list(range(self.length * 2))
     random.shuffle(self.index_map)
 
   def __len__(self):
-    return int(len(self.mnist_dataset) / 2)
+    return self.length
 
   def __getitem__(self, idx):
     # Get two data points
@@ -82,6 +84,7 @@ def mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test):
   train_loader = torch.utils.data.DataLoader(
     MNISTSum2Dataset(
       data_dir,
+      length=5000,
       train=True,
       download=True,
       transform=mnist_img_transform,
@@ -94,6 +97,7 @@ def mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test):
   test_loader = torch.utils.data.DataLoader(
     MNISTSum2Dataset(
       data_dir,
+      length=500,
       train=False,
       download=True,
       transform=mnist_img_transform,
@@ -240,10 +244,12 @@ class Trainer():
     test_loss = 0
     rewards_value = 0
     num_correct = 0
+    
+    iter = tqdm(self.test_loader, total=len(self.test_loader))
 
     eps = np.finfo(np.float32).eps.item()
     with torch.no_grad():
-      for i, ((a_img, b_img), target) in enumerate(self.test_loader):
+      for i, ((a_img, b_img), target) in enumerate(iter):
         images = (a_img.to(self.args.gpu_id), b_img.to(self.args.gpu_id))
         target = target.to(self.args.gpu_id)
         
@@ -269,6 +275,8 @@ class Trainer():
         # output = validation(f1, f2, f3)
         num_correct += (output==target).sum()
         perc = 100.*num_correct/num_items
+        
+        iter.set_description(f"[Test Epoch {epoch}] {int(num_correct)}/{int(num_items)} ({perc:.2f})%")
         
         if self.best_loss is None or test_loss < self.best_loss:
           self.best_loss = test_loss
@@ -301,7 +309,7 @@ if __name__ == "__main__":
   parser.add_argument('-j', '--workers', default=0, type=int)
   parser.add_argument('--print-freq', default=5, type=int)
 
-  parser.add_argument('--epochs', default=10, type=int)
+  parser.add_argument('--epochs', default=20, type=int)
   parser.add_argument('--warmup', default=10, type=int)
   parser.add_argument('-b', '--batch-size', default=16, type=int)
   parser.add_argument('--learning-rate', default=0.0001, type=float)
@@ -320,7 +328,7 @@ if __name__ == "__main__":
   random.seed(1234)
 
   data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
-  model_dir = os.path.join('demo/model', 'nasr')
+  model_dir = os.path.join('model', 'nasr')
   os.makedirs(model_dir, exist_ok=True)
 
   model = RLSum2Net()
