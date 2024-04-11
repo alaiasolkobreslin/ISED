@@ -81,33 +81,28 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
 
 
 def mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test):
-  train_loader = torch.utils.data.DataLoader(
-    MNISTSum2Dataset(
-      data_dir,
-      length=5000,
-      train=True,
-      download=True,
-      transform=mnist_img_transform,
-    ),
-    collate_fn=MNISTSum2Dataset.collate_fn,
-    batch_size=batch_size_train,
-    shuffle=True
-  )
+    train_dataset = MNISTSum2Dataset(data_dir, length=5000, train=True, download=True, transform=mnist_img_transform)
+    train_set_size = len(train_dataset)
+    train_indices = list(range(train_set_size))
+    split = int(train_set_size * 0.8)
+    train_indices, val_indices = train_indices[:split], train_indices[split:]
+    train_loader = torch.utils.data.DataLoader(torch.utils.data.Subset(train_dataset, train_indices), collate_fn=MNISTSum2Dataset.collate_fn, batch_size=batch_size_train, shuffle=True)
+    valid_loader = torch.utils.data.DataLoader(torch.utils.data.Subset(train_dataset, val_indices), collate_fn=MNISTSum2Dataset.collate_fn, batch_size=batch_size_train, shuffle=True)
 
-  test_loader = torch.utils.data.DataLoader(
-    MNISTSum2Dataset(
-      data_dir,
-      length=500,
-      train=False,
-      download=True,
-      transform=mnist_img_transform,
-    ),
-    collate_fn=MNISTSum2Dataset.collate_fn,
-    batch_size=batch_size_test,
-    shuffle=True
-  )
+    test_loader = torch.utils.data.DataLoader(
+        MNISTSum2Dataset(
+        data_dir,
+        length=500,
+        train=False,
+        download=True,
+        transform=mnist_img_transform,
+        ),
+        collate_fn=MNISTSum2Dataset.collate_fn,
+        batch_size=batch_size_test,
+        shuffle=True
+    )
 
-  return train_loader, test_loader
+    return train_loader, valid_loader, test_loader
 
 
 class MNISTSum2Net(nn.Module):
@@ -145,6 +140,50 @@ def compute_reward(prediction, ground_truth):
         reward = 0
     return reward
 
+def validate(val_loader, model, args, epoch=None, time_begin=None):
+    model.eval()
+    loss_value = 0
+    reward_value = 0
+    n = 0
+    eps = np.finfo(np.float32).eps.item()
+    
+    iter = tqdm(val_loader, total=len(val_loader))
+
+    with torch.no_grad():
+        for i, ((a_img, b_img), target) in enumerate(iter):
+            images = (a_img.to(args.gpu_id), b_img.to(args.gpu_id))
+            target = target.to(args.gpu_id)
+
+            a, b = model(images)
+            final_output(model,target,a,b,args) # this populates model.rewards
+            rewards = np.array(model.rewards)
+            rewards_mean = rewards.mean()
+            reward_value += float(rewards_mean * images[0].size(0))
+            rewards = (rewards - rewards.mean())/(rewards.std() + eps)
+            policy_loss = []
+            for reward, log_prob in zip(rewards, model.saved_log_probs):
+                policy_loss.append(-log_prob*reward)
+            policy_loss = (torch.stack(policy_loss)).sum()
+
+            n += images[0].size(0)
+            loss_value += float(policy_loss.item() * images[0].size(0))
+            model.rewards = []
+            model.saved_log_probs = []
+            torch.cuda.empty_cache()
+
+            iter.set_description(f"[Val][{i}] AvgLoss: {loss_value/n:.4f} AvgRewards: {rewards_mean:.4f}")
+
+            # if args.print_freq >= 0 and i % args.print_freq == 0:
+            #     avg_loss = (loss_value / n)
+            #     print(f'[rl][Epoch {epoch}][Val][{i}] \t AvgLoss: {avg_loss:.4f}  \t AvgRewards: {rewards_mean:.4f}')
+    
+    avg_reward = (reward_value/n)      
+    avg_loss = (loss_value / n)
+    total_mins = -1 if time_begin is None else (time() - time_begin) / 60
+    print(f'----[rl][Epoch {epoch}] \t \t AvgLoss {avg_loss:.4f} \t \t AvgReward {avg_reward:.4f} \t \t Time: {total_mins:.2f} ')
+
+    return avg_loss, rewards_mean
+
 def validation(a, b):
     a = a.argmax(dim=1)
     b = b.argmax(dim=1)
@@ -181,9 +220,10 @@ def adjust_learning_rate(optimizer, epoch, args):
     return lr
     
 class Trainer():
-  def __init__(self, train_loader, test_loader, model, path, args):
+  def __init__(self, train_loader, valid_loader, test_loader, model, path, args):
     self.network = model
     self.train_loader = train_loader
+    self.valid_loader = valid_loader
     self.test_loader = test_loader
     self.path = path
     self.args = args
@@ -292,15 +332,29 @@ class Trainer():
 
   def train(self, n_epochs):
     time_begin = time()
+    ckpt_path = os.path.join('outputs', 'rl/')
+    best_loss = None
+    best_reward = None
     with open(f"{self.path}/log.txt", 'w'): pass
     with open(f"{self.path}/detail_log.txt", 'w'): pass
     for epoch in range(1, n_epochs+1):
-      lr = adjust_learning_rate(self.optimizer, epoch, self.args)
-      train_loss = self.train_epoch(epoch)
-      test_loss = self.test_epoch(epoch, time_begin)
-      stats = {'epoch': epoch, 'lr': lr, 'train_loss': train_loss, 'val_loss': test_loss, 'best_loss': self.best_loss}
-      with open(f"{self.path}/log.txt", "a") as f: 
-        f.write(json.dumps(stats) + "\n")
+        lr = adjust_learning_rate(self.optimizer, epoch, self.args)
+        train_loss, train_rewards = self.train_epoch(epoch)
+        loss, valid_rewards = validate(self.valid_loader, model, args, epoch=epoch, time_begin=time_begin)
+      
+        if best_reward is None or valid_rewards > best_reward :
+            best_reward = valid_rewards
+            torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_best_R.pth')
+        
+        if best_loss is None or loss < best_loss :
+            best_loss = loss
+            torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_best_L.pth')
+      
+        stats = {'epoch': epoch, 'lr': lr, 'train_loss': train_loss, 
+                    'val_loss': loss, 'best_loss': best_loss , 
+                    'train_rewards': train_rewards, 'valid_rewards': valid_rewards}
+        with open(f"{self.path}/log.txt", "a") as f: 
+            f.write(json.dumps(stats) + "\n")
     torch.save(self.network.state_dict(), f'{self.path}/checkpoint_last.pth')
 
 if __name__ == "__main__":
@@ -334,6 +388,6 @@ if __name__ == "__main__":
   model = RLSum2Net()
   model.to(args.gpu_id)
 
-  (train_loader, test_loader) = mnist_sum_2_loader(data_dir, args.batch_size, args.batch_size)
-  trainer = Trainer(train_loader, test_loader, model, model_dir, args)
+  (train_loader, valid_loader, test_loader) = mnist_sum_2_loader(data_dir, args.batch_size, args.batch_size)
+  trainer = Trainer(train_loader, valid_loader, test_loader, model, model_dir, args)
   trainer.train(args.epochs)
