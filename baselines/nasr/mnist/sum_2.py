@@ -10,7 +10,6 @@ import numpy as np
 from time import time
 import random
 from typing import Optional, Callable
-from PIL import Image
 
 from argparse import ArgumentParser
 
@@ -28,6 +27,7 @@ from argparse import ArgumentParser
 from tqdm import tqdm
 
 import mnist_net
+import common
 
 mnist_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -133,56 +133,6 @@ class RLSum2Net(nn.Module):
   def forward(self, x):
     return self.perception.forward(x)
 
-def compute_reward(prediction, ground_truth):
-    if prediction == ground_truth:
-        reward = 1
-    else:
-        reward = 0
-    return reward
-
-def validate(val_loader, model, args, epoch=None, time_begin=None):
-    model.eval()
-    loss_value = 0
-    reward_value = 0
-    n = 0
-    eps = np.finfo(np.float32).eps.item()
-    
-    iter = tqdm(val_loader, total=len(val_loader))
-
-    with torch.no_grad():
-        for i, ((a_img, b_img), target) in enumerate(iter):
-            images = (a_img.to(args.gpu_id), b_img.to(args.gpu_id))
-            target = target.to(args.gpu_id)
-
-            a, b = model(images)
-            final_output(model,target,a,b,args) # this populates model.rewards
-            rewards = np.array(model.rewards)
-            rewards_mean = rewards.mean()
-            reward_value += float(rewards_mean * images[0].size(0))
-            rewards = (rewards - rewards.mean())/(rewards.std() + eps)
-            policy_loss = []
-            for reward, log_prob in zip(rewards, model.saved_log_probs):
-                policy_loss.append(-log_prob*reward)
-            policy_loss = (torch.stack(policy_loss)).sum()
-
-            n += images[0].size(0)
-            loss_value += float(policy_loss.item() * images[0].size(0))
-            model.rewards = []
-            model.saved_log_probs = []
-            torch.cuda.empty_cache()
-
-            iter.set_description(f"[Val][{i}] AvgLoss: {loss_value/n:.4f} AvgRewards: {rewards_mean:.4f}")
-
-            # if args.print_freq >= 0 and i % args.print_freq == 0:
-            #     avg_loss = (loss_value / n)
-            #     print(f'[rl][Epoch {epoch}][Val][{i}] \t AvgLoss: {avg_loss:.4f}  \t AvgRewards: {rewards_mean:.4f}')
-    
-    avg_reward = (reward_value/n)      
-    avg_loss = (loss_value / n)
-    total_mins = -1 if time_begin is None else (time() - time_begin) / 60
-    print(f'----[rl][Epoch {epoch}] \t \t AvgLoss {avg_loss:.4f} \t \t AvgReward {avg_reward:.4f} \t \t Time: {total_mins:.2f} ')
-
-    return avg_loss, rewards_mean
 
 def validation(a, b):
     a = a.argmax(dim=1)
@@ -191,7 +141,7 @@ def validation(a, b):
     predictions = torch.stack([torch.tensor(sum_2(a[i], b[i])) for i in range(len(a))])
     return predictions
 
-def final_output(model,ground_truth, a, b, args):
+def final_output(model,ground_truth, args, a, b):
   d_a = torch.distributions.categorical.Categorical(a)
   d_b = torch.distributions.categorical.Categorical(b)
 
@@ -203,159 +153,12 @@ def final_output(model,ground_truth, a, b, args):
   predictions = []
   for i in range(len(s_a)):
     prediction = sum_2(s_a[i], s_b[i])
-    predictions.append(torch.tensor(prediction))
-    reward = compute_reward(prediction,ground_truth[i])
+    predictions.append(prediction)
+    reward = common.compute_reward(prediction,ground_truth[i])
     model.rewards.append(reward)
   
   return torch.stack(predictions)
 
-def adjust_learning_rate(optimizer, epoch, args):
-    lr = args.learning_rate
-    if hasattr(args, 'warmup') and epoch < args.warmup:
-        lr = lr / (args.warmup - epoch)
-    elif not args.disable_cos:
-        lr *= 0.5 * (1. + math.cos(math.pi * (epoch - args.warmup) / (args.epochs - args.warmup)))
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
-    return lr
-    
-class Trainer():
-  def __init__(self, train_loader, valid_loader, test_loader, model, path, args):
-    self.network = model
-    self.train_loader = train_loader
-    self.valid_loader = valid_loader
-    self.test_loader = test_loader
-    self.path = path
-    self.args = args
-    self.best_loss = None
-    self.best_reward = None
-    self.optimizer = torch.optim.AdamW(self.network.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
-    self.criterion = nn.BCEWithLogitsLoss()
-  
-  def train_epoch(self, epoch):
-    self.network.train()
-    num_items = 0
-    train_loss = 0
-    
-    iter = tqdm(self.train_loader, total=len(self.train_loader))
-
-    eps = np.finfo(np.float32).eps.item()
-    for i, ((a_img, b_img), target) in enumerate(iter):
-      images = (a_img.to(self.args.gpu_id), b_img.to(self.args.gpu_id))
-      target = target.to(self.args.gpu_id)
-      a, b = self.network(images)
-      final_output(model,target,a,b,args)
-      rewards = np.array(model.rewards)
-      rewards_mean = rewards.mean()
-      rewards = (rewards - rewards.mean())/(rewards.std() + eps)
-      policy_loss = torch.zeros(len(rewards), requires_grad=True)
-      
-      for n, (reward, log_prob) in enumerate(zip(rewards, model.saved_log_probs)):
-        policy_loss[n].data += (-log_prob.cpu()*reward)
-      self.optimizer.zero_grad()
-      
-      policy_loss = policy_loss.sum()
-
-      #if args.clip_grad_norm > 0:
-      #  nn.utils.clip_grad_norm_(self.network.parameters(), max_norm=args.clip_grad_norm, norm_type=2)
-
-      num_items += a_img.size(0)
-      train_loss += float(policy_loss.item() * a_img.size(0))
-      policy_loss.backward()
-
-      self.optimizer.step()
-      
-      avg_loss = train_loss/num_items
-      iter.set_description(f"[Train Epoch {epoch}] AvgLoss: {avg_loss:.4f} AvgRewards: {rewards_mean:.4f}")
-      
-      if args.print_freq >= 0 and i % args.print_freq == 0:
-        stats2 = {'epoch': epoch, 'train': i, 'avr_train_loss': avg_loss, 'avr_train_reward': rewards_mean}
-        with open(f"model/nasr/detail_log.txt", "a") as f:
-          f.write(json.dumps(stats2) + "\n")
-      model.rewards = []
-      model.shared_log_probs = []
-      torch.cuda.empty_cache()
-    
-    return (train_loss/num_items), rewards_mean
-
-  def test_epoch(self, epoch, time_begin):
-    self.network.eval()
-    num_items = 0
-    test_loss = 0
-    rewards_value = 0
-    num_correct = 0
-    
-    iter = tqdm(self.test_loader, total=len(self.test_loader))
-
-    eps = np.finfo(np.float32).eps.item()
-    with torch.no_grad():
-      for i, ((a_img, b_img), target) in enumerate(iter):
-        images = (a_img.to(self.args.gpu_id), b_img.to(self.args.gpu_id))
-        target = target.to(self.args.gpu_id)
-        
-        a, b = self.network(images)
-        output = final_output(model,target,a,b,args)
-
-        rewards = np.array(model.rewards)
-        rewards_mean = rewards.mean()
-        rewards_value += float(rewards_mean * a_img.size(0))
-        rewards = (rewards - rewards.mean())/(rewards.std() + eps)
-
-        policy_loss = []
-        for reward, log_prob in zip(rewards, model.saved_log_probs):
-          policy_loss.append(-log_prob*reward)
-        policy_loss = (torch.stack(policy_loss)).sum()
-
-        num_items += a_img.size(0)
-        test_loss += float(policy_loss.item() * a_img.size(0))
-        model.rewards = []
-        model.saved_log_probs = []
-        torch.cuda.empty_cache()
-
-        # output = validation(f1, f2, f3)
-        num_correct += (output==target).sum()
-        perc = 100.*num_correct/num_items
-        
-        iter.set_description(f"[Test Epoch {epoch}] {int(num_correct)}/{int(num_items)} ({perc:.2f})%")
-        
-        if self.best_loss is None or test_loss < self.best_loss:
-          self.best_loss = test_loss
-          torch.save(self.network.state_dict(), f'{self.path}/checkpoint_best_L.pth')
-    
-    avg_loss = (test_loss / num_items)
-    avg_reward = (rewards_value/num_items)  
-    total_mins = (time() - time_begin) / 60
-    print(f"[Test Epoch {epoch}] {int(num_correct)}/{int(num_items)} ({perc:.2f})%")
-    print(f'----[rl][Epoch {epoch}] \t \t AvgLoss {avg_loss:.4f} \t \t AvgReward {avg_reward:.4f} \t \t Time: {total_mins:.2f} ')
-    
-    return avg_loss, rewards_mean
-
-  def train(self, n_epochs):
-    time_begin = time()
-    ckpt_path = os.path.join('outputs', 'rl/')
-    best_loss = None
-    best_reward = None
-    with open(f"{self.path}/log.txt", 'w'): pass
-    with open(f"{self.path}/detail_log.txt", 'w'): pass
-    for epoch in range(1, n_epochs+1):
-        lr = adjust_learning_rate(self.optimizer, epoch, self.args)
-        train_loss, train_rewards = self.train_epoch(epoch)
-        loss, valid_rewards = validate(self.valid_loader, model, args, epoch=epoch, time_begin=time_begin)
-      
-        if best_reward is None or valid_rewards > best_reward :
-            best_reward = valid_rewards
-            torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_best_R.pth')
-        
-        if best_loss is None or loss < best_loss :
-            best_loss = loss
-            torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_best_L.pth')
-      
-        stats = {'epoch': epoch, 'lr': lr, 'train_loss': train_loss, 
-                    'val_loss': loss, 'best_loss': best_loss , 
-                    'train_rewards': train_rewards, 'valid_rewards': valid_rewards}
-        with open(f"{self.path}/log.txt", "a") as f: 
-            f.write(json.dumps(stats) + "\n")
-    torch.save(self.network.state_dict(), f'{self.path}/checkpoint_last.pth')
 
 if __name__ == "__main__":
   parser = ArgumentParser('leaf')
@@ -383,11 +186,13 @@ if __name__ == "__main__":
 
   data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
   model_dir = os.path.join('model', 'nasr')
+  outputs_dir = os.path.join('outputs', 'nasr')
   os.makedirs(model_dir, exist_ok=True)
+  os.makedirs(outputs_dir, exist_ok=True)
 
   model = RLSum2Net()
   model.to(args.gpu_id)
 
   (train_loader, valid_loader, test_loader) = mnist_sum_2_loader(data_dir, args.batch_size, args.batch_size)
-  trainer = Trainer(train_loader, valid_loader, test_loader, model, model_dir, args)
+  trainer = common.Trainer(train_loader, valid_loader, test_loader, model, model_dir, final_output, args)
   trainer.train(args.epochs)
