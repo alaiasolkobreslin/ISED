@@ -172,7 +172,6 @@ class Trainer():
         self.model.saved_log_probs = []
         torch.cuda.empty_cache()
 
-        # output = validation(f1, f2, f3)
         num_correct += (output==target).sum()
         perc = 100.*num_correct/num_items
         
