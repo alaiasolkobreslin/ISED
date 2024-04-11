@@ -332,7 +332,7 @@ class Trainer():
 
 if __name__ == "__main__":
   parser = ArgumentParser('leaf')
-  parser.add_argument('--gpu-id', default='mps', type=str)
+  parser.add_argument('--gpu-id', default='cuda:0', type=str)
   parser.add_argument('-j', '--workers', default=0, type=int)
   parser.add_argument('--print-freq', default=5, type=int)
 
