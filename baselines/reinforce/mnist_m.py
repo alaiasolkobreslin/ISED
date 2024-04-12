@@ -256,8 +256,8 @@ class Trainer():
     with torch.no_grad():
       for (data, target) in self.test_loader:
         output = self.network(data)
-        pred = output.argmax(dim=-1).sum(dim=1)
-        correct += pred.eq(target).sum()
+        pred = self.loss_fn(output.argmax(dim=-1), target, self.task)
+        correct += pred.sum()
       perc = 100. * correct / num_items
     return perc
 
@@ -277,7 +277,7 @@ if __name__ == "__main__":
   parser.add_argument("--digit", type=int, default=3)
   parser.add_argument("--sample-count", type=int, default=10)
   parser.add_argument("--grad_type", type=str, default='icr')
-  parser.add_argument("--task-type", type=str, default='sum')
+  parser.add_argument("--task-type", type=str, default='add_sub')
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--jit", action="store_true")
   parser.add_argument("--dispatch", type=str, default="parallel")
