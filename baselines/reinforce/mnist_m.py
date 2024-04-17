@@ -1,6 +1,8 @@
 import os
 import random
 from typing import *
+import csv
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -144,31 +146,39 @@ def loss_fn(data, target, task):
     acc = torch.where(torch.stack(pred).reshape(data.shape[:-1]) == target, 1., 0.)
     return acc
 
+def sort_loss_fn(data, target, task):
+    pred = []
+    x = data.flatten(0,-2)
+    for i in x:
+      pred.append(task(list(i)))
+    acc = torch.where(torch.tensor(np.array(pred)).reshape(*data.shape[:-1], -1) == target, 1., 0.)
+    return acc.prod(dim=-1)
+
 class Trainer():
-  def __init__(self, model, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, dim, sample_count, batch_size, log_it, task):
+  def __init__(self, model, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, dim, sample_count, log_it, task, task_type, seed):
     self.model_dir = model_dir
     self.network = model(dim)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
-    self.best_loss = 10000000000
+    self.best_loss = None
     self.grad_type = grad_type
     self.dim = dim
     self.sample_count = sample_count
-    self.batch_size = batch_size
     self.loss_fn = loss_fn
     self.log_it = log_it
     self.task = task
+    self.task_type = task_type
+    self.seed = seed
 
-    if grad_type == 'icr' or grad_type == 'advanced_icr': self.indecater_multiplier()
-
-  def indecater_multiplier(self):
-    self.icr_mult = torch.zeros((self.dim, 10, self.sample_count, self.batch_size, self.dim))
-    self.icr_replacement = torch.zeros((self.dim, 10, self.sample_count, self.batch_size, self.dim))
+  def indecater_multiplier(self, batch_size):
+    icr_mult = torch.zeros((self.dim, 10, self.sample_count, batch_size, self.dim))
+    icr_replacement = torch.zeros((self.dim, 10, self.sample_count, batch_size, self.dim))
     for i in range(self.dim):
       for j in range(10):
-        self.icr_mult[i,j,:,:,i] = 1
-        self.icr_replacement[i,j,:,:,i] = j
+        icr_mult[i,j,:,:,i] = 1
+        icr_replacement[i,j,:,:,i] = j
+    return icr_mult, icr_replacement
 
   def reinforce_grads(self, data, target):
     logits = self.network(data)
@@ -190,10 +200,12 @@ class Trainer():
     samples = d.sample((self.sample_count,))
     f_sample = self.loss_fn(samples, target.unsqueeze(0), self.task)
     f_mean = f_sample.mean(dim=0)
+    batch_size = data[0].shape[0]
 
     outer_samples = torch.stack([samples] * 10, dim=0)
     outer_samples = torch.stack([outer_samples] * self.dim, dim=0)
-    outer_samples = outer_samples * (1 - self.icr_mult) + self.icr_replacement
+    m, r = self.indecater_multiplier(batch_size)
+    outer_samples = outer_samples * (1 - m) + r
     outer_loss = self.loss_fn(outer_samples, target.unsqueeze(0).unsqueeze(0).unsqueeze(0), self.task)
     
     variable_loss = outer_loss.mean(dim=2).permute(2,0,1)
@@ -212,10 +224,12 @@ class Trainer():
     samples = d.sample((self.sample_count * self.dim,))
     f_sample = self.loss_fn(samples, target, self.task)
     f_mean = f_sample.mean(dim=0)
+    batch_size = data[0].shape[0]
 
-    samples = samples.reshape((self.dim, self.sample_count, self.batch_size, self.dim))
+    samples = samples.reshape((self.dim, self.sample_count, batch_size, self.dim))
     outer_samples = torch.stack([samples] * 10, dim=1)
-    outer_samples = outer_samples * (1 - self.icr_mult) + self.icr_replacement
+    m, r = self.indecater_multiplier(batch_size)
+    outer_samples = outer_samples * (1 - m) + r
     outer_loss = self.loss_fn(outer_samples, target, self.task)
     
     variable_loss = outer_loss.mean(dim=2).permute(2,0,1)
@@ -237,18 +251,13 @@ class Trainer():
       return self.advanced_indecater_grads(data, target)
 
   def train_epoch(self, epoch):
-    counter = 1
+    print(f"Epoch {epoch}")
     self.network.train()
     for (data, target) in self.train_loader:
       self.optimizer.zero_grad()
       loss = self.grads(data, target)
       loss.backward()
       self.optimizer.step()
-      if counter % self.log_it == 0:
-        acc = self.test()
-        print(f"Epoch {epoch} iterations {counter}",
-              f"Test accuracy: {acc}")
-      counter += 1
 
   def test(self):
     num_items = len(self.test_loader.dataset)
@@ -258,26 +267,34 @@ class Trainer():
         output = self.network(data)
         pred = self.loss_fn(output.argmax(dim=-1), target, self.task)
         correct += pred.sum()
-      perc = 100. * correct / num_items
+      perc = correct / num_items
+    
+    if self.best_loss is None or self.best_loss < perc:
+      self.best_loss = perc
+      torch.save(self.network, model_dir+f"/{self.grad_type}_{self.seed}_best.pkl")
+
     return perc
 
   def train(self, n_epochs):
     # self.test_epoch(0)
+    dict = {}
     for epoch in range(1, n_epochs + 1):
       self.train_epoch(epoch)
-    test_acc = self.test()
-    print(f"Test accuracy: {test_acc} %")
+      acc = self.test()
+      dict["accuracy epoch " + str(epoch)] = round(float(acc), ndigits=6)
+      print(f"Test accuracy: {acc}")
+    torch.save(self.network, model_dir+f"/{self.grad_type}_{self.seed}_last.pkl")
+    return dict
 
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("mnist_r")
-  parser.add_argument("--n-epochs", type=int, default=100)
-  parser.add_argument("--batch-size", type=int, default=10)
+  parser.add_argument("--n-epochs", type=int, default=10)
+  parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
-  parser.add_argument("--digit", type=int, default=3)
-  parser.add_argument("--sample-count", type=int, default=10)
+  parser.add_argument("--digit", type=int, default=4)
+  parser.add_argument("--sample-count", type=int, default=100)
   parser.add_argument("--grad_type", type=str, default='icr')
-  parser.add_argument("--task-type", type=str, default='add_sub')
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--jit", action="store_true")
   parser.add_argument("--dispatch", type=str, default="parallel")
@@ -290,42 +307,88 @@ if __name__ == "__main__":
   digits = args.digit
   sample_count = args.sample_count
   grad_type = args.grad_type
-  task_type = args.task_type
 
-  torch.manual_seed(args.seed)
-  random.seed(args.seed)
+  accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
+  field_names = ['random seed', 'task_type', 'sample count'] + accuracies
 
-  # Data
-  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
-  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), f"../../model/{task_type}"))
-  os.makedirs(model_dir, exist_ok=True)
+  #with open('baselines/reinforce/results/icr_mnist_m.csv', 'w', newline='') as csvfile:
+  #  writer = csv.DictWriter(csvfile, fieldnames=field_names)
+  #  writer.writeheader()
+  #  csvfile.close()
 
-  if task_type == 'sum':
-    task = task_program.sum_m
-  elif task_type == 'add_sub':
-    task = task_program.add_sub
-    digits = 3
-  elif task_type == 'eq':
-    task = task_program.eq
-    digits = 2
-  elif task_type == 'how_many_3_4':
-    task = task_program.how_many_3_4
-    digits = 8
-  elif task_type == 'less_than':
-    task = task_program.less_than
-    digits = 2
-  elif task_type == 'mod':
-    task = task_program.mod_2
-    digits = 2
-  elif task_type == 'mult':
-    task = task_program.mult_2
-    digits = 2
-  else:
-    raise Exception("Wrong Task name")
+  l = loss_fn
+  
+  for task_type in ['sort_4']:
+    if task_type == 'sum':
+      task = task_program.sum_m
+      task_type = f'sum_{digits}'
+    elif task_type == 'sum_2':
+      task = task_program.sum_m
+      digits = 2
+      sample_count = 5
+    elif task_type == 'sum_3':
+      task = task_program.sum_m
+      digits = 3
+      sample_count = 4
+    elif task_type == 'sum_4':
+      task = task_program.sum_m
+      digits = 4
+      sample_count = 3
+    elif task_type == 'add_sub':
+      task = task_program.add_sub
+      digits = 3
+      sample_count = 4
+    elif task_type == 'eq':
+      task = task_program.eq
+      digits = 2
+      sample_count = 5
+    elif task_type == 'how_many_3_4':
+      task = task_program.how_many_3_4
+      digits = 8
+      sample_count = 2
+    elif task_type == 'less_than':
+      task = task_program.less_than
+      digits = 2
+      sample_count = 5
+    elif task_type == 'mod':
+      task = task_program.mod_2
+      digits = 2
+      sample_count = 5
+    elif task_type == 'mult':
+      task = task_program.mult_2
+      digits = 2
+      sample_count = 5
+    elif task_type == 'sort_2':
+      task = task_program.sort
+      digits = 2
+      l = sort_loss_fn
+    elif task_type == 'sort_4':
+      task = task_program.sort
+      digits = 4
+      l = sort_loss_fn
+    else:
+      raise Exception("Wrong Task name")
+    
+    for seed in [3177, 5848, 9175]:
+      torch.manual_seed(seed)
+      random.seed(seed)
+      
+      # Data
+      data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
+      model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), f"../../model/{task_type}"))
+      os.makedirs(model_dir, exist_ok=True)
 
-  # Dataloaders
-  train_loader, test_loader = mnist_digits_loader(data_dir, batch_size, digits, task)
+      # Dataloaders
+      train_loader, test_loader = mnist_digits_loader(data_dir, batch_size, digits, task)
 
-  # Create trainer and train
-  trainer = Trainer(MNISTTaskNet, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, digits, sample_count, batch_size, 100, task)
-  trainer.train(n_epochs)
+      # Create trainer and train
+      trainer = Trainer(MNISTTaskNet, l, train_loader, test_loader, model_dir, learning_rate, grad_type, digits, sample_count, 100, task, task_type, seed)
+
+      dict = trainer.train(n_epochs)
+      dict["random seed"] = seed
+      dict['task_type'] = task_type
+      dict['sample count'] = sample_count
+      with open('baselines/reinforce/results/icr_mnist_m.csv', 'a', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=field_names)
+        writer.writerow(dict)
+        csvfile.close()

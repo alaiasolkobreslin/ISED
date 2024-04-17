@@ -2,6 +2,7 @@ import os
 import random
 from typing import *
 from PIL import Image
+import csv
 
 import torch
 import torch.nn as nn
@@ -162,33 +163,32 @@ def loss_fn(data, target):
     return acc
 
 class Trainer():
-  def __init__(self, model, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, dim, sample_count, batch_size, log_it):
+  def __init__(self, model, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, dim, sample_count, seed):
     self.model_dir = model_dir
     self.network = model(dim)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
-    self.best_loss = 10000000000
+    self.best_loss = None
     self.grad_type = grad_type
     self.dim = dim
     self.sample_count = sample_count
-    self.batch_size = batch_size
     self.loss_fn = loss_fn
-    self.log_it = log_it
+    self.seed = seed
     self.cats = [6,5,4]
 
-    if grad_type == 'icr' or grad_type == 'advanced_icr': self.indecater_multiplier()
-
-  def indecater_multiplier(self):
+  def indecater_multiplier(self, batch_size):
     ind = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15]
-    self.icr_mult = torch.zeros((self.dim, 6, self.sample_count, self.batch_size, self.dim))
-    self.icr_replacement = torch.zeros((self.dim, 6, self.sample_count, self.batch_size, self.dim))
+    icr_mult = torch.zeros((self.dim, 6, self.sample_count, batch_size, self.dim))
+    icr_replacement = torch.zeros((self.dim, 6, self.sample_count, batch_size, self.dim))
     for i in range(self.dim):
       for j in range(self.cats[i]):
-        self.icr_mult[i,j,:,:,i] = 1
-        self.icr_replacement[i,j,:,:,i] = j
-    self.icr_mult = self.icr_mult.reshape((18, self.sample_count, self.batch_size, self.dim))[ind]
-    self.icr_replacement = self.icr_replacement.reshape((18, self.sample_count, self.batch_size, self.dim))[ind]
+        icr_mult[i,j,:,:,i] = 1
+        icr_replacement[i,j,:,:,i] = j
+    icr_mult = icr_mult.reshape((18, self.sample_count, batch_size, self.dim))[ind]
+    icr_replacement = icr_replacement.reshape((18, self.sample_count, batch_size, self.dim))[ind]
+
+    return icr_mult, icr_replacement
 
   def reinforce_grads(self, data, target):
     logits1, logits2, logits3 = self.network(data)
@@ -220,9 +220,11 @@ class Trainer():
     samples = torch.stack((samples1, samples2, samples3), dim=2)
     f_sample = self.loss_fn(samples, target.unsqueeze(0))
     f_mean = f_sample.mean(dim=0)
+    batch_size = data.shape[0]
 
     outer_samples = torch.stack([samples] * 15, dim=0)
-    outer_samples = outer_samples * (1 - self.icr_mult) + self.icr_replacement
+    m, r = self.indecater_multiplier(batch_size)
+    outer_samples = outer_samples * (1 - m) + r
     outer_loss = self.loss_fn(outer_samples, target.unsqueeze(0).unsqueeze(0).unsqueeze(0))
     
     variable_loss = outer_loss.mean(dim=2).permute(2,0,1)
@@ -247,10 +249,11 @@ class Trainer():
     samples = torch.stack((samples1, samples2, samples3), dim=2)
     f_sample = self.loss_fn(samples, target.unsqueeze(0))
     f_mean = f_sample.mean(dim=0)
+    batch_size = data.shape[0]
 
-    samples = samples.reshape((self.dim, self.sample_count, self.batch_size, self.dim))
-    outer_samples = torch.cat([samples] * 5, dim=0)
-    outer_samples = outer_samples * (1 - self.icr_mult) + self.icr_replacement
+    samples = samples.reshape((self.dim, self.sample_count, batch_size, self.dim))
+    m, r = self.indecater_multiplier(batch_size)
+    outer_samples = outer_samples * (1 - m) + r
     outer_loss = self.loss_fn(outer_samples, target.unsqueeze(0).unsqueeze(0).unsqueeze(0))
     
     variable_loss = outer_loss.mean(dim=2).permute(2,0,1)
@@ -273,15 +276,13 @@ class Trainer():
       return self.advanced_indecater_grads(data, target)
 
   def train_epoch(self, epoch):
-    counter = 1
     self.network.train()
     for (data, target) in self.train_loader:
       self.optimizer.zero_grad()
       loss = self.grads(data, target)
       loss.backward()
       self.optimizer.step()
-      counter += 1
-    print(f"Epoch {epoch} iterations {counter}")
+    print(f"Epoch {epoch}")
 
   def test(self):
     num_items = len(self.test_loader.dataset)
@@ -292,28 +293,34 @@ class Trainer():
         logits = torch.stack((logits1.argmax(dim=-1), logits2.argmax(dim=-1), logits3.argmax(dim=-1)), dim=-1)
         pred = loss_fn(logits, target)
         correct += pred.sum()
-      perc = 100. * correct / num_items
+      
+    perc = float(correct/num_items)
+    if self.best_loss is None or self.best_loss < perc:
+      self.best_loss = perc
+      torch.save(self.network, model_dir+f"/{self.grad_type}_{self.seed}_best.pkl")
+
     return perc
 
   def train(self, n_epochs):
-    # self.test_epoch(0)
+    dict = {}
     for epoch in range(1, n_epochs + 1):
       self.train_epoch(epoch)
-      if epoch % self.log_it == 0:
-        acc = self.test()
-        print(f"Epoch {epoch} iterations {epoch}",
-              f"Test accuracy: {acc}")
+      acc = self.test()
+      dict["accuracy epoch " + str(epoch)] = round(float(acc), ndigits=6)
+      print(f"Test accuracy: {acc}")
+    torch.save(self.network, model_dir+f"/{self.grad_type}_{self.seed}_last.pkl")
+    return dict
 
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("leaves")
-  parser.add_argument("--n-epochs", type=int, default=100)
-  parser.add_argument("--batch-size", type=int, default=10)
+  parser.add_argument("--n-epochs", type=int, default=50)
+  parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--sample-count", type=int, default=100)
   parser.add_argument("--train-num", type=int, default=30)
   parser.add_argument("--test-num", type=int, default=10)
-  parser.add_argument("--grad_type", type=str, default='advanced_icr')
+  parser.add_argument("--grad_type", type=str, default='reinforce')
   parser.add_argument("--data-dir", type=str, default="leaf_11")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--jit", action="store_true")
@@ -327,19 +334,34 @@ if __name__ == "__main__":
   sample_count = args.sample_count
   grad_type = args.grad_type
   dim = 3
-  log_it = 5
 
-  torch.manual_seed(args.seed)
-  random.seed(args.seed)
+  accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
+  field_names = ['random seed', 'grad_type', 'sample count'] + accuracies
+
+  #with open('baselines/reinforce/results/leaves.csv', 'w', newline='') as csvfile:
+  #  writer = csv.DictWriter(csvfile, fieldnames=field_names)
+  #  writer.writeheader()
+  #  csvfile.close()
 
   # Data
-  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../neuro-symbolic-dataset/benchmarks/data"))
+  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
   model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
   os.makedirs(model_dir, exist_ok=True)
 
-  # Dataloaders
-  train_loader, test_loader = leaves_loader(data_dir, args.data_dir, batch_size, args.train_num, args.test_num)
+  for seed in [3177, 5848, 9175]:
+    torch.manual_seed(seed)
+    random.seed(seed)
 
-  # Create trainer and train
-  trainer = Trainer(LeavesNet, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, dim, sample_count, batch_size, log_it)
-  trainer.train(n_epochs)
+    # Dataloaders
+    train_loader, test_loader = leaves_loader(data_dir, args.data_dir, batch_size, args.train_num, args.test_num)
+
+    # Create trainer and train
+    trainer = Trainer(LeavesNet, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, dim, sample_count, seed)
+    dict = trainer.train(n_epochs)
+    dict["random seed"] = seed
+    dict['grad_type'] = grad_type
+    dict['sample count'] = sample_count
+    with open('baselines/reinforce/results/leaves.csv', 'a', newline='') as csvfile:
+      writer = csv.DictWriter(csvfile, fieldnames=field_names)
+      writer.writerow(dict)
+      csvfile.close()
