@@ -258,7 +258,7 @@ class Trainer():
                 iter.set_description(
                     f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
 
-        dir = f"{os.path.dirname(os.path.abspath(__file__))}/model/{task}/all/"
+        dir = f"{os.path.dirname(os.path.abspath(__file__))}/model/{task}/"
         if not os.path.exists(dir):
             os.makedirs(dir)
         ckpt_path = os.path.join(dir, f"{seed}-{epoch}.pkl")
@@ -291,18 +291,19 @@ if __name__ == "__main__":
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
 
-    # random_seeds = [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]
-    random_seeds = [3177]
+    random_seeds = [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]
     sample_counts = [100]
-    tasks = ['sum_2_mnist']
+    tasks = ['sum_2_mnist', 'sum_2_svhn', 'sum_3_mnist', 'sum_3_svhn',
+             'sum_4_mnist', 'sum_4_svhn']
 
-    accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
-    times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
+    losses = ['L ' + str(i+1) for i in range(args.n_epochs)]
+    accuracies = ['A ' + str(i+1) for i in range(args.n_epochs)]
+    times = ['T ' + str(i+1) for i in range(args.n_epochs)]
     field_names = ['task name', 'random seed',
-                   'sample count'] + accuracies + times
+                   'sample count'] + losses + accuracies + times
     
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    results_file =  dir_path + '/experiments10/sum_2.csv'
+    results_file =  dir_path + '/experiments10/sum_n.csv'
 
     with open(results_file, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
