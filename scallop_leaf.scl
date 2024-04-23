@@ -1,0 +1,24 @@
+rel label = {("Alstonia Scholaris",),("Citrus limon",),("Jatropha curcas",),("Mangifera indica",),("Ocimum basilicum",),("Platanus orientalis",),("Pongamia Pinnata",),("Psidium guajava",),("Punica granatum",),("Syzygium cumini",),("Terminalia Arjuna",)}
+
+rel leaf(m,s,t) = margin(m), shape(s), texture(t)
+
+rel predict_leaf("Ocimum basilicum") = leaf(m, _, _), m == "serrate"
+rel predict_leaf("Jatropha curcas") = leaf(m, _, _), m == "indented"
+rel predict_leaf("Platanus orientalis") = leaf(m, _, _), m == "lobed"
+rel predict_leaf("Citrus limon") = leaf(m, _, _), m == "serrulate"
+
+rel predict_leaf("Pongamia Pinnata") = leaf("entire", s, _), s == "ovate"
+rel predict_leaf("Mangifera indica") = leaf("entire", s, _), s== "lanceolate"
+rel predict_leaf("Syzygium cumini") = leaf("entire", s, _), s == "oblong"
+rel predict_leaf("Psidium guajava") = leaf("entire", s, _), s == "obovate"
+
+rel predict_leaf("Alstonia Scholaris") = leaf("entire", "elliptical", t), t == "leathery"
+rel predict_leaf("Terminalia Arjuna") = leaf("entire", "elliptical", t), t == "rough"
+rel predict_leaf("Citrus limon") = leaf("entire", "elliptical", t), t == "glossy"
+rel predict_leaf("Punica granatum") = leaf("entire", "elliptical", t), t == "smooth"
+
+rel predict_leaf("Terminalia Arjuna") = leaf("undulate", s, _), s == "elliptical"
+rel predict_leaf("Mangifera indica") = leaf("undulate", s, _), s == "lanceolate"
+rel predict_leaf("Syzygium cumini") = leaf("undulate", s, _) and s != "lanceolate" and s != "elliptical"
+
+rel get_prediction(l) = label(l), predict_leaf(l)
