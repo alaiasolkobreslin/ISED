@@ -142,11 +142,6 @@ class TaskNet(nn.Module):
     def close(self):
         self.pool.close()
 
-    def confusion_matrix(self):
-        # for i, ud in enumerate(self.unstructured_datasets):
-        #     ud.confusion_matrix(self.nets[i])
-        self.unstructured_datasets[0].confusion_matrix(self.nets[0])
-
 
 class Trainer():
     def __init__(
@@ -234,9 +229,7 @@ class Trainer():
                 (output_mapping, y_pred_sim, y_pred) = self.network(data)
 
                 # Normalize label format
-                # batch_size, num_outputs = y_pred.shape
                 batch_size = y_pred_sim.shape[0]
-                num_outputs = 1
 
                 norm_label, y = self.output_mapping.get_normalized_labels(
                     y_pred_sim, target, output_mapping)
@@ -266,18 +259,16 @@ class Trainer():
                 iter.set_description(
                     f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
 
-        dir = f"model/{task}/"
+        dir = f"{os.path.dirname(os.path.abspath(__file__))}/model/{task}/all/"
         if not os.path.exists(dir):
             os.makedirs(dir)
-        pickle.dump(self.network.nets[0].state_dict(), open(
-            os.path.join(dir, f"{seed}-{epoch}.pkl"), "wb"))
+        ckpt_path = os.path.join(dir, f"{seed}-{epoch}.pkl")
+        torch.save(self.network.nets[0].state_dict(), ckpt_path)
 
         return total_correct / num_items
-        # self.network.confusion_matrix()
 
     def train(self, n_epochs):
         dict = {}
-        # self.test_epoch(0)
         for epoch in range(1, n_epochs + 1):
             t0 = time.time()
             self.train_epoch(epoch)
@@ -293,8 +284,6 @@ if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("neuro-symbolic-dataset")
     parser.add_argument("--n-epochs", type=int, default=10)
-    # parser.add_argument("--seed", type=int, default=1234)
-    # parser.add_argument("--n-samples", type=int, default=100)
     parser.add_argument("--configuration", type=str,
                         default="configuration.json")
     parser.add_argument("--symmetry", type=bool, default=False)
@@ -302,16 +291,18 @@ if __name__ == "__main__":
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
 
-    random_seeds = [3177, 5848]
-    sample_counts = [1000]
-    tasks = ['sort_list_indices_length9_mnist', 'sort_list_indices_length10_mnist']
+    random_seeds = [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]
+    sample_counts = [100]
+    tasks = ['sum_2_mnist']
 
     accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
     times = ["time epoch " + str(i+1) for i in range(args.n_epochs)]
     field_names = ['task name', 'random seed',
                    'sample count'] + accuracies + times
+    
+    results_file = 'sum_2.csv'
 
-    with open('sort_9_10.csv', 'w', newline='') as csvfile:
+    with open(results_file, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writeheader()
         csvfile.close()
@@ -367,7 +358,7 @@ if __name__ == "__main__":
                 dict["task name"] = task
                 dict["random seed"] = seed
                 dict["sample count"] = n_samples
-                with open('sample_count_experiment23.csv', 'a', newline='') as csvfile:
+                with open(results_file, 'a', newline='') as csvfile:
                     writer = csv.DictWriter(csvfile, fieldnames=field_names)
                     writer.writerow(dict)
                     csvfile.close()
