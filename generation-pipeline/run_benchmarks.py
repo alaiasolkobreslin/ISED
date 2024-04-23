@@ -182,9 +182,7 @@ class Trainer():
             (output_mapping, y_pred_sim, y_pred) = self.network(data)
 
             # Normalize label format
-            # batch_size, num_outputs = y_pred.shape
             batch_size = y_pred_sim.shape[0]
-            num_outputs = 1
             norm_label, y = self.output_mapping.get_normalized_labels(
                 y_pred_sim, target, output_mapping)
 
@@ -217,6 +215,7 @@ class Trainer():
             # Prints
             iter.set_description(
                 f"[Train Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
+        return train_loss
 
     def test_epoch(self, epoch):
         self.network.eval()
@@ -271,11 +270,12 @@ class Trainer():
         dict = {}
         for epoch in range(1, n_epochs + 1):
             t0 = time.time()
-            self.train_epoch(epoch)
+            train_loss = self.train_epoch(epoch)
             t1 = time.time()
-            dict["time epoch " + str(epoch)] = round(t1 - t0, ndigits=4)
+            dict['L ' + str(epoch)] = round(train_loss, ndigits=4)
+            dict['T ' + str(epoch)] = round(t1 - t0, ndigits=4)
             acc = self.test_epoch(epoch)
-            dict["accuracy epoch " + str(epoch)] = round(acc, ndigits=6)
+            dict['A ' + str(epoch)] = round(acc, ndigits=6)
         self.network.close()
         return dict
 
@@ -291,7 +291,8 @@ if __name__ == "__main__":
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
 
-    random_seeds = [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]
+    # random_seeds = [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]
+    random_seeds = [3177]
     sample_counts = [100]
     tasks = ['sum_2_mnist']
 
@@ -300,7 +301,8 @@ if __name__ == "__main__":
     field_names = ['task name', 'random seed',
                    'sample count'] + accuracies + times
     
-    results_file = 'sum_2.csv'
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    results_file =  dir_path + '/experiments10/sum_2.csv'
 
     with open(results_file, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
@@ -311,7 +313,6 @@ if __name__ == "__main__":
     torch.multiprocessing.set_start_method('spawn')
 
     # Read json
-    dir_path = os.path.dirname(os.path.realpath(__file__))
     configuration = json.load(
         open(os.path.join(dir_path, args.configuration)))
 
