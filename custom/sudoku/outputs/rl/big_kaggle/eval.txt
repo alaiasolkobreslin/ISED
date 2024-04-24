@@ -1,0 +1,23 @@
+Beginning testing
+[Test][0/100]    AvgLoss: -186.0133
+[Test][10/100]   AvgLoss: -120.7046
+[Test][20/100]   AvgLoss: -124.9987
+[Test][30/100]   AvgLoss: -124.4993
+[Test][40/100]   AvgLoss: -117.8758
+[Test][50/100]   AvgLoss: -115.3875
+[Test][60/100]   AvgLoss: -114.3328
+[Test][70/100]   AvgLoss: -115.8299
+[Test][80/100]   AvgLoss: -114.7971
+[Test][90/100]   AvgLoss: -113.6072
+AvgLoss -114.2678                Time: 0.57
+-------------------------------
+Improvement:
+-----------
+* Num. of correct solution boards from Neuro-Solver: 5111/10000-- (51.11%)
+* Num. of correct solution boards from NASR: 8954/10000-- (89.54%)
+* Num. of wrong solution boards (from Neuro-solver) 
+  that have been corrected with NASR: 3843/4889 -- (78.61%)
+* Num. of correct solution boards (from Neuro-solver) 
+  that have been corrupted with NASR: 0/5111 -- (0.00%)
+* Num correct cells (avg): 0.990479012345679%
+-------------------------------
