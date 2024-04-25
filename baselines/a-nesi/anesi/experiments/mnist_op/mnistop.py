@@ -3,11 +3,14 @@ import time
 
 import yaml
 from torch.utils.data import DataLoader
-from experiments.mnist_op import MNISTAddModel, MNISTMulModel
+from experiments.mnist_op import MNISTSum2Model, MNISTSum3Model, MNISTSum4Model
+from experiments.mnist_op import MNISTMult2Model, MNISTMod2Model, MNISTEqualModel
+from experiments.mnist_op import MNISTSort2Model, MNISTAddSubModel, MNISTNot3Or4Model
+from experiments.mnist_op import MNISTHowMany3Or4Model
 import torch
 import wandb
 
-from experiments.mnist_op.data import addition, multiplication
+from experiments.mnist_op.data import sum_2, sum_3, mult_2
 from inference_models import NoPossibleActionsException
 
 SWEEP = True
@@ -95,12 +98,36 @@ if __name__ == '__main__':
 
     op = None
     model = None
-    if config["op"] == "add":
-        op = addition
-        model = MNISTAddModel(config).to(device)
-    elif config["op"] == "mul":
-        op = multiplication
-        model = MNISTMulModel(config).to(device)
+    if config["op"] == "sum_2":
+        op = sum_2
+        model = MNISTSum2Model(config).to(device)
+    elif config["op"] == "sum_3":
+        op = sum_3
+        model = MNISTSum3Model(config).to(device)
+    elif config["op"] == "sum4":
+        op = sum_4
+        model = MNISTSum4Model(config).to(device)
+    elif config["op"] == "less_than":
+        op = less_than
+        model = MNISTSort2Model(config).to(device)
+    elif config["op"] == "mult_2":
+        op = mult_2
+        model = MNISTMult2Model(config).to(device)
+    elif config["op"] == "mod_2":
+        op = mod_2
+        model = MNISTMod2Model(config).to(device)
+    elif config["op"] == "equal":
+        op = eq_2
+        model = MNISTEqualModel(config).to(device)
+    elif config["op"] == "add_sub":
+        op = add_sub
+        model = MNISTAddSubModel(config).to(device)
+    elif config["op"] == "not_3_or_4":
+        op = not_3_or_4
+        model = MNISTNot3Or4Model(config).to(device)
+    elif config["op"] == "how_many_3_or_4":
+        op = how_many_3_or_4
+        model = MNISTHowMany3Or4Model(config).to(device)
     if config["test"]:
         train_set = op(config["N"], "full_train")
         val_set = op(config["N"], "test")

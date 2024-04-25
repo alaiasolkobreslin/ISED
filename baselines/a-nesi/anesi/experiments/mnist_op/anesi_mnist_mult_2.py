@@ -5,7 +5,7 @@ import torch
 from experiments.mnist_op import MNISTModel
 
 
-class MNISTMulModel(MNISTModel):
+class MNISTMult2Model(MNISTModel):
 
     def output_dims(self, N: int, y_encoding: str) -> List[int]:
         if y_encoding == "base10":

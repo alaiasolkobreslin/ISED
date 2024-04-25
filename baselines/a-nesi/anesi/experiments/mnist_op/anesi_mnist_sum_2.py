@@ -82,7 +82,7 @@ class MNISTAddState(MNISTState):
         return self.N + 1
 
 
-class MNISTAddModel(MNISTModel):
+class MNISTSum2Model(MNISTModel):
 
     def initial_state(self,
                       P: torch.Tensor,
