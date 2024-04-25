@@ -1,12 +1,14 @@
 program: mnistop.py
-project: mnist-add
+project: mnist-sum4
 entity: blackbox-learning
 method: grid
 parameters:
   N:
     values: [ 1 ]
+  op:
+    values: [ 'sum_4']
   runs:
-    values: [ 1 ]
+    values: [ 10 ]
   epochs:
     values: [10]
   batch_size:

@@ -33,7 +33,6 @@ if __name__ == '__main__':
         "use_cuda": True,
         "DEBUG": False,
         "N": 1,
-        "op": "add",
         "y_encoding": "base10",
         "w_encoding": "base10",
         "model": "full",
@@ -116,7 +115,7 @@ if __name__ == '__main__':
     elif config["op"] == "mod_2":
         op = mod_2
         model = MNISTMod2Model(config).to(device)
-    elif config["op"] == "equal":
+    elif config["op"] == "eq_2":
         op = eq_2
         model = MNISTEqualModel(config).to(device)
     elif config["op"] == "add_sub":
