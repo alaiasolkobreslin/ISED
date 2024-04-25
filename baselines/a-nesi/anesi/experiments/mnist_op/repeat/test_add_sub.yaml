@@ -5,8 +5,10 @@ method: grid
 parameters:
   N:
     values: [ 1 ]
+  arity:
+    values: [ 3 ]
   op:
-    values: [ 'sum_3']
+    values: [ 'add_sub' ]
   runs:
     values: [ 10 ]
   epochs:

@@ -16,7 +16,10 @@ from inference_models import NoPossibleActionsException
 SWEEP = True
 
 def test(x, label, label_digits, model, device):
-    label_digits_l = list(map(lambda d: d.to(device), label_digits[0] + label_digits[1]))
+    l_digits = []
+    for i in range(len(label_digits)):
+        l_digits += label_digits[i]
+    label_digits_l = list(map(lambda d: d.to(device), l_digits))
     try:
         test_result = model.test(x, label, label_digits_l)
     except NoPossibleActionsException:
@@ -158,9 +161,11 @@ if __name__ == '__main__':
 
         for i, batch in enumerate(train_loader):
             # label_digits is ONLY EVER to be used during testing!!!
-            numb1, numb2, label, label_digits = batch
+            label = batch[-2]
+            label_digits = batch[-1]
+            numbs = batch[:-2]
 
-            x = torch.cat([numb1, numb2], dim=1).to(device)
+            x = torch.cat(numbs, dim=1).to(device)
             label = label.to(device)
             try:
                 trainresult = model.train_all(x, label)

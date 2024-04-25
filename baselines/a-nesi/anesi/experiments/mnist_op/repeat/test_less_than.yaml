@@ -5,6 +5,8 @@ method: grid
 parameters:
   N:
     values: [ 1 ]
+  arity:
+    values: [ 2 ]
   op:
     values: [ 'less_than']
   runs:

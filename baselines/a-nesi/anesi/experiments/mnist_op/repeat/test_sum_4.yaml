@@ -5,6 +5,8 @@ method: grid
 parameters:
   N:
     values: [ 1 ]
+  arity:
+    values: [ 4 ]
   op:
     values: [ 'sum_4']
   runs:

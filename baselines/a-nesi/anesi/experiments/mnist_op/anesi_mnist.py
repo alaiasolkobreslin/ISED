@@ -12,15 +12,17 @@ class MNISTModel(ANeSIBase[MNISTState]):
 
     def __init__(self, args):
         self.N = args["N"]
+        self.arity = args["arity"]
         self.y_encoding = args["y_encoding"]
         self.model = args["model"]
 
         if self.model == "full":
             im = InferenceModelMnist(self.N,
-                                      self.output_dims(self.N, self.y_encoding),
-                                      layers=args["layers"],
-                                      hidden_size=args["hidden_size"],
-                                      prune=args["prune"])
+                                     self.arity,
+                                     self.output_dims(self.N, self.y_encoding),
+                                     layers=args["layers"],
+                                     hidden_size=args["hidden_size"],
+                                     prune=args["prune"])
         elif args["model"] == "independent":
             im = IndependentIMMnist(self.N,
                                     self.output_dims(self.N, self.y_encoding),
@@ -29,7 +31,7 @@ class MNISTModel(ANeSIBase[MNISTState]):
         super().__init__(im,
                          # Perception network
                          MNIST_Net(),
-                         belief_size=[10] * 2 * self.N,
+                         belief_size=[10] * self.arity * self.N,
                          **args)
 
     def output_dims(self, N: int, y_encoding: str) -> List[int]:
@@ -43,7 +45,7 @@ class MNISTModel(ANeSIBase[MNISTState]):
         output_dims = self.output_dims(self.N, self.y_encoding)
         w_list = None
         if w is not None:
-            w_list = [w[:, i] for i in range(self.N * 2)]
+            w_list = [w[:, i] for i in range(self.N * self.arity)]
         y_list = None
         if y is not None:
             y_list = self.preprocess_y(y)
@@ -60,15 +62,13 @@ class MNISTModel(ANeSIBase[MNISTState]):
         """
         w: (batch_size, 2*n)
         """
-        stack1 = torch.stack([10 ** (self.N - i - 1) * w[..., i] for i in range(self.N)], -1)
-        stack2 = torch.stack([10 ** (self.N - i - 1) * w[..., self.N + i] for i in range(self.N)], -1)
+        stacks = []
+        for _ in range(self.arity):
+            stacks.append(torch.stack([10 ** (self.N - i - 1) * w[..., self.N * i + i] for i in range(self.N)], -1))
 
-        n1 = stack1.sum(-1)
-        n2 = stack2.sum(-1)
+        ns = [stack.sum(-1) for stack in stacks]
 
-        # print(n1, n2, n1 + n2, (n1 + n2).float().mean(-1))
-
-        return self.op(n1, n2)
+        return self.op(*ns)
 
     def op(self, n1: torch.Tensor, n2: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError()
