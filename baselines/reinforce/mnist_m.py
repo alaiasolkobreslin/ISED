@@ -289,11 +289,11 @@ class Trainer():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("mnist_r")
-  parser.add_argument("--n-epochs", type=int, default=10)
-  parser.add_argument("--batch-size", type=int, default=16)
+  parser.add_argument("--n-epochs", type=int, default=100)
+  parser.add_argument("--batch-size", type=int, default=10)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
-  parser.add_argument("--digit", type=int, default=4)
-  parser.add_argument("--sample-count", type=int, default=100)
+  parser.add_argument("--digit", type=int, default=12)
+  parser.add_argument("--sample-count", type=int, default=1)
   parser.add_argument("--grad_type", type=str, default='icr')
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--jit", action="store_true")
@@ -309,16 +309,16 @@ if __name__ == "__main__":
   grad_type = args.grad_type
 
   accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'task_type', 'sample count'] + accuracies
+  field_names = ['random seed', 'grad_type', 'task_type', 'sample count'] + accuracies
 
-  #with open('baselines/reinforce/results/icr_mnist_m.csv', 'w', newline='') as csvfile:
+  # with open('baselines/reinforce/result.csv', 'w', newline='') as csvfile:
   #  writer = csv.DictWriter(csvfile, fieldnames=field_names)
   #  writer.writeheader()
   #  csvfile.close()
 
   l = loss_fn
   
-  for task_type in ['sort_4']:
+  for task_type in ['sum']:
     if task_type == 'sum':
       task = task_program.sum_m
       task_type = f'sum_{digits}'
@@ -369,7 +369,9 @@ if __name__ == "__main__":
     else:
       raise Exception("Wrong Task name")
     
-    for seed in [3177, 5848, 9175]:
+    for seed in [3177]:
+      print(task_type)
+      print(digits)
       torch.manual_seed(seed)
       random.seed(seed)
       
@@ -386,9 +388,10 @@ if __name__ == "__main__":
 
       dict = trainer.train(n_epochs)
       dict["random seed"] = seed
+      dict["grad_type"] = grad_type
       dict['task_type'] = task_type
       dict['sample count'] = sample_count
-      with open('baselines/reinforce/results/icr_mnist_m.csv', 'a', newline='') as csvfile:
+      with open('baselines/reinforce/result.csv', 'a', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writerow(dict)
         csvfile.close()

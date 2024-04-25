@@ -317,10 +317,10 @@ if __name__ == "__main__":
   parser.add_argument("--n-epochs", type=int, default=50)
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
-  parser.add_argument("--sample-count", type=int, default=100)
+  parser.add_argument("--sample-count", type=int, default=7)
   parser.add_argument("--train-num", type=int, default=30)
   parser.add_argument("--test-num", type=int, default=10)
-  parser.add_argument("--grad_type", type=str, default='reinforce')
+  parser.add_argument("--grad_type", type=str, default='icr')
   parser.add_argument("--data-dir", type=str, default="leaf_11")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--jit", action="store_true")
@@ -336,21 +336,21 @@ if __name__ == "__main__":
   dim = 3
 
   accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'grad_type', 'sample count'] + accuracies
+  field_names = ['random seed', 'grad_type', 'task_type', 'sample count'] + accuracies
 
   #with open('baselines/reinforce/results/leaves.csv', 'w', newline='') as csvfile:
   #  writer = csv.DictWriter(csvfile, fieldnames=field_names)
   #  writer.writeheader()
   #  csvfile.close()
 
-  # Data
-  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
-  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
-  os.makedirs(model_dir, exist_ok=True)
-
-  for seed in [3177, 5848, 9175]:
+  for seed in [1234, 8725]:
     torch.manual_seed(seed)
     random.seed(seed)
+
+    # Data
+    data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
+    model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
+    os.makedirs(model_dir, exist_ok=True)
 
     # Dataloaders
     train_loader, test_loader = leaves_loader(data_dir, args.data_dir, batch_size, args.train_num, args.test_num)
@@ -360,8 +360,9 @@ if __name__ == "__main__":
     dict = trainer.train(n_epochs)
     dict["random seed"] = seed
     dict['grad_type'] = grad_type
+    dict['task_type'] = "leaf"
     dict['sample count'] = sample_count
-    with open('baselines/reinforce/results/leaves.csv', 'a', newline='') as csvfile:
+    with open('baselines/reinforce/result.csv', 'a', newline='') as csvfile:
       writer = csv.DictWriter(csvfile, fieldnames=field_names)
       writer.writerow(dict)
       csvfile.close()

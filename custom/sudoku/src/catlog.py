@@ -1,8 +1,12 @@
 import torch
 import torch.nn.functional as F
+import torch.nn as nn
 
 import math
 import os
+import json
+import numpy as np
+import time
 
 from argparse import ArgumentParser
 
@@ -16,8 +20,8 @@ except Exception:
     print('-->> Prolog not installed')
 
 def compute_reward(final_solution,ground_truth_board):
-    final_solution = list(map(int, final_solution.tolist() ))
-    ground_truth_board = list(map(int,ground_truth_board.tolist()))
+    final_solution = list(map(int, final_solution))
+    ground_truth_board = list(map(int,ground_truth_board))
     if final_solution == ground_truth_board:
         reward = 10
     else:
@@ -35,6 +39,8 @@ def loss_fn(clean_boards, solution_boards_new, ground_truth_boards):
   prolog_instance = Prolog()
   prolog_instance.consult("src/sudoku_solver/sudoku_prolog.pl") 
   cleaned_boards = clean_boards.flatten(0,-2)
+  ground_truth_boards = ground_truth_boards.flatten(0,-2)
+  solution_boards_new = solution_boards_new.flatten(0,-2)
   for i in range(len(cleaned_boards)):
     board_to_solver = Board(cleaned_boards[i].reshape((9,9)).int().cpu())
     try:
@@ -50,7 +56,7 @@ def loss_fn(clean_boards, solution_boards_new, ground_truth_boards):
   return torch.stack(rewards).reshape(clean_boards.shape[:-1]), final_boards
 
 class Trainer():
-  def __init__(self, model, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, dim, sample_count, batch_size, log_it, args):
+  def __init__(self, model, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, dim, sample_count, batch_size, log_it, seed, args):
     self.model_dir = model_dir
     self.network = model
     self.optimizer = torch.optim.AdamW(self.network.parameters(), lr=learning_rate, weight_decay=args.weight_decay)
@@ -65,14 +71,16 @@ class Trainer():
     self.loss_fn = loss_fn
     self.log_it = log_it
     self.args = args
+    self.seed = seed
+    self.device = torch.device("cuda")
 
     if grad_type == 'icr' or grad_type == 'advanced_icr': self.indecater_multiplier()
 
   def indecater_multiplier(self):
-    self.icr_mult = torch.zeros((self.dim, 10, self.sample_count, self.batch_size, self.dim))
-    self.icr_replacement = torch.zeros((self.dim, 10, self.sample_count, self.batch_size, self.dim))
+    self.icr_mult = torch.zeros((self.dim, 2, self.sample_count, self.batch_size, self.dim)).to(self.device)
+    self.icr_replacement = torch.zeros((self.dim, 2, self.sample_count, self.batch_size, self.dim)).to(self.device)
     for i in range(self.dim):
-      for j in range(10):
+      for j in range(2):
         self.icr_mult[i,j,:,:,i] = 1
         self.icr_replacement[i,j,:,:,i] = j
 
@@ -102,18 +110,21 @@ class Trainer():
     solution_boards_new = torch.argmax(solution_boards,dim=2)+1
     masking_prob = masking_boards.sigmoid()
     
-    d = torch.distributions.Categorical(logits=masking_prob)
+    d = torch.distributions.Bernoulli(logits=masking_prob)
     samples = d.sample((self.sample_count,))
-    f_sample = self.loss_fn(samples, target.unsqueeze(0))
+    cleaned_boards = solution_boards_new * samples
+
+    f_sample, _ = self.loss_fn(cleaned_boards, solution_boards_new.repeat(self.sample_count,1), ground_truth_boards.repeat(self.sample_count,1))
     f_mean = f_sample.mean(dim=0)
 
-    outer_samples = torch.stack([samples] * 10, dim=0)
+    outer_samples = torch.stack([samples] * 2, dim=0)
     outer_samples = torch.stack([outer_samples] * self.dim, dim=0)
     outer_samples = outer_samples * (1 - self.icr_mult) + self.icr_replacement
-    outer_loss = self.loss_fn(outer_samples, target.unsqueeze(0).unsqueeze(0).unsqueeze(0))
+    outer_clean_boards = outer_samples * solution_boards_new
+    outer_loss = self.loss_fn(outer_clean_boards, solution_boards_new.repeat(self.dim, 2, self.sample_count,1), ground_truth_boards.repeat(self.dim, 2, self.sample_count,1))
     
     variable_loss = outer_loss.mean(dim=2).permute(2,0,1)
-    indecater_expression = variable_loss.detach() * F.softmax(logits, dim=-1)
+    indecater_expression = variable_loss.detach() * masking_prob
     indecater_expression = indecater_expression.sum(dim=-1)
     indecater_expression = indecater_expression.sum(dim=-1)
 
@@ -211,20 +222,26 @@ class Trainer():
 
     if self.best_reward is None or reward > self.best_reward:
       self.best_reward = reward
-      torch.save(self.network.state_dict(), f'{self.model_dir}/checkpoint_best_R.pth')
+      torch.save(self.network.state_dict(), f'{self.model_dir}/checkpoint_best_R_{self.grad_type}_{self.seed}.pth')
 
   def train(self, n_epochs):
     # self.test_epoch(0)
     for epoch in range(1, n_epochs + 1):
       self.adjust_learning_rate(epoch)
+      time1 = time.time()
       self.train_epoch(epoch)
+      time2 = time.time()
+      print(time2 - time1)
+      time1 = time.time()
       self.test_epoch(epoch)
-      torch.save(model.state_dict(), f'{self.model_dir}/checkpoint_last_{epoch}.pth')
+      time2 = time.time()
+      print(time2 - time1)
+      torch.save(model.state_dict(), f'{self.model_dir}/checkpoint_last_{epoch}_{self.grad_type}_{self.seed}.pth')
 
 if __name__ == "__main__":
   parser = ArgumentParser('sudoku_reinforce')
   parser.add_argument('--gpu-id', default='mps', type=str)
-  parser.add_argument('--print-freq', default=1, type=int)
+  parser.add_argument('--print-freq', default=100, type=int)
   parser.add_argument('--solver', type=str, default='prolog')
   parser.add_argument('-j', '--workers', default=0, type=int) 
 
@@ -233,33 +250,33 @@ if __name__ == "__main__":
   parser.add_argument('--noise-setting', default='xxx/yyy.json', type=str)
   parser.add_argument('--train-only-mask', default = False, type = bool)
 
-  parser.add_argument('--epochs', default=10, type=int)
+  parser.add_argument('--epochs', default=1, type=int)
   parser.add_argument('--warmup', default=10, type=int)
   parser.add_argument('-b', '--batch-size', default=256, type=int)
   parser.add_argument('--lr', default=0.00001, type=float)
   parser.add_argument('--weight-decay', default=3e-1, type=float)
   parser.add_argument('--clip-grad-norm', default=1., type=float)
   parser.add_argument('--disable-cos', action='store_true')
-  parser.add_argument('--sample-count', default=1, type=int)
+  parser.add_argument('--sample-count', default=2, type=int)
   parser.add_argument('--grad-type', type=str, default='reinforce')
   args = parser.parse_args()
 
-  torch.manual_seed(3177)
+  for seed in [3177, 5848, 9175]:
+    torch.manual_seed(seed)
+    train_dataset = SudokuDataset_RL(args.data,'-train')
+    test_dataset = SudokuDataset_RL(args.data,'-valid')
 
-  train_dataset = SudokuDataset_RL(args.data,'-train')
-  test_dataset = SudokuDataset_RL(args.data,'-valid')
+    # Model
+    model = get_model(block_len=args.block_len)
+    model.load_pretrained_models(args.data)
+    model.to(args.gpu_id)
 
-  # Model
-  model = get_model(block_len=args.block_len)
-  model.load_pretrained_models(args.data)
-  model.to(args.gpu_id)
+    model_dir = os.path.join('outputs', f'{args.grad_type}')
+    os.makedirs(model_dir, exist_ok=True)
 
-  model_dir = os.path.join('outputs', f'{args.grad_type}')
-  os.makedirs(model_dir, exist_ok=True)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers)
 
-  train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
-  test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers)
-
-  # load pre_trained models
-  trainer = Trainer(model, loss_fn, train_loader, test_loader, model_dir, args.lr, args.grad_type, args.block_len, args.sample_count, args.batch_size, args.print_freq, args)
-  trainer.train(args.epochs)
+    # load pre_trained models
+    trainer = Trainer(model, loss_fn, train_loader, test_loader, model_dir, args.lr, args.grad_type, args.block_len, args.sample_count, args.batch_size, args.print_freq, seed, args)
+    trainer.train(args.epochs)
