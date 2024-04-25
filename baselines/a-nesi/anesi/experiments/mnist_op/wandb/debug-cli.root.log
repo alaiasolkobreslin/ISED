@@ -1,0 +1,27 @@
+2024-04-25 15:16:15 INFO Running runs: []
+2024-04-25 15:16:15 INFO Agent received command: run
+2024-04-25 15:16:15 INFO Agent starting run with config:
+	K_beliefs: 2500
+	N: 1
+	amt_samples: 600
+	batch_size: 16
+	dirichlet_L2: 900000
+	dirichlet_init: 0.1
+	dirichlet_iters: 50
+	dirichlet_lr: 0.01
+	epochs: 10
+	hidden_size: 800
+	layers: 3
+	nrm_loss: mse
+	nrm_lr: 0.001
+	percept_loss_pref: 1
+	perception_loss: log-q
+	perception_lr: 0.001
+	policy: off
+	predict_only: True
+	prune: False
+	runs: 1
+	test: True
+	use_prior: True
+2024-04-25 15:16:15 INFO About to run command: /usr/bin/env python mnistop.py --K_beliefs=2500 --N=1 --amt_samples=600 --batch_size=16 --dirichlet_L2=900000 --dirichlet_init=0.1 --dirichlet_iters=50 --dirichlet_lr=0.01 --epochs=10 --hidden_size=800 --layers=3 --nrm_loss=mse --nrm_lr=0.001 --percept_loss_pref=1 --perception_loss=log-q --perception_lr=0.001 --policy=off --predict_only=True --prune=False --runs=1 --test=True --use_prior=True
+2024-04-25 15:16:20 INFO Running runs: ['xea6q01l']

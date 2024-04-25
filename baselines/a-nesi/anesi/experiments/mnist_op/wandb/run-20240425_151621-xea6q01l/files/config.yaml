@@ -1,0 +1,181 @@
+wandb_version: 1
+
+K_beliefs:
+  desc: null
+  value: 2500
+N:
+  desc: null
+  value: 1
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.13.5
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.9.15
+    start_time: 1714058181.654124
+    t:
+      1:
+      - 1
+      - 41
+      - 55
+      2:
+      - 1
+      - 41
+      - 55
+      3:
+      - 16
+      - 23
+      - 37
+      4: 3.9.15
+      5: 0.13.5
+      8:
+      - 5
+amt_samples:
+  desc: null
+  value: 600
+batch_size:
+  desc: null
+  value: 16
+dirichlet_L2:
+  desc: null
+  value: 900000
+dirichlet_init:
+  desc: null
+  value: 0.1
+dirichlet_iters:
+  desc: null
+  value: 50
+dirichlet_lr:
+  desc: null
+  value: 0.01
+early_terminate:
+  desc: null
+  value:
+    min_iter: 4
+    type: hyperband
+entity:
+  desc: null
+  value: nesy-gems
+epochs:
+  desc: null
+  value: 10
+hidden_size:
+  desc: null
+  value: 800
+layers:
+  desc: null
+  value: 3
+method:
+  desc: null
+  value: random
+metric:
+  desc: null
+  value:
+    goal: maximize
+    name: val_accuracy
+nrm_loss:
+  desc: null
+  value: mse
+nrm_lr:
+  desc: null
+  value: 0.001
+parameters:
+  desc: null
+  value:
+    K_beliefs:
+      values:
+      - 100
+      - 1000
+      - 10000
+    N:
+      values:
+      - 1
+    amt_samples:
+      values:
+      - 16
+      - 64
+      - 256
+      - 1024
+    batch_size:
+      values:
+      - 16
+      - 64
+      - 256
+      - 1024
+    dirichlet_init:
+      distribution: log_uniform_values
+      max: 10
+      min: 1e-1
+    dirichlet_iters:
+      distribution: q_log_uniform_values
+      max: 100
+      min: 1
+    dirichlet_lr:
+      distribution: log_uniform_values
+      max: 1
+      min: 1e-3
+    epochs:
+      values:
+      - 30
+    hidden_size:
+      distribution: q_log_uniform_values
+      max: 2000
+      min: 20
+    nrm_loss:
+      values:
+      - mse
+      - bce
+    nrm_lr:
+      distribution: log_uniform_values
+      max: 1e-1
+      min: 1e-4
+    perception_loss:
+      values:
+      - log-q
+      - sampled
+    perception_lr:
+      distribution: log_uniform_values
+      max: 1e-1
+      min: 1e-4
+    policy:
+      values:
+      - 'on'
+      - both
+    prune:
+      values:
+      - true
+percept_loss_pref:
+  desc: null
+  value: 1
+perception_loss:
+  desc: null
+  value: log-q
+perception_lr:
+  desc: null
+  value: 0.001
+policy:
+  desc: null
+  value: 'off'
+predict_only:
+  desc: null
+  value: true
+program:
+  desc: null
+  value: mnistop.py
+project:
+  desc: null
+  value: mnist-add
+prune:
+  desc: null
+  value: false
+runs:
+  desc: null
+  value: 1
+test:
+  desc: null
+  value: true
+use_prior:
+  desc: null
+  value: true

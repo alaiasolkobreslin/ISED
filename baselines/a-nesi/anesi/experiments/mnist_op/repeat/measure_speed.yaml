@@ -1,0 +1,49 @@
+program: mnistadd.py
+project: test-project
+entity: blackbox-learning
+method: grid
+parameters:
+  N:
+    values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
+  runs:
+    values: [ 1, 2, 3 ]
+  predict_only:
+    values: [ True, False ]
+  epochs:
+    values: [3]
+  batch_size:
+    values: [ 16 ]
+  batch_size_test:
+    values: [ 1 ]
+  amt_samples:
+    values: [ 600 ]
+  K_beliefs:
+    values: [ 2500 ]
+  nrm_lr:
+    values: [ 0.001 ]
+  perception_lr:
+    values: [ 0.001 ]
+  dirichlet_lr:
+    values: [ 0.01]
+  dirichlet_iters:
+    values: [ 50 ]
+  dirichlet_init:
+    values: [ 0.1 ]
+  dirichlet_L2:
+    values: [ 900000 ]
+  nrm_loss:
+    values: [ 'mse' ]
+  perception_loss:
+    values: [ 'log-q' ]
+  percept_loss_pref:
+    values: [ 1 ]
+  policy:
+    values: [ 'off' ]
+  hidden_size:
+    values: [ 800 ]
+  layers:
+    values: [3]
+  use_prior:
+    values: [ True ]
+  test:
+    values: [ True ]
