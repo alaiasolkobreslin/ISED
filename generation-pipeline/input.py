@@ -62,17 +62,6 @@ class ListInput(Input):
         return proofs
 
 
-class CoffeeInput(Input):
-    def __init__(self, tensor: torch.Tensor, lengths: List[int], areas: List[List[int]]):
-        super(CoffeeInput, self).__init__(tensor)
-        self.lengths = lengths
-        self.areas = areas
-
-    def gather(self, dim: int, indices: torch.Tensor):
-        result = self.tensor.gather(dim + 1, indices)
-        return torch.prod(result, dim=1)
-
-
 class PaddedListInput(Input):
     """
     The struct holding vectorized list input
@@ -85,18 +74,6 @@ class PaddedListInput(Input):
     def gather(self, dim: int, indices: torch.Tensor):
         result = self.tensor.gather(dim + 1, indices)
         return torch.prod(result, dim=1)
-
-        # # _, _, samples = indices.shape
-        # result = self.tensor.gather(dim + 1, indices)
-        # final_results = []
-        # for i, batch in enumerate(result):
-        #     length_i = self.lengths[i]
-        #     # collected = batch.view(length_i, samples)
-        #     collected = batch[:length_i]
-        #     final_results.append(torch.prod(collected, dim=0))
-        # return torch.stack(final_results)
-        # # result = self.tensor.gather(dim + 1, indices)
-        # # return torch.prod(result, dim=1)
 
 
 class PaddedListInputSudoku(Input):
@@ -144,45 +121,6 @@ class ListInput2D(Input):
                 new_tensor_gathered, dim=1), dim=1))
         return proofs
 
-
-class ListInput2DSudoku(Input):
-
-    def __init__(self, tensor: torch.Tensor, selected: torch.Tensor, n_rows: int, n_cols: int):
-        super(ListInput2DSudoku, self).__init__(tensor)
-        self.selected = selected
-        self.n_rows = n_rows
-        self.n_cols = n_cols
-
-    def gather(self, dim: int, indices: torch.Tensor):
-        _, _, _, samples = indices.shape
-        result = self.tensor.gather(dim + 2, indices)
-        final_results = []
-        for i, batch in enumerate(result):
-            selected_i = self.selected[i]
-            collected = torch.ones(samples, device=DEVICE)
-            for j, row in enumerate(selected_i):
-                for k, col in enumerate(row):
-                    if col:
-                        collected *= batch[j][k]
-            final_results.append(collected)
-        return torch.stack(final_results)
-
-
-class VideoInput(Input):
-    """
-    The struct holding vectorized list input
-    """
-
-    def __init__(self, tensor: torch.Tensor, change: torch.Tensor, length: int):
-        super(VideoInput, self).__init__(tensor)
-        self.change = change
-        self.length = length
-
-    def gather(self, dim: int, indices: torch.Tensor):
-        result = self.tensor.gather(dim + 1, indices)
-        return torch.prod(result, dim=1)
-
-
 class InputMapping:
     def __init__(self): pass
 
@@ -192,46 +130,6 @@ class InputMapping:
                sample_count: int) -> Tuple[torch.Tensor, List[Any]]: pass
 
     def argmax(self, input: Any) -> Tuple[torch.Tensor, List[Any]]: pass
-
-    # def permute(self) -> List[Any]: pass
-
-
-class PaddedListInputMappingCoffee(InputMapping):
-    def __init__(self, max_length: int, element_input_mapping: InputMapping, combine: Callable):
-        self.max_length = max_length
-        self.element_input_mapping = element_input_mapping
-        self.combine = combine
-        self.does_permute = True
-
-    def sample(self, list_input: CoffeeInput, sample_count: int) -> Tuple[torch.Tensor, List[List[Any]]]:
-        # Sample the elements
-        batch_size, list_length = list_input.tensor.shape[0], list_input.tensor.shape[1]
-        assert list_length == self.max_length, "inputs must have the same number of columns as the max length"
-        flattened = list_input.tensor.reshape((batch_size * list_length, -1))
-        sampled_indices, sampled_elements = self.element_input_mapping.sample(
-            SingleInput(flattened), sample_count)
-
-        # Reshape the sampled elements
-        result_sampled_elements = []
-        for i in range(batch_size):
-            curr_batch_selected = []
-            for j in range(sample_count):
-                curr_elem_selected = []
-                for k in range(list_input.lengths[i]):
-                    curr_elem_selected.append((
-                        sampled_elements[i * list_length + k][j], list_input.areas[i][k]))
-                curr_batch_selected.append(curr_elem_selected)
-            result_sampled_elements.append(curr_batch_selected)
-
-        # Reshape the sampled indices
-        sampled_indices_original_shape = tuple(sampled_indices.shape[1:])
-        sampled_indices = sampled_indices.reshape(
-            batch_size, list_length, *sampled_indices_original_shape)
-
-        return (sampled_indices, result_sampled_elements)
-
-    def argmax(self, list_input: CoffeeInput):
-        pass
 
 
 class PaddedListInputMapping(InputMapping):
@@ -270,49 +168,6 @@ class PaddedListInputMapping(InputMapping):
     def argmax(self, input: PaddedListInput):
         pass
 
-    # def permute(self):
-    #     idx_lst = [i for i in range(self.max_length)]
-    #     if not self.does_permute:
-    #         return [idx_lst]
-    #     return [p for p in itertools.permutations(idx_lst)]
-
-
-class PaddedListInputMappingSudoku(InputMapping):
-    def __init__(self, max_length: int, element_input_mapping: InputMapping, combine: Callable):
-        self.max_length = max_length
-        self.element_input_mapping = element_input_mapping
-        self.combine = combine
-        self.does_permute = True
-
-    def sample(self, list_input: PaddedListInputSudoku, sample_count: int) -> Tuple[torch.Tensor, List[List[Any]]]:
-        # Sample the elements
-        batch_size, list_length = list_input.tensor.shape[0], list_input.tensor.shape[1]
-        assert list_length == self.max_length, "inputs must have the same number of columns as the max length"
-        flattened = list_input.tensor.reshape((batch_size * list_length, -1))
-        sampled_indices, sampled_elements = self.element_input_mapping.sample(
-            SingleInput(flattened), sample_count)
-
-        # Reshape the sampled elements
-        result_sampled_elements = []
-        for i in range(batch_size):
-            curr_batch = []
-            for j in range(sample_count):
-                curr_elem = []
-                for k in range(list_input.lengths[i]):
-                    curr_elem.append(sampled_elements[i * list_length + k][j])
-                curr_batch.append(curr_elem)
-            result_sampled_elements.append(curr_batch)
-
-        # Reshape the sampled indices
-        sampled_indices_original_shape = tuple(sampled_indices.shape[1:])
-        sampled_indices = sampled_indices.reshape(
-            batch_size, list_length, *sampled_indices_original_shape)
-
-        return (sampled_indices, result_sampled_elements)
-
-    def argmax(self, input: PaddedListInputSudoku):
-        pass
-
 
 class ListInputMapping(InputMapping):
     def __init__(self, length: int, element_input_mapping: InputMapping, combine: Callable):
@@ -349,63 +204,6 @@ class ListInputMapping(InputMapping):
 
     def argmax(self, input: ListInput):
         pass
-
-    # def permute(self):
-    #     idx_lst = [i for i in range(self.length)]
-    #     if not self.does_permute:
-    #         return [idx_lst]
-    #     return [p for p in itertools.permutations(idx_lst)]
-
-
-class ListInputMapping2DSudoku(InputMapping):
-    def __init__(self, n_rows: int, n_cols: int, max_length: int, element_input_mapping: InputMapping, combine: Callable):
-        self.n_rows = n_rows
-        self.n_cols = n_cols
-        self.max_length = max_length
-        self.element_input_mapping = element_input_mapping
-        self.combine = combine
-        self.does_permute = True
-
-    def sample(self, list_input: ListInput2DSudoku, sample_count: int) -> Tuple[torch.Tensor, List[List[Any]]]:
-        # Sample the elements
-        batch_size = list_input.tensor.shape[0]
-        length = list_input.tensor.shape[1]
-        assert (length == self.max_length), "inputs dimensions must match max length"
-        flattened = list_input.tensor.reshape(
-            (batch_size * length, -1))
-        sampled_indices, sampled_elements = self.element_input_mapping.sample(
-            SingleInput(flattened), sample_count)
-
-        # Reshape the sampled elements
-        result_sampled_elements = []
-        for i in range(batch_size):
-            curr_batch = []
-            for j in range(sample_count):
-                curr_elem = []
-                for k in range(list_input.n_rows * list_input.n_cols):
-                    row = k // self.n_rows
-                    col = k % self.n_cols
-                    selected = list_input.selected[i][row][col].item()
-                    if selected:
-                        curr_elem.append(
-                            str(sampled_elements[i * self.n_rows * self.n_cols + k][j]))
-                    else:
-                        curr_elem.append('.')
-                curr_batch.append(curr_elem)
-            result_sampled_elements.append(curr_batch)
-
-        # Reshape the sampled indices
-        sampled_indices_original_shape = tuple(sampled_indices.shape[1:])
-        sampled_indices = sampled_indices.reshape(
-            batch_size, self.n_rows, self.n_cols, *sampled_indices_original_shape)
-
-        return (sampled_indices, result_sampled_elements)
-
-    def argmax(self, input: ListInput2DSudoku):
-        pass
-
-    # def permute(self):
-    #     return []
 
 
 class ListInputMapping2D(InputMapping):
@@ -450,13 +248,6 @@ class ListInputMapping2D(InputMapping):
     def argmax(self, input: ListInput2D):
         pass
 
-    # def permute(self):
-    #     all_idxs = [i for i in range(self.n_rows * self.n_cols)]
-    #     if not self.does_permute:
-    #         return [all_idxs]
-    #     permutations = itertools.permutations(all_idxs)
-    #     return [p for p in permutations]
-
 
 class DiscreteInputMapping(InputMapping):
     def __init__(self, elements: List[Any], combine: Callable):
@@ -484,5 +275,3 @@ class DiscreteInputMapping(InputMapping):
         max_elements = [self.elements[i] for i in max_indices]
         return (max_indices, max_elements)
 
-    # def permute(self):
-    #     return []

@@ -24,7 +24,6 @@ class BlackBoxFunction(torch.nn.Module):
             output_mapping: OutputMapping,
             batch_size: int,
             loss_aggregator: str,
-            check_symmetry: bool = True,
             caching: bool = True,
             sample_count: int = 100,
             timeout_seconds: int = 1):
@@ -38,8 +37,6 @@ class BlackBoxFunction(torch.nn.Module):
         self.sample_count = sample_count
         self.caching = caching
         self.fn_cache = {}
-        self.inputs_permute = True if check_symmetry and len(
-            input_mappings) > 1 else False
         self.timeout_seconds = timeout_seconds
         self.timeout_decorator = self.decorator
         self.error_message = os.strerror(errno.ETIME)

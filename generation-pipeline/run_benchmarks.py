@@ -293,8 +293,10 @@ if __name__ == "__main__":
 
     random_seeds = [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]
     sample_counts = [100]
-    tasks = ['sum_2_mnist', 'sum_2_svhn', 'sum_3_mnist', 'sum_3_svhn',
-             'sum_4_mnist', 'sum_4_svhn']
+    tasks = ['mult_2_mnist', 'mult_2_svhn', 'add_sub_mnist', 'add_sub_svhn',
+             'add_mod_3_mnist', 'add_mod_3_svhn', 'eq_2_mnist', 'eq_2_svhn',
+             'how_many_3_or_4_mnist', 'how_many_3_or_4_svhn', 'not_3_or_4_mnist',
+             'not_3_or_4_svhn', 'less_than_mnist', 'less_than_svhn']
 
     losses = ['L ' + str(i+1) for i in range(args.n_epochs)]
     accuracies = ['A ' + str(i+1) for i in range(args.n_epochs)]
@@ -303,7 +305,7 @@ if __name__ == "__main__":
                    'sample count'] + losses + accuracies + times
     
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    results_file =  dir_path + '/experiments10/sum_n.csv'
+    results_file =  dir_path + '/experiments10/mnist-r.csv'
 
     with open(results_file, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)

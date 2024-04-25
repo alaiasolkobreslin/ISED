@@ -80,10 +80,6 @@ class StructuredDataset:
             strat = preprocess.PreprocessIdentity()
         elif s == PREPROCESS_SORT:
             strat = preprocess.PreprocessSort()
-        elif s == PREPROCESS_SUDOKU_BOARD:
-            strat = preprocess.PreprocessSudokuBoard()
-        elif s == PREPROCESS_PALINDROME:
-            strat = preprocess.PreprocessPalindrome()
         return strat
 
     def get_preprocess_strategy(self):
@@ -468,91 +464,6 @@ class SingleIntListListDataset(StructuredDataset):
         return input.ListInput2D(distrs, n_rows, n_cols)
 
 
-class SudokuDataset(StructuredDataset):
-    def __init__(self, config, dataset_size, unstructured_dataset):
-        super().__init__(config=config,
-                         dataset_size=dataset_size,
-                         unstructured_dataset=unstructured_dataset,
-                         call_black_box_for_gt=True)
-
-    def __len__(self):
-        return self.dataset_size
-
-    @staticmethod
-    def collate_fn(batch, config):
-        batch = [(list(z), l, b) for (z, l, b) in batch]
-        max_blanks = config[MAX_BLANKS]
-        zero_img = torch.zeros_like(batch[0][0][0][0], device=DEVICE)
-
-        def pad_zero(img_seq):
-            img_seq = list(img_seq)
-            return img_seq + [zero_img] * (max_blanks - len(img_seq))
-        img_seqs = torch.stack([torch.stack(pad_zero(list(img_seq)[0]))
-                               for (img_seq, _, _) in batch])
-        img_seq_len = torch.stack(
-            [torch.tensor(img_seq_len, device=DEVICE).long() for (_, img_seq_len, _) in batch])
-        bool_boards = torch.stack([torch.from_numpy(bool_board)
-                                  for (_, _, bool_board) in batch])
-
-        return (img_seqs, img_seq_len, bool_boards)
-
-    def forward(net, x):
-        (distrs, _, _) = x
-        batch_size, length, _, _, _ = distrs.shape
-        return net(distrs.flatten(start_dim=0, end_dim=1)).view(batch_size, length, -1)
-
-    def get_sample_strategy(self):
-        s = self.config[STRATEGY]
-        n_rows = self.config[N_ROWS]
-        n_cols = self.config[N_COLS]
-        if s == SUDOKU_PROBLEM_STRATEGY:
-            strat = strategy.SudokuProblemStrategy(
-                self.unstructured_dataset, n_rows, n_cols)
-        elif s == SUDOKU_RANDOM_STRATEGY:
-            strat = strategy.SudokuRandomStrategy(
-                self.unstructured_dataset, n_rows, n_cols)
-        else:
-            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
-        return strat
-
-    def get_preprocess_strategy(self):
-        allowed = [PREPROCESS_SUDOKU_BOARD]
-        return self.preprocess_from_allowed_strategies(allowed)
-
-    def generate_datapoint(self):
-        samples, length, bool_board = self.strategy.sample()
-        (samples, board) = self.preprocess.preprocess(samples, bool_board)
-        s = [z for z in zip(*samples)]
-        return ((s, length, bool_board), board)
-
-    def combine(input):
-        input, bool_board = input
-        n_rows, n_cols = bool_board.shape
-        result = []
-        idx = 0
-        for r in range(n_rows):
-            current_row = []
-            for c in range(n_cols):
-                if bool_board[r][c]:
-                    current_row.append(str(input[idx]))
-                    idx += 1
-                else:
-                    current_row.append('.')
-            result.append(current_row)
-        return result
-
-    def get_input_mapping(config):
-        ud = get_unstructured_dataset_static(config)
-        max_length = config[MAX_BLANKS]
-        digit_input_mapping = input.DiscreteInputMapping(
-            ud.input_mapping(ud), id)
-        return input.PaddedListInputMappingSudoku(max_length, digit_input_mapping, SudokuDataset.combine)
-
-    def distrs_to_input(distrs, x, config):
-        lengths = [l.item() for l in x[1]]
-        return input.PaddedListInputSudoku(distrs, lengths, x[2])
-
-
 class PaddedListDataset(StructuredDataset):
 
     def __init__(self, config, dataset_size, unstructured_dataset):
@@ -674,172 +585,6 @@ class StringDataset(StructuredDataset):
         return input.ListInput(distrs, length)
 
 
-class VideoDataset(StructuredDataset):
-    def __init__(self, config, dataset_size, unstructured_dataset):
-        super().__init__(config=config,
-                         dataset_size=dataset_size,
-                         unstructured_dataset=unstructured_dataset,
-                         call_black_box_for_gt=True)
-
-    def __len__(self):
-        return self.dataset_size
-
-    @staticmethod
-    def collate_fn(batch, _):
-        return torch.stack(batch)
-
-    def forward(net, x):
-        return net(x)
-
-    def get_sample_strategy(self):
-        s = self.config[STRATEGY]
-        if s == SINGLE_SAMPLE_STRATEGY:
-            input_mapping = [i for i in range(len(self.unstructured_dataset))]
-            strat = strategy.SingleSampleStrategy(
-                self.unstructured_dataset, input_mapping)
-        elif s == SIMPLE_LIST_STRATEGY:
-            length = self.config[LENGTH]
-            strat = strategy.SimpleListStrategy(
-                self.unstructured_dataset, self.im, length)
-        else:
-            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
-        return strat
-
-    def get_preprocess_strategy(self):
-        allowed = [PREPROCESS_IDENTITY, PREPROCESS_SORT]
-        return self.preprocess_from_allowed_strategies(allowed)
-
-    def generate_datapoint(self):
-        samples = self.preprocess.preprocess(self.strategy.sample())
-        return samples
-
-    def get_input_mapping(config):
-        ud = get_unstructured_dataset_static(config)
-        length = config[LENGTH]
-        element_input_mapping = input.DiscreteInputMapping(
-            ud.input_mapping(ud), id)
-        return input.ListInputMapping(length, element_input_mapping, id)
-
-    def distrs_to_input(distrs, x, config):
-        length = config[LENGTH]
-        return input.VideoInput(distrs[0], distrs[1], length)
-
-
-class CoffeeLeafDataset(StructuredDataset):
-    def __init__(self, config, dataset_size, unstructured_dataset):
-        super().__init__(config=config,
-                         dataset_size=dataset_size,
-                         unstructured_dataset=unstructured_dataset,
-                         call_black_box_for_gt=False)
-
-    def __len__(self):
-        return self.dataset_size
-
-    @staticmethod
-    def collate_fn(batch, config):
-        max_len = config[MAX_LENGTH]
-        zero_img = torch.zeros_like(batch[0][0][0], device=DEVICE)
-
-        def pad_zero(img_seq): return img_seq + \
-            [zero_img] * (max_len - len(img_seq))
-        def pad_zero_areas(areas): return areas + \
-            [0] * (max_len - len(areas))
-        img_seqs = torch.stack([torch.stack(pad_zero(img_seq))
-                               for (img_seq, _) in batch])
-        area_seqs = torch.stack(
-            [torch.Tensor(pad_zero_areas(areas), device=DEVICE) for (_, areas) in batch])
-        img_seq_len = torch.stack(
-            [torch.tensor(len(areas), device=DEVICE).long() for (_, areas) in batch])
-        return (img_seqs, area_seqs, img_seq_len)
-
-    def forward(net, x):
-        (distrs, _, _) = x
-        return net(distrs)
-
-    def get_sample_strategy(self):
-        s = self.config[STRATEGY]
-        if s == SINGLE_SAMPLE_STRATEGY:
-            # input_mapping = [i for i in range(len(self.unstructured_dataset))]
-            input_mapping = [i for i in range(1, 6)]
-            strat = strategy.SingleSampleStrategy(
-                self.unstructured_dataset, input_mapping)
-        else:
-            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
-        return strat
-
-    def get_preprocess_strategy(self):
-        allowed = [PREPROCESS_IDENTITY]
-        return self.preprocess_from_allowed_strategies(allowed)
-
-    def generate_datapoint(self):
-        samples = self.preprocess.preprocess(self.strategy.sample())
-        return samples
-
-    def get_input_mapping(config):
-        max_length = config[MAX_LENGTH]
-        element_input_mapping = input.DiscreteInputMapping(
-            [0, 1], id)
-        return input.PaddedListInputMappingCoffee(max_length, element_input_mapping, id)
-
-    def distrs_to_input(distrs, x, _):
-        lengths = [l.item() for l in x[2]]
-        areas = [[int(a.item()) for a in area] for area in x[1]]
-        return input.CoffeeInput(distrs, lengths, areas)
-
-
-class TokensDataset(StructuredDataset):
-    def __init__(self, config, dataset_size, unstructured_dataset):
-        super().__init__(config=config,
-                         dataset_size=dataset_size,
-                         unstructured_dataset=unstructured_dataset,
-                         call_black_box_for_gt=True)
-
-    def __len__(self):
-        return self.dataset_size
-
-    @staticmethod
-    def collate_fn(batch, config):
-        input_ids = torch.stack([item['input_ids'] for item in batch])
-        token_type_ids = torch.stack(
-            [item['token_type_ids'] for item in batch])
-        attention_mask = torch.stack(
-            [item['attention_mask'] for item in batch])
-        return (input_ids, token_type_ids, attention_mask)
-
-    def forward(net, x):
-        input_id, _, attention_mask = x
-        input_id = torch.squeeze(input_id)
-        attention_mask = torch.squeeze(attention_mask)
-        return net(input_id=input_id, mask=attention_mask)
-
-    def get_sample_strategy(self):
-        s = self.config[STRATEGY]
-        if s == SINGLE_SAMPLE_STRATEGY:
-            strat = strategy.SingleSampleStrategy(
-                self.unstructured_dataset, self.input_mapping)
-        else:
-            raise InvalidSampleStrategy(f"Sampling strategy {s} is invalid")
-        return strat
-
-    def get_preprocess_strategy(self):
-        allowed = [PREPROCESS_IDENTITY]
-        return self.preprocess_from_allowed_strategies(allowed)
-
-    def generate_datapoint(self):
-        samples = self.preprocess.preprocess(self.strategy.sample())
-        return samples
-
-    def get_input_mapping(config):
-        max_length = config[MAX_LENGTH]
-        element_input_mapping = input.DiscreteInputMapping(
-            [i for i in range(9)], id)
-        return input.ListInputMapping(length=max_length, element_input_mapping=element_input_mapping, combine=id)
-
-    def distrs_to_input(distrs, x, config):
-        _, length, _ = distrs.shape
-        return input.ListInput(tensor=distrs, length=length)
-
-
 def get_unstructured_dataset_static(config):
     ud = config[DATASET]
     if ud == MNIST:
@@ -850,18 +595,6 @@ def get_unstructured_dataset_static(config):
         return unstructured_dataset.SVHNDataset
     elif ud == HWF_SYMBOL:
         return unstructured_dataset.HWFDataset
-    elif ud == MNIST_VIDEO:
-        return unstructured_dataset.MNISTVideoDataset
-    elif ud == MNIST_1TO4:
-        return unstructured_dataset.MNISTDataset_1to4
-    elif ud == MNIST_2TO9:
-        return unstructured_dataset.MNISTDataset_2to9
-    elif ud == COFFEE_LEAF_RUST:
-        return unstructured_dataset.CoffeeLeafRustDataset
-    elif ud == COFFEE_LEAF_MINER:
-        return unstructured_dataset.CoffeeLeafMinerDataset
-    elif ud == CONLL2003:
-        return unstructured_dataset.CoNLL2003Dataset
     else:
         raise UnknownUnstructuredDataset(f"Unknown dataset: {ud}")
 
@@ -888,13 +621,5 @@ def get_structured_dataset_static(config):
         return StringDataset
     elif sd == STRING_LIST_TYPE:
         return StringListDataset
-    elif sd == SUDOKU_TYPE:
-        return SudokuDataset
-    elif sd == VIDEO_DIGIT_TYPE:
-        return VideoDataset
-    elif sd == LEAF_AREA_TYPE:
-        return CoffeeLeafDataset
-    elif sd == TOKEN_SEQUENCE_TYPE:
-        return TokensDataset
     else:
         raise UnknownStructuredDataset(f"Unknown dataset: {sd}")

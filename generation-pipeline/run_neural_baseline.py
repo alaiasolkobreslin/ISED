@@ -251,7 +251,6 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--configuration", type=str,
                         default="configuration_neural_baseline.json")
-    parser.add_argument("--symmetry", type=bool, default=False)
     parser.add_argument("--caching", type=bool, default=True)
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()

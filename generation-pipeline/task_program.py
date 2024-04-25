@@ -793,97 +793,6 @@ def sort_list_indices(x):
 def select_top_4(x):
     return np.argsort(x, kind='mergesort').tolist()[:4]
 
-
-def rust_coffee_leaf_severity(selected_areas):
-    quantiles = {
-        "Q1": 37526.200000000004,
-        "Q2": 63953.00000000001,
-        "Q3": 100673.2,
-        "Q4": 164972.80000000002
-    }
-    total_area = 0
-    for (selected, area) in selected_areas:
-        if selected:
-            total_area += area
-    if total_area < quantiles['Q1']:
-        return 1
-    elif total_area < quantiles['Q2']:
-        return 2
-    elif total_area < quantiles['Q3']:
-        return 3
-    elif total_area < quantiles['Q4']:
-        return 4
-    else:
-        return 5
-
-
-def miner_coffee_leaf_severity(selected_areas):
-    quantiles = {
-        "Q1": 354227.0,
-        "Q2": 498202.4,
-        "Q3": 620841.6,
-        "Q4": 812283.6
-    }
-    total_area = 0
-    for (selected, area) in selected_areas:
-        if selected:
-            total_area += area
-    if total_area < quantiles['Q1']:
-        return 1
-    elif total_area < quantiles['Q2']:
-        return 2
-    elif total_area < quantiles['Q3']:
-        return 3
-    elif total_area < quantiles['Q4']:
-        return 4
-    else:
-        return 5
-
-
-def bio_tagging(tags):
-    # {'O': 0, 'B-PER': 1, 'I-PER': 2, 'B-ORG': 3, 'I-ORG': 4, 'B-LOC': 5, 'I-LOC': 6, 'B-MISC': 7, 'I-MISC': 8}
-    last_per_b = 0
-    last_org_b = 0
-    last_loc_b = 0
-    last_misc_b = 0
-    last_per_i = 0
-    last_org_i = 0
-    last_loc_i = 0
-    last_misc_i = 0
-    for i, tag in enumerate(tags):
-        if tag == 1:  # B-PER
-            last_per_b = i
-        elif tag == 3:  # B-ORG
-            last_org_b = i
-        elif tag == 5:  # B-LOC
-            last_loc_b = i
-        elif tag == 7:  # B-MISC
-            last_misc_b = i
-        elif tag == 2:  # I-PER
-            if last_per_b != i - 1 and last_per_i != i - 1:
-                return False
-            last_per_i = i
-        elif tag == 4:  # I-ORG
-            if last_org_b != i - 1 and last_org_i != i - 1:
-                return False
-            last_org_i = i
-        elif tag == 6:  # I-LOC
-            if last_loc_b != i - 1 and last_loc_i != i - 1:
-                return False
-            last_loc_i = i
-        elif tag == 8:  # I-MISC
-            if last_misc_b != i - 1 and last_misc_i != i - 1:
-                return False
-            last_misc_i = i
-        else:
-            continue
-    return True
-
-
-def ner_identity(x):
-    return x
-
-
 def reverse_string(str):
     return str[::-1]
 
@@ -949,15 +858,9 @@ dispatcher = {
     'grid_identity': grid_identity,
     'mnist_video_digits': mnist_video_digits,
     'palindrome_string': palindrome_string,
-    'valid_mini_sudoku': valid_mini_sudoku,
-    'mini_sudoku_solver': mini_sudoku_solver,
     'sum_grid': sum_grid,
     'sort_list_indices': sort_list_indices,
     'select_top_4': select_top_4,
-    'rust_coffee_leaf_severity': rust_coffee_leaf_severity,
-    'miner_coffee_leaf_severity': miner_coffee_leaf_severity,
-    'bio_tagging': bio_tagging,
-    'ner_identity': ner_identity,
     'reverse_string': reverse_string,
 }
 

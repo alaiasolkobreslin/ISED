@@ -49,41 +49,28 @@ MNIST = "MNIST"
 EMNIST = "EMNIST"
 SVHN = "SVHN"
 HWF_SYMBOL = "HWF"
-MNIST_VIDEO = "MNIST_VIDEO"
-MNIST_1TO4 = "MNIST_1TO4"
-MNIST_2TO9 = "MNIST_2TO9"
-SVHN_1TO4 = "SVHN_1TO4"
-SVHN_2TO9 = "SVHN_2TO9"
-COFFEE_LEAF_MINER = "COFFEE_LEAF_MINER"
-COFFEE_LEAF_RUST = "COFFEE_LEAF_RUST"
-CONLL2003 = "CoNLL2003"
 
 # Dataset generation strategies
 STRATEGY = "strategy"
 SINGLE_SAMPLE_STRATEGY = "single_sample"
 SIMPLE_LIST_STRATEGY = "list"
 LIST_2D = "2d_list"
-SUDOKU_PROBLEM_STRATEGY = "sudoku_probem_sample"
-SUDOKU_RANDOM_STRATEGY = "sudoku_random_sample"
 
 # Preprocessing
 PREPROCESS = "preprocess"
 PREPROCESS_IDENTITY = "id"
 PREPROCESS_SORT = "sort"
-PREPROCESS_SUDOKU_BOARD = 'make_board'
 PREPROCESS_PALINDROME = 'palindrome'
 
 # Output
 OUTPUT = "output"
 OUTPUT_MAPPING = "output_mapping"
-SUDOKU_OUTPUT_MAPPING = "sudoku_output_mapping"
 RANGE = "range"
 OUTPUT_MAPPING_RANGE = "output_mapping_range"
 START = "start"
 END = "end"
 UNKNOWN = "unknown"
 FALLBACK = "fallback"
-SUDOKU_OUTPUT_MAPPING = "sudoku_output_mapping"
 LIST_OUTPUT_MAPPING = "list_output_mapping"
 INT_OUTPUT_MAPPING = 'int_output_mapping'
 DISCRETE_OUTPUT_MAPPING = "discrete_output_mapping"

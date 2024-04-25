@@ -77,7 +77,6 @@ class TaskNet(nn.Module):
             output_mapping: output.OutputMapping,
             sample_count: int,
             batch_size_train: int,
-            check_symmetry: bool,
             caching: bool):
         super(TaskNet, self).__init__()
 
@@ -102,7 +101,6 @@ class TaskNet(nn.Module):
                                       output_mapping=output_mapping,
                                       batch_size=batch_size_train,
                                       loss_aggregator=loss_aggregator,
-                                      check_symmetry=check_symmetry,
                                       caching=caching,
                                       sample_count=sample_count)
 
@@ -155,7 +153,6 @@ class Trainer():
             output_mapping: output.OutputMapping,
             sample_count: int,
             batch_size_train: int,
-            check_symmetry: bool,
             caching: bool):
         self.network = TaskNet(unstructured_datasets=unstructured_datasets,
                                task_config=task_config,
@@ -163,7 +160,6 @@ class Trainer():
                                output_mapping=output_mapping,
                                sample_count=sample_count,
                                batch_size_train=batch_size_train,
-                               check_symmetry=check_symmetry,
                                caching=caching)
         self.output_mapping = output_mapping
         self.optimizers = [optim.Adam(
@@ -277,7 +273,6 @@ if __name__ == "__main__":
     parser.add_argument("--n-samples", type=int, default=100)
     parser.add_argument("--configuration", type=str,
                         default="configuration.json")
-    parser.add_argument("--symmetry", type=bool, default=False)
     parser.add_argument("--caching", type=bool, default=True)
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
@@ -325,6 +320,5 @@ if __name__ == "__main__":
                           output_mapping=om,
                           sample_count=args.n_samples,
                           batch_size_train=batch_size_train,
-                          check_symmetry=args.symmetry,
                           caching=args.caching)
         trainer.train(n_epochs)
