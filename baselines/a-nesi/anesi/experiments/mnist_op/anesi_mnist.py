@@ -63,8 +63,8 @@ class MNISTModel(ANeSIBase[MNISTState]):
         w: (batch_size, 2*n)
         """
         stacks = []
-        for _ in range(self.arity):
-            stacks.append(torch.stack([10 ** (self.N - i - 1) * w[..., self.N * i + i] for i in range(self.N)], -1))
+        for i in range(self.arity):
+            stacks.append(torch.stack([10 ** (self.N - i - 1) * w[..., self.N * j + i] for j in range(self.N)], -1))
 
         ns = [stack.sum(-1) for stack in stacks]
 
