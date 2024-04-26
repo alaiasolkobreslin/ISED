@@ -16,4 +16,4 @@ class MNISTSort2Model(MNISTModel):
         raise NotImplementedError
 
     def op(self, n1: torch.Tensor, n2: torch.Tensor) -> torch.Tensor:
-        return n1 < n2
+        return torch.lt(n1, n2).int()
