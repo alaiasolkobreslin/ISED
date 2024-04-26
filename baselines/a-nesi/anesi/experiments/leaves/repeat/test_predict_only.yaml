@@ -1,0 +1,49 @@
+program: anesi/experiments/leaves/leafop.py
+project: leaves
+entity: seewonchoi
+method: grid
+parameters:
+  N:
+    values: [1]
+  runs:
+    values: [1]
+  epochs:
+    values: [100]
+  batch_size:
+    values: [ 16 ]
+  amt_samples:
+    values: [ 100 ]
+  K_beliefs:
+    values: [ 100 ]
+  nrm_lr:
+    values: [ 1e-4 ]
+  perception_lr:
+    values: [ 1e-4 ]
+  dirichlet_lr:
+    values: [ 0.01 ]
+  dirichlet_iters:
+    values: [ 10 ]
+  dirichlet_init:
+    values: [ 1 ]
+  dirichlet_L2:
+    values: [ 100000 ]
+  nrm_loss:
+    values: [ 'bce' ]
+  perception_loss:
+    values: [ 'log-q' ]
+  percept_loss_pref:
+    values: [ 1 ]
+  policy:
+    values: [ 'off' ]
+  hidden_size:
+    values: [ 200 ]
+  layers:
+    values: [ 1 ]
+  test:
+    values: [ False ]
+  prune:
+    values: [ False ]
+  predict_only:
+    values: [ False ]
+  use_prior:
+    values: [ True ] 
