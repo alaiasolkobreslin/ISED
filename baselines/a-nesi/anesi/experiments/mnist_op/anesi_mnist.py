@@ -64,7 +64,7 @@ class MNISTModel(ANeSIBase[MNISTState]):
         """
         stacks = []
         for i in range(self.arity):
-            stacks.append(torch.stack([10 ** (self.N - i - 1) * w[..., self.N * j + i] for j in range(self.N)], -1))
+            stacks.append(torch.stack([10 ** (self.N - j - 1) * w[..., self.N * i + j] for j in range(self.N)], -1))
 
         ns = [stack.sum(-1) for stack in stacks]
 
