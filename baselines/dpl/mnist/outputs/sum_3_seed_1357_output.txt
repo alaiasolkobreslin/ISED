@@ -1,0 +1,554 @@
+Caching ACs
+Training  for 10 epoch(s)
+Epoch 1
+Iteration:  100 	s:23.8355 	Average Loss:  2.9639777195453645
+Iteration:  200 	s:17.1478 	Average Loss:  2.9946573507785796
+Iteration:  300 	s:16.7220 	Average Loss:  2.850943944454193
+Iteration:  400 	s:16.4216 	Average Loss:  2.615443837046623
+Iteration:  500 	s:16.4436 	Average Loss:  2.6174347478151323
+Iteration:  600 	s:16.3912 	Average Loss:  2.475278218984604
+Iteration:  700 	s:16.6232 	Average Loss:  2.2239491325616836
+Iteration:  800 	s:16.3744 	Average Loss:  1.8935163688659669
+Iteration:  900 	s:15.3016 	Average Loss:  1.284246197969187
+Iteration:  1000 	s:14.9004 	Average Loss:  0.9812576028821058
+Iteration:  1100 	s:14.0758 	Average Loss:  0.553768996099825
+Iteration:  1200 	s:14.8979 	Average Loss:  0.8468162721658882
+Iteration:  1300 	s:15.0479 	Average Loss:  0.613309769969128
+Iteration:  1400 	s:14.0280 	Average Loss:  0.6495296743091603
+Iteration:  1500 	s:13.9178 	Average Loss:  0.7682119254308054
+Iteration:  1600 	s:14.0288 	Average Loss:  0.6287595675859484
+Iteration:  1700 	s:13.8377 	Average Loss:  0.4358857152937344
+Iteration:  1800 	s:13.4962 	Average Loss:  0.35472713459617805
+Iteration:  1900 	s:14.0204 	Average Loss:  0.6112812888642657
+Iteration:  2000 	s:14.1323 	Average Loss:  0.4981695346027118
+Iteration:  2100 	s:13.5849 	Average Loss:  0.4179532879540966
+Iteration:  2200 	s:14.3792 	Average Loss:  0.6100908202583014
+Iteration:  2300 	s:13.8271 	Average Loss:  0.33791197390914024
+Iteration:  2400 	s:14.1134 	Average Loss:  0.4437621492141625
+Iteration:  2500 	s:14.3703 	Average Loss:  0.3722816833060642
+Iteration:  2600 	s:13.8687 	Average Loss:  0.38698459791616185
+Iteration:  2700 	s:14.1044 	Average Loss:  0.5063679211556155
+Iteration:  2800 	s:13.3902 	Average Loss:  0.3360336194489901
+Iteration:  2900 	s:13.0992 	Average Loss:  0.27121238509235807
+Iteration:  3000 	s:14.4292 	Average Loss:  0.5701709474444214
+Iteration:  3100 	s:14.1795 	Average Loss:  0.21593549096840434
+Iteration:  3200 	s:13.3808 	Average Loss:  0.25219702645581493
+Iteration:  3300 	s:13.5674 	Average Loss:  0.3943099224046819
+Iteration:  3400 	s:12.9750 	Average Loss:  0.2675680301850389
+Iteration:  3500 	s:12.9537 	Average Loss:  0.2912231821572186
+Iteration:  3600 	s:13.1325 	Average Loss:  0.18562075604565734
+Iteration:  3700 	s:12.1136 	Average Loss:  0.28688182112123284
+Iteration:  3800 	s:13.0834 	Average Loss:  0.3383598457543667
+Iteration:  3900 	s:13.2611 	Average Loss:  0.24298110918721658
+Iteration:  4000 	s:12.7396 	Average Loss:  0.30318724887321424
+Iteration:  4100 	s:12.9736 	Average Loss:  0.23132870991681556
+Iteration:  4200 	s:13.0576 	Average Loss:  0.3072934066570815
+Iteration:  4300 	s:12.8423 	Average Loss:  0.343874339690592
+Iteration:  4400 	s:13.6849 	Average Loss:  0.2625582025328913
+Iteration:  4500 	s:14.1631 	Average Loss:  0.5566076147322747
+Iteration:  4600 	s:13.3409 	Average Loss:  0.3153152857935311
+Iteration:  4700 	s:12.7814 	Average Loss:  0.21062017821575865
+Iteration:  4800 	s:13.1183 	Average Loss:  0.36804421484433986
+Iteration:  4900 	s:13.3318 	Average Loss:  0.33652185987237315
+Iteration:  5000 	s:12.8997 	Average Loss:  0.27569073083132933
+Epoch time:  714.5373153686523
+Epoch 2
+Iteration:  5100 	s:12.5311 	Average Loss:  0.29618174821097365
+Iteration:  5200 	s:13.1718 	Average Loss:  0.3168784860607725
+Iteration:  5300 	s:13.2274 	Average Loss:  0.33349142326344006
+Iteration:  5400 	s:13.0775 	Average Loss:  0.24503909045761246
+Iteration:  5500 	s:12.9257 	Average Loss:  0.23872973761499452
+Iteration:  5600 	s:12.4085 	Average Loss:  0.12199499336214104
+Iteration:  5700 	s:12.5803 	Average Loss:  0.3343760863548041
+Iteration:  5800 	s:12.8351 	Average Loss:  0.3226305887569966
+Iteration:  5900 	s:12.5618 	Average Loss:  0.22373655613609025
+Iteration:  6000 	s:13.0084 	Average Loss:  0.3444028047673733
+Iteration:  6100 	s:13.4187 	Average Loss:  0.1963135731244347
+Iteration:  6200 	s:13.6582 	Average Loss:  0.32206625571521724
+Iteration:  6300 	s:13.5539 	Average Loss:  0.24368678857244958
+Iteration:  6400 	s:12.8850 	Average Loss:  0.3030472510341224
+Iteration:  6500 	s:13.0240 	Average Loss:  0.3638161855217277
+Iteration:  6600 	s:12.8143 	Average Loss:  0.3891589903387057
+Iteration:  6700 	s:12.2515 	Average Loss:  0.13367960045063343
+Iteration:  6800 	s:12.3080 	Average Loss:  0.12767346287991857
+Iteration:  6900 	s:11.9742 	Average Loss:  0.35054455925657974
+Iteration:  7000 	s:12.8139 	Average Loss:  0.2037827982973149
+Iteration:  7100 	s:12.0689 	Average Loss:  0.12036949968572891
+Iteration:  7200 	s:12.1019 	Average Loss:  0.3889059111418865
+Iteration:  7300 	s:12.2483 	Average Loss:  0.22991402917902498
+Iteration:  7400 	s:12.6444 	Average Loss:  0.22121894856667496
+Iteration:  7500 	s:12.2231 	Average Loss:  0.18349213260195485
+Iteration:  7600 	s:12.5769 	Average Loss:  0.15405733699210486
+Iteration:  7700 	s:12.0128 	Average Loss:  0.3698507274792874
+Iteration:  7800 	s:12.0986 	Average Loss:  0.21847126148277493
+Iteration:  7900 	s:12.2885 	Average Loss:  0.18874326995910176
+Iteration:  8000 	s:12.8106 	Average Loss:  0.31892068563615245
+Iteration:  8100 	s:12.3247 	Average Loss:  0.16907984786472707
+Iteration:  8200 	s:11.6898 	Average Loss:  0.13142951565478794
+Iteration:  8300 	s:12.5547 	Average Loss:  0.2498337854895858
+Iteration:  8400 	s:12.1712 	Average Loss:  0.2030438181897475
+Iteration:  8500 	s:12.0197 	Average Loss:  0.14921783132845348
+Iteration:  8600 	s:11.5115 	Average Loss:  0.09948079820932165
+Iteration:  8700 	s:10.8558 	Average Loss:  0.12729545503691436
+Iteration:  8800 	s:11.7946 	Average Loss:  0.20532449912458334
+Iteration:  8900 	s:11.5907 	Average Loss:  0.13399489063345751
+Iteration:  9000 	s:11.5567 	Average Loss:  0.197019794305093
+Iteration:  9100 	s:11.8728 	Average Loss:  0.18042645584303862
+Iteration:  9200 	s:11.5260 	Average Loss:  0.16682120864535407
+Iteration:  9300 	s:11.0861 	Average Loss:  0.259589756086531
+Iteration:  9400 	s:11.6491 	Average Loss:  0.24177616288483633
+Iteration:  9500 	s:12.6141 	Average Loss:  0.43435881430352125
+Iteration:  9600 	s:12.5973 	Average Loss:  0.20125414065942912
+Iteration:  9700 	s:11.9781 	Average Loss:  0.1755428209708675
+Iteration:  9800 	s:11.9498 	Average Loss:  0.27953570936757793
+Iteration:  9900 	s:11.9809 	Average Loss:  0.1541765999657118
+Iteration:  10000 	s:11.6302 	Average Loss:  0.12319261748455983
+Epoch time:  617.0404245853424
+Epoch 3
+Iteration:  10100 	s:11.5909 	Average Loss:  0.2228108116845883
+Iteration:  10200 	s:12.3153 	Average Loss:  0.25435975847079406
+Iteration:  10300 	s:11.8750 	Average Loss:  0.19609549904730056
+Iteration:  10400 	s:12.0248 	Average Loss:  0.15596557403850425
+Iteration:  10500 	s:12.0928 	Average Loss:  0.19043591571133628
+Iteration:  10600 	s:11.9517 	Average Loss:  0.08051978770427422
+Iteration:  10700 	s:11.5341 	Average Loss:  0.17970517279845397
+Iteration:  10800 	s:11.9654 	Average Loss:  0.23026284275385842
+Iteration:  10900 	s:11.6004 	Average Loss:  0.18270950448874096
+Iteration:  11000 	s:11.3889 	Average Loss:  0.18574146607326064
+Iteration:  11100 	s:11.4252 	Average Loss:  0.16501145800437914
+Iteration:  11200 	s:12.3828 	Average Loss:  0.23634037114464196
+Iteration:  11300 	s:12.8456 	Average Loss:  0.21454854017159458
+Iteration:  11400 	s:12.1070 	Average Loss:  0.22305489259959266
+Iteration:  11500 	s:12.5625 	Average Loss:  0.2594238335747636
+Iteration:  11600 	s:11.5376 	Average Loss:  0.2680400286029062
+Iteration:  11700 	s:11.2651 	Average Loss:  0.05937032713028805
+Iteration:  11800 	s:10.9069 	Average Loss:  0.11829030062254343
+Iteration:  11900 	s:11.0320 	Average Loss:  0.2820054365876632
+Iteration:  12000 	s:11.9635 	Average Loss:  0.13033538278695028
+Iteration:  12100 	s:11.2816 	Average Loss:  0.13515873928422162
+Iteration:  12200 	s:11.5580 	Average Loss:  0.2931781940778215
+Iteration:  12300 	s:11.6917 	Average Loss:  0.23099202636791438
+Iteration:  12400 	s:12.1334 	Average Loss:  0.18448830609448919
+Iteration:  12500 	s:11.8126 	Average Loss:  0.1703908683161985
+Iteration:  12600 	s:11.8257 	Average Loss:  0.12786322296462913
+Iteration:  12700 	s:11.5331 	Average Loss:  0.20615904160391418
+Iteration:  12800 	s:11.0132 	Average Loss:  0.13476638145822153
+Iteration:  12900 	s:11.3534 	Average Loss:  0.09529291949231762
+Iteration:  13000 	s:11.9264 	Average Loss:  0.21717652090442474
+Iteration:  13100 	s:11.2373 	Average Loss:  0.09915383394303454
+Iteration:  13200 	s:10.5793 	Average Loss:  0.08305380409905959
+Iteration:  13300 	s:10.7821 	Average Loss:  0.19708535106148475
+Iteration:  13400 	s:11.3001 	Average Loss:  0.21553548080045765
+Iteration:  13500 	s:11.1132 	Average Loss:  0.11305007335724035
+Iteration:  13600 	s:11.1580 	Average Loss:  0.07530517809442339
+Iteration:  13700 	s:10.3731 	Average Loss:  0.11472406336431554
+Iteration:  13800 	s:11.0569 	Average Loss:  0.11498818782167529
+Iteration:  13900 	s:10.7956 	Average Loss:  0.045472814956809604
+Iteration:  14000 	s:10.7743 	Average Loss:  0.13924544367673541
+Iteration:  14100 	s:10.8308 	Average Loss:  0.1154970302387542
+Iteration:  14200 	s:10.5726 	Average Loss:  0.14965912308866844
+Iteration:  14300 	s:11.0923 	Average Loss:  0.2493656795959656
+Iteration:  14400 	s:11.2205 	Average Loss:  0.16868659211002981
+Iteration:  14500 	s:11.6259 	Average Loss:  0.4522425550067888
+Iteration:  14600 	s:11.6937 	Average Loss:  0.20484874894923813
+Iteration:  14700 	s:11.4184 	Average Loss:  0.1589156336244036
+Iteration:  14800 	s:11.1841 	Average Loss:  0.12355008409095294
+Iteration:  14900 	s:10.8697 	Average Loss:  0.09206101477586508
+Iteration:  15000 	s:10.4050 	Average Loss:  0.06459162311322028
+Epoch time:  572.5695910453796
+Epoch 4
+Iteration:  15100 	s:10.5608 	Average Loss:  0.1947077937089956
+Iteration:  15200 	s:11.5511 	Average Loss:  0.1556508477935499
+Iteration:  15300 	s:11.1122 	Average Loss:  0.20214394555932766
+Iteration:  15400 	s:10.9988 	Average Loss:  0.12602645012200012
+Iteration:  15500 	s:11.0157 	Average Loss:  0.11295200043598222
+Iteration:  15600 	s:10.8597 	Average Loss:  0.08197859956501642
+Iteration:  15700 	s:11.1302 	Average Loss:  0.14096048013330845
+Iteration:  15800 	s:11.0382 	Average Loss:  0.11807082018446721
+Iteration:  15900 	s:10.8654 	Average Loss:  0.12225053340170805
+Iteration:  16000 	s:10.8665 	Average Loss:  0.21432812746887922
+Iteration:  16100 	s:10.8217 	Average Loss:  0.11551757100109725
+Iteration:  16200 	s:11.7519 	Average Loss:  0.23783550402188264
+Iteration:  16300 	s:11.4057 	Average Loss:  0.14654272238508517
+Iteration:  16400 	s:11.2404 	Average Loss:  0.17938511658266051
+Iteration:  16500 	s:11.3643 	Average Loss:  0.20684797011695535
+Iteration:  16600 	s:11.1987 	Average Loss:  0.224900176869475
+Iteration:  16700 	s:10.6075 	Average Loss:  0.04916633525881134
+Iteration:  16800 	s:10.5505 	Average Loss:  0.08259324703766907
+Iteration:  16900 	s:10.4613 	Average Loss:  0.2773663455306005
+Iteration:  17000 	s:11.1888 	Average Loss:  0.22975567229607766
+Iteration:  17100 	s:11.1044 	Average Loss:  0.08911575166277576
+Iteration:  17200 	s:11.1619 	Average Loss:  0.16570981396328655
+Iteration:  17300 	s:10.5456 	Average Loss:  0.12287782833946316
+Iteration:  17400 	s:11.2288 	Average Loss:  0.16626089056125157
+Iteration:  17500 	s:11.1062 	Average Loss:  0.11365055463252588
+Iteration:  17600 	s:11.3039 	Average Loss:  0.135801761162797
+Iteration:  17700 	s:10.5757 	Average Loss:  0.1488329762136759
+Iteration:  17800 	s:10.0761 	Average Loss:  0.1305082993721836
+Iteration:  17900 	s:11.8533 	Average Loss:  0.1421235517671208
+Iteration:  18000 	s:11.4554 	Average Loss:  0.16995783211211207
+Iteration:  18100 	s:10.8821 	Average Loss:  0.06851266417331496
+Iteration:  18200 	s:10.1164 	Average Loss:  0.10512968832158968
+Iteration:  18300 	s:10.7199 	Average Loss:  0.1405364781764928
+Iteration:  18400 	s:10.6715 	Average Loss:  0.09458840472395721
+Iteration:  18500 	s:10.1565 	Average Loss:  0.10897033418876396
+Iteration:  18600 	s:10.3782 	Average Loss:  0.062176167166601154
+Iteration:  18700 	s:10.0888 	Average Loss:  0.10669094660927556
+Iteration:  18800 	s:10.5455 	Average Loss:  0.15125979006444495
+Iteration:  18900 	s:10.2085 	Average Loss:  0.06819855197899741
+Iteration:  19000 	s:10.3439 	Average Loss:  0.14582294897974868
+Iteration:  19100 	s:10.4159 	Average Loss:  0.06320582018428883
+Iteration:  19200 	s:10.0251 	Average Loss:  0.12632674336151153
+Iteration:  19300 	s:10.2285 	Average Loss:  0.2629818057537829
+Iteration:  19400 	s:10.5044 	Average Loss:  0.0691568295049021
+Iteration:  19500 	s:11.2022 	Average Loss:  0.39050470911316
+Iteration:  19600 	s:11.6126 	Average Loss:  0.09081502742504259
+Iteration:  19700 	s:10.4889 	Average Loss:  0.1108276693188887
+Iteration:  19800 	s:10.5524 	Average Loss:  0.10732384406684986
+Iteration:  19900 	s:10.5808 	Average Loss:  0.10957577030908315
+Iteration:  20000 	s:10.2907 	Average Loss:  0.0766922099115322
+Epoch time:  541.0132691860199
+Epoch 5
+Iteration:  20100 	s:10.2361 	Average Loss:  0.14253059774411694
+Iteration:  20200 	s:11.2975 	Average Loss:  0.12677606234800712
+Iteration:  20300 	s:10.2850 	Average Loss:  0.11644407742713017
+Iteration:  20400 	s:10.3858 	Average Loss:  0.14400792360628295
+Iteration:  20500 	s:10.4468 	Average Loss:  0.17180276338888664
+Iteration:  20600 	s:10.5012 	Average Loss:  0.07772939414222033
+Iteration:  20700 	s:10.8084 	Average Loss:  0.1734797892715241
+Iteration:  20800 	s:10.8831 	Average Loss:  0.1392391417359613
+Iteration:  20900 	s:11.0041 	Average Loss:  0.1377902552947325
+Iteration:  21000 	s:10.3918 	Average Loss:  0.040453528335994686
+Iteration:  21100 	s:10.4014 	Average Loss:  0.07712185646359553
+Iteration:  21200 	s:10.7166 	Average Loss:  0.10496682108681185
+Iteration:  21300 	s:10.6593 	Average Loss:  0.0840449781871908
+Iteration:  21400 	s:10.4468 	Average Loss:  0.1775588189011156
+Iteration:  21500 	s:10.8490 	Average Loss:  0.14471467783155134
+Iteration:  21600 	s:10.2951 	Average Loss:  0.07580987807130271
+Iteration:  21700 	s:10.1693 	Average Loss:  0.04845589428400365
+Iteration:  21800 	s:10.0964 	Average Loss:  0.1497977795476351
+Iteration:  21900 	s:10.2234 	Average Loss:  0.29611723937365836
+Iteration:  22000 	s:10.5760 	Average Loss:  0.05443100619058946
+Iteration:  22100 	s:10.2750 	Average Loss:  0.03540439994762554
+Iteration:  22200 	s:10.0204 	Average Loss:  0.16198172865110633
+Iteration:  22300 	s:9.9691 	Average Loss:  0.1535533372298433
+Iteration:  22400 	s:10.6982 	Average Loss:  0.12915676265098944
+Iteration:  22500 	s:10.7299 	Average Loss:  0.13119055252310008
+Iteration:  22600 	s:10.5202 	Average Loss:  0.031923624748629253
+Iteration:  22700 	s:10.7523 	Average Loss:  0.10699096148791426
+Iteration:  22800 	s:9.9072 	Average Loss:  0.13416324630522056
+Iteration:  22900 	s:10.6825 	Average Loss:  0.12254751026127664
+Iteration:  23000 	s:10.7962 	Average Loss:  0.16292731124668497
+Iteration:  23100 	s:10.2121 	Average Loss:  0.08438321890186813
+Iteration:  23200 	s:9.4591 	Average Loss:  0.0373657901932659
+Iteration:  23300 	s:9.4190 	Average Loss:  0.09343898907443357
+Iteration:  23400 	s:9.6560 	Average Loss:  0.0883230036757649
+Iteration:  23500 	s:9.5576 	Average Loss:  0.07005232010940318
+Iteration:  23600 	s:9.8040 	Average Loss:  0.05593883912490106
+Iteration:  23700 	s:9.4712 	Average Loss:  0.06946723274852007
+Iteration:  23800 	s:10.0419 	Average Loss:  0.087591608595089
+Iteration:  23900 	s:9.4753 	Average Loss:  0.018193430982738814
+Iteration:  24000 	s:9.8654 	Average Loss:  0.13409841152283047
+Iteration:  24100 	s:10.2181 	Average Loss:  0.11689742535979729
+Iteration:  24200 	s:9.9277 	Average Loss:  0.11814481842018637
+Iteration:  24300 	s:9.9966 	Average Loss:  0.23240159506436872
+Iteration:  24400 	s:10.0824 	Average Loss:  0.028869019899518386
+Iteration:  24500 	s:10.6682 	Average Loss:  0.2464277207696127
+Iteration:  24600 	s:10.6729 	Average Loss:  0.11129796455231855
+Iteration:  24700 	s:10.1395 	Average Loss:  0.07169868257988413
+Iteration:  24800 	s:10.4010 	Average Loss:  0.0831206656287739
+Iteration:  24900 	s:10.2642 	Average Loss:  0.06001428184485537
+Iteration:  25000 	s:10.0736 	Average Loss:  0.026837460555753916
+Epoch time:  514.4170928001404
+Epoch 6
+Iteration:  25100 	s:10.2527 	Average Loss:  0.1454780478881018
+Iteration:  25200 	s:10.7306 	Average Loss:  0.20816683987812848
+Iteration:  25300 	s:10.4659 	Average Loss:  0.24167212362751564
+Iteration:  25400 	s:10.4912 	Average Loss:  0.09920254743272164
+Iteration:  25500 	s:10.4818 	Average Loss:  0.1312319593829258
+Iteration:  25600 	s:10.0916 	Average Loss:  0.018189029985624945
+Iteration:  25700 	s:10.0381 	Average Loss:  0.10155945446144722
+Iteration:  25800 	s:10.0668 	Average Loss:  0.10322643087895329
+Iteration:  25900 	s:10.2626 	Average Loss:  0.10793287768852376
+Iteration:  26000 	s:10.1725 	Average Loss:  0.1801584179682426
+Iteration:  26100 	s:10.1566 	Average Loss:  0.060533517233765065
+Iteration:  26200 	s:10.5518 	Average Loss:  0.11938388538290969
+Iteration:  26300 	s:10.6016 	Average Loss:  0.05863765219961852
+Iteration:  26400 	s:10.1155 	Average Loss:  0.12755336112249593
+Iteration:  26500 	s:10.2069 	Average Loss:  0.06576831389321174
+Iteration:  26600 	s:10.4007 	Average Loss:  0.21353200123642677
+Iteration:  26700 	s:9.6753 	Average Loss:  0.030062495844516236
+Iteration:  26800 	s:9.6558 	Average Loss:  0.05506121921894769
+Iteration:  26900 	s:9.3619 	Average Loss:  0.28483930341429536
+Iteration:  27000 	s:10.2626 	Average Loss:  0.13468495917346757
+Iteration:  27100 	s:9.7087 	Average Loss:  0.04945246084537401
+Iteration:  27200 	s:9.7907 	Average Loss:  0.11886672903963666
+Iteration:  27300 	s:9.5008 	Average Loss:  0.10893851328863204
+Iteration:  27400 	s:9.8745 	Average Loss:  0.0990992814600498
+Iteration:  27500 	s:9.6859 	Average Loss:  0.09921140565239654
+Iteration:  27600 	s:9.8159 	Average Loss:  0.0747301945132553
+Iteration:  27700 	s:9.9322 	Average Loss:  0.05876468413310976
+Iteration:  27800 	s:9.3188 	Average Loss:  0.09750756256901032
+Iteration:  27900 	s:10.0682 	Average Loss:  0.11135921024353249
+Iteration:  28000 	s:10.1009 	Average Loss:  0.0802814752121208
+Iteration:  28100 	s:9.9506 	Average Loss:  0.08980785823637469
+Iteration:  28200 	s:9.2808 	Average Loss:  0.0633591994148602
+Iteration:  28300 	s:9.7319 	Average Loss:  0.14659547523275943
+Iteration:  28400 	s:9.8277 	Average Loss:  0.25489548160162334
+Iteration:  28500 	s:9.4934 	Average Loss:  0.056478813851565654
+Iteration:  28600 	s:9.1786 	Average Loss:  0.020970848237441764
+Iteration:  28700 	s:9.1007 	Average Loss:  0.09776690922875747
+Iteration:  28800 	s:9.6258 	Average Loss:  0.15139044309155508
+Iteration:  28900 	s:8.9604 	Average Loss:  0.07187518576064367
+Iteration:  29000 	s:9.1009 	Average Loss:  0.05319500794417294
+Iteration:  29100 	s:9.2280 	Average Loss:  0.05491435075215091
+Iteration:  29200 	s:9.3323 	Average Loss:  0.07760101784747149
+Iteration:  29300 	s:9.3812 	Average Loss:  0.20077458920948563
+Iteration:  29400 	s:9.6221 	Average Loss:  0.052108971811139666
+Iteration:  29500 	s:9.8289 	Average Loss:  0.12887421164527
+Iteration:  29600 	s:9.7239 	Average Loss:  0.060792432879329006
+Iteration:  29700 	s:9.2834 	Average Loss:  0.05674040744415114
+Iteration:  29800 	s:9.5204 	Average Loss:  0.12803861701888475
+Iteration:  29900 	s:9.5179 	Average Loss:  0.08695060057033886
+Iteration:  30000 	s:9.1465 	Average Loss:  0.0684929423596766
+Epoch time:  490.66971492767334
+Epoch 7
+Iteration:  30100 	s:9.2451 	Average Loss:  0.21016642244692538
+Iteration:  30200 	s:9.9773 	Average Loss:  0.1967880769552621
+Iteration:  30300 	s:9.7040 	Average Loss:  0.10601763930552689
+Iteration:  30400 	s:9.1228 	Average Loss:  0.057321832095515314
+Iteration:  30500 	s:9.1273 	Average Loss:  0.23692880141508027
+Iteration:  30600 	s:9.1182 	Average Loss:  0.03302797294307651
+Iteration:  30700 	s:9.3555 	Average Loss:  0.07561848564983632
+Iteration:  30800 	s:9.2706 	Average Loss:  0.20803769813431128
+Iteration:  30900 	s:9.4723 	Average Loss:  0.12961731354583467
+Iteration:  31000 	s:9.4295 	Average Loss:  0.07713603559027314
+Iteration:  31100 	s:9.5328 	Average Loss:  0.13501373314217904
+Iteration:  31200 	s:10.2322 	Average Loss:  0.10882045108591164
+Iteration:  31300 	s:9.8542 	Average Loss:  0.09410641129952847
+Iteration:  31400 	s:9.8315 	Average Loss:  0.20533219220517626
+Iteration:  31500 	s:9.6785 	Average Loss:  0.0736450061182521
+Iteration:  31600 	s:9.5441 	Average Loss:  0.10162651336364242
+Iteration:  31700 	s:9.5716 	Average Loss:  0.02431945838983248
+Iteration:  31800 	s:9.5640 	Average Loss:  0.020237454519509975
+Iteration:  31900 	s:9.3458 	Average Loss:  0.25579892035326385
+Iteration:  32000 	s:9.5224 	Average Loss:  0.24240498224907153
+Iteration:  32100 	s:9.0036 	Average Loss:  0.15626468378396968
+Iteration:  32200 	s:9.4476 	Average Loss:  0.10958859177667563
+Iteration:  32300 	s:9.1466 	Average Loss:  0.07280178329619791
+Iteration:  32400 	s:9.7300 	Average Loss:  0.2606368699757135
+Iteration:  32500 	s:9.0787 	Average Loss:  0.20593998235054517
+Iteration:  32600 	s:9.0298 	Average Loss:  0.03535664762648222
+Iteration:  32700 	s:9.2554 	Average Loss:  0.085496206133227
+Iteration:  32800 	s:9.2377 	Average Loss:  0.07129829127780657
+Iteration:  32900 	s:9.3509 	Average Loss:  0.0829262461196819
+Iteration:  33000 	s:9.3692 	Average Loss:  0.10764053258769782
+Iteration:  33100 	s:9.3899 	Average Loss:  0.17488339636463476
+Iteration:  33200 	s:9.3917 	Average Loss:  0.06784649470078047
+Iteration:  33300 	s:9.3976 	Average Loss:  0.10263457177865952
+Iteration:  33400 	s:9.5739 	Average Loss:  0.08370361324524321
+Iteration:  33500 	s:9.2588 	Average Loss:  0.06077590272486199
+Iteration:  33600 	s:9.4264 	Average Loss:  0.05175433118212509
+Iteration:  33700 	s:9.1738 	Average Loss:  0.055093133626579666
+Iteration:  33800 	s:9.3813 	Average Loss:  0.12000016953308547
+Iteration:  33900 	s:9.1764 	Average Loss:  0.03333206814759403
+Iteration:  34000 	s:9.3544 	Average Loss:  0.13303012351572088
+Iteration:  34100 	s:9.6260 	Average Loss:  0.10158225929037056
+Iteration:  34200 	s:9.6581 	Average Loss:  0.06057962882638329
+Iteration:  34300 	s:9.4235 	Average Loss:  0.19359885467592503
+Iteration:  34400 	s:9.2263 	Average Loss:  0.07156880306502779
+Iteration:  34500 	s:9.7889 	Average Loss:  0.18591223422941078
+Iteration:  34600 	s:9.5055 	Average Loss:  0.09268157488776665
+Iteration:  34700 	s:9.3998 	Average Loss:  0.039093597575215216
+Iteration:  34800 	s:9.2618 	Average Loss:  0.10323246366670301
+Iteration:  34900 	s:9.5275 	Average Loss:  0.10361517134228297
+Iteration:  35000 	s:9.2853 	Average Loss:  0.09393928010691806
+Epoch time:  471.37625646591187
+Epoch 8
+Iteration:  35100 	s:9.2312 	Average Loss:  0.23471346979455684
+Iteration:  35200 	s:9.6443 	Average Loss:  0.13096973131790665
+Iteration:  35300 	s:9.3844 	Average Loss:  0.08924136082935145
+Iteration:  35400 	s:9.5958 	Average Loss:  0.16098666970119482
+Iteration:  35500 	s:9.2099 	Average Loss:  0.15054484927542178
+Iteration:  35600 	s:9.0916 	Average Loss:  0.03449616136558839
+Iteration:  35700 	s:9.4428 	Average Loss:  0.11739688668015251
+Iteration:  35800 	s:9.6124 	Average Loss:  0.18054468541976995
+Iteration:  35900 	s:10.2181 	Average Loss:  0.10460979994581876
+Iteration:  36000 	s:9.7455 	Average Loss:  0.0827624205757896
+Iteration:  36100 	s:9.5727 	Average Loss:  0.047747922219283326
+Iteration:  36200 	s:9.6496 	Average Loss:  0.142212972253247
+Iteration:  36300 	s:10.0748 	Average Loss:  0.04335347930066273
+Iteration:  36400 	s:9.8342 	Average Loss:  0.0403673266692686
+Iteration:  36500 	s:9.5597 	Average Loss:  0.028735295308070157
+Iteration:  36600 	s:9.2765 	Average Loss:  0.12932624688612082
+Iteration:  36700 	s:9.4324 	Average Loss:  0.03702393496268712
+Iteration:  36800 	s:9.8785 	Average Loss:  0.09790289322619757
+Iteration:  36900 	s:9.3488 	Average Loss:  0.19454047323074156
+Iteration:  37000 	s:9.5900 	Average Loss:  0.04530674241531356
+Iteration:  37100 	s:9.3088 	Average Loss:  0.11227944706385039
+Iteration:  37200 	s:9.8932 	Average Loss:  0.10452145417723756
+Iteration:  37300 	s:9.3962 	Average Loss:  0.10702762977744999
+Iteration:  37400 	s:9.3999 	Average Loss:  0.050470682474121425
+Iteration:  37500 	s:9.2118 	Average Loss:  0.16640841743491006
+Iteration:  37600 	s:9.0745 	Average Loss:  0.027644324108582693
+Iteration:  37700 	s:9.2969 	Average Loss:  0.10498443101797021
+Iteration:  37800 	s:8.8253 	Average Loss:  0.07043645079753211
+Iteration:  37900 	s:9.1025 	Average Loss:  0.1024977208952518
+Iteration:  38000 	s:9.2891 	Average Loss:  0.05269777860441462
+Iteration:  38100 	s:9.3270 	Average Loss:  0.059221687378964036
+Iteration:  38200 	s:8.9526 	Average Loss:  0.02518145561604026
+Iteration:  38300 	s:9.0963 	Average Loss:  0.06709205981158743
+Iteration:  38400 	s:9.4197 	Average Loss:  0.0972055873072312
+Iteration:  38500 	s:8.9965 	Average Loss:  0.0394550773480136
+Iteration:  38600 	s:9.1935 	Average Loss:  0.07326506273541299
+Iteration:  38700 	s:9.1003 	Average Loss:  0.02776129916461156
+Iteration:  38800 	s:9.1209 	Average Loss:  0.05366886368986229
+Iteration:  38900 	s:8.6718 	Average Loss:  0.012311260996722907
+Iteration:  39000 	s:8.9266 	Average Loss:  0.10593732616974527
+Iteration:  39100 	s:9.2161 	Average Loss:  0.07551646669702931
+Iteration:  39200 	s:9.3181 	Average Loss:  0.13875688049726803
+Iteration:  39300 	s:9.0649 	Average Loss:  0.2219658970371716
+Iteration:  39400 	s:9.2391 	Average Loss:  0.12255719150218206
+Iteration:  39500 	s:9.5928 	Average Loss:  0.1720408702712647
+Iteration:  39600 	s:9.3788 	Average Loss:  0.08806357744619923
+Iteration:  39700 	s:8.9400 	Average Loss:  0.057403413593005784
+Iteration:  39800 	s:9.0130 	Average Loss:  0.08409011064172145
+Iteration:  39900 	s:9.3135 	Average Loss:  0.10584029947649057
+Iteration:  40000 	s:9.2486 	Average Loss:  0.018474249270122735
+Epoch time:  467.3306210041046
+Epoch 9
+Iteration:  40100 	s:8.9340 	Average Loss:  0.1750414586790255
+Iteration:  40200 	s:9.5128 	Average Loss:  0.15922858595555353
+Iteration:  40300 	s:9.3086 	Average Loss:  0.09998313518444242
+Iteration:  40400 	s:9.2462 	Average Loss:  0.0724685715890694
+Iteration:  40500 	s:9.0591 	Average Loss:  0.10718237845859377
+Iteration:  40600 	s:9.2295 	Average Loss:  0.026284175229998395
+Iteration:  40700 	s:9.1212 	Average Loss:  0.03205805911015
+Iteration:  40800 	s:9.5303 	Average Loss:  0.12246623888764173
+Iteration:  40900 	s:9.6486 	Average Loss:  0.05207268164307679
+Iteration:  41000 	s:9.4788 	Average Loss:  0.11699346738744774
+Iteration:  41100 	s:9.5537 	Average Loss:  0.1577250505521623
+Iteration:  41200 	s:9.8449 	Average Loss:  0.0911163011361829
+Iteration:  41300 	s:9.4295 	Average Loss:  0.04629880039873913
+Iteration:  41400 	s:9.3541 	Average Loss:  0.13023231128634158
+Iteration:  41500 	s:9.6424 	Average Loss:  0.03663304375897689
+Iteration:  41600 	s:9.3786 	Average Loss:  0.040307769898926045
+Iteration:  41700 	s:8.8559 	Average Loss:  0.01977162778112822
+Iteration:  41800 	s:9.1857 	Average Loss:  0.056251933370951746
+Iteration:  41900 	s:8.6159 	Average Loss:  0.1630477606095876
+Iteration:  42000 	s:9.1567 	Average Loss:  0.10518495409201342
+Iteration:  42100 	s:9.0797 	Average Loss:  0.0449953124463582
+Iteration:  42200 	s:9.1318 	Average Loss:  0.10936459844647992
+Iteration:  42300 	s:9.0779 	Average Loss:  0.031248437357861637
+Iteration:  42400 	s:9.3511 	Average Loss:  0.09260047244005928
+Iteration:  42500 	s:8.8714 	Average Loss:  0.09618400273452936
+Iteration:  42600 	s:8.7756 	Average Loss:  0.02492303724621106
+Iteration:  42700 	s:9.0089 	Average Loss:  0.04041566578172894
+Iteration:  42800 	s:8.6143 	Average Loss:  0.07908672585239832
+Iteration:  42900 	s:9.0420 	Average Loss:  0.09924358816399564
+Iteration:  43000 	s:9.2877 	Average Loss:  0.05795685240593751
+Iteration:  43100 	s:8.6630 	Average Loss:  0.31445219558678283
+Iteration:  43200 	s:8.5672 	Average Loss:  0.048185801157508854
+Iteration:  43300 	s:8.8658 	Average Loss:  0.0676637451860473
+Iteration:  43400 	s:9.2712 	Average Loss:  0.13949192888156933
+Iteration:  43500 	s:8.7910 	Average Loss:  0.0870594126606127
+Iteration:  43600 	s:8.9013 	Average Loss:  0.05215619549458947
+Iteration:  43700 	s:8.7177 	Average Loss:  0.06012828454264509
+Iteration:  43800 	s:8.8521 	Average Loss:  0.05155055503838977
+Iteration:  43900 	s:8.3001 	Average Loss:  0.029796656443538076
+Iteration:  44000 	s:8.6457 	Average Loss:  0.06530797092770238
+Iteration:  44100 	s:8.9785 	Average Loss:  0.09584935297149418
+Iteration:  44200 	s:8.8933 	Average Loss:  0.0206052846512478
+Iteration:  44300 	s:8.8287 	Average Loss:  0.1748060406735501
+Iteration:  44400 	s:9.2027 	Average Loss:  0.013742993852383716
+Iteration:  44500 	s:9.1815 	Average Loss:  0.1618606037543924
+Iteration:  44600 	s:9.5036 	Average Loss:  0.04739202775295052
+Iteration:  44700 	s:8.9216 	Average Loss:  0.1392742998378504
+Iteration:  44800 	s:9.1340 	Average Loss:  0.10072405568076052
+Iteration:  44900 	s:9.3155 	Average Loss:  0.058753423871461076
+Iteration:  45000 	s:8.8245 	Average Loss:  0.043925623595655064
+Epoch time:  454.68944549560547
+Epoch 10
+Iteration:  45100 	s:8.8830 	Average Loss:  0.16572829678620413
+Iteration:  45200 	s:9.4776 	Average Loss:  0.08435728486772513
+Iteration:  45300 	s:9.1873 	Average Loss:  0.10213122521248671
+Iteration:  45400 	s:9.3281 	Average Loss:  0.1339845823305553
+Iteration:  45500 	s:9.1154 	Average Loss:  0.08079077371164235
+Iteration:  45600 	s:8.8400 	Average Loss:  0.01109102503832145
+Iteration:  45700 	s:8.8779 	Average Loss:  0.02575451502899435
+Iteration:  45800 	s:9.1980 	Average Loss:  0.11184192166719237
+Iteration:  45900 	s:9.4456 	Average Loss:  0.12003902607628096
+Iteration:  46000 	s:9.1513 	Average Loss:  0.041374458145834056
+Iteration:  46100 	s:9.3618 	Average Loss:  0.02515529958901766
+Iteration:  46200 	s:9.1680 	Average Loss:  0.0685838759749155
+Iteration:  46300 	s:9.1181 	Average Loss:  0.19459569236365815
+Iteration:  46400 	s:9.0541 	Average Loss:  0.036222638216994126
+Iteration:  46500 	s:8.9577 	Average Loss:  0.05949747736033237
+Iteration:  46600 	s:8.9642 	Average Loss:  0.2202740747258118
+Iteration:  46700 	s:8.6902 	Average Loss:  0.03550730902121842
+Iteration:  46800 	s:8.7570 	Average Loss:  0.010686503031868338
+Iteration:  46900 	s:8.6484 	Average Loss:  0.2526727192514504
+Iteration:  47000 	s:8.7406 	Average Loss:  0.05698142997892439
+Iteration:  47100 	s:8.8923 	Average Loss:  0.02537081847760051
+Iteration:  47200 	s:9.1560 	Average Loss:  0.17305592385913784
+Iteration:  47300 	s:8.7511 	Average Loss:  0.022230892435869266
+Iteration:  47400 	s:8.7610 	Average Loss:  0.05705967495169777
+Iteration:  47500 	s:8.7675 	Average Loss:  0.21978791750089546
+Iteration:  47600 	s:8.6920 	Average Loss:  0.023002152725279102
+Iteration:  47700 	s:8.5698 	Average Loss:  0.035758132316228416
+Iteration:  47800 	s:8.5502 	Average Loss:  0.049914516170156034
+Iteration:  47900 	s:8.6869 	Average Loss:  0.014270368731119127
+Iteration:  48000 	s:8.8055 	Average Loss:  0.10281878018229755
+Iteration:  48100 	s:8.9885 	Average Loss:  0.06575419020707039
+Iteration:  48200 	s:8.2093 	Average Loss:  0.0371450934610682
+Iteration:  48300 	s:8.3247 	Average Loss:  0.163171876374694
+Iteration:  48400 	s:8.7132 	Average Loss:  0.06762129202955325
+Iteration:  48500 	s:8.4919 	Average Loss:  0.032318083962492715
+Iteration:  48600 	s:8.2250 	Average Loss:  0.039534300853149296
+Iteration:  48700 	s:8.1000 	Average Loss:  0.017060178783586483
+Iteration:  48800 	s:8.5069 	Average Loss:  0.03830894238537247
+Iteration:  48900 	s:8.2722 	Average Loss:  0.024004758075350567
+Iteration:  49000 	s:8.2919 	Average Loss:  0.10952695634206044
+Iteration:  49100 	s:8.8962 	Average Loss:  0.053734282973779995
+Iteration:  49200 	s:8.4640 	Average Loss:  0.12317734762332438
+Iteration:  49300 	s:8.4806 	Average Loss:  0.15150653191604693
+Iteration:  49400 	s:8.6520 	Average Loss:  0.06022717704941009
+Iteration:  49500 	s:8.7596 	Average Loss:  0.15501574132156531
+Iteration:  49600 	s:8.5335 	Average Loss:  0.10169108388180788
+Iteration:  49700 	s:8.5697 	Average Loss:  0.0877464132241519
+Iteration:  49800 	s:8.5267 	Average Loss:  0.08317322671205635
+Iteration:  49900 	s:8.6526 	Average Loss:  0.08597965327364969
+Iteration:  50000 	s:8.5720 	Average Loss:  0.02769409677814729
+Epoch time:  438.7852427959442
+         	  	  	  	  	  	  	  	  	  	  	  	  	  	  	Actual	  	  	  	  	  	 	  	  	  	  	 	  	 
+         	  	10	 5	18	15	21	16	17	11	 7	13	 9	 8	14	    24	12	23	19	20	22	2	 4	 3	 6	26	0	25	1
+         	10	52	 0	 0	 0	 0	 1	 0	 0	 0	 0	 0	 1	 0	     0	 0	 0	 0	 0	 0	0	 0	 0	 1	 0	0	 0	0
+         	 5	 1	18	 0	 0	 0	 0	 0	 1	 1	 1	 0	 0	 0	     0	 0	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	18	 0	 0	51	 0	 0	 0	 1	 0	 0	 0	 0	 0	 0	     0	 0	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	15	 1	 0	 0	73	 0	 0	 0	 0	 0	 1	 0	 0	 0	     0	 0	 0	 0	 1	 0	0	 0	 0	 0	 0	0	 0	0
+         	21	 0	 0	 0	 1	22	 2	 0	 0	 0	 0	 0	 0	 0	     0	 0	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	16	 0	 0	 0	 1	 0	60	 2	 1	 0	 0	 0	 0	 0	     1	 0	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	17	 0	 0	 0	 0	 0	 0	59	 0	 0	 0	 0	 0	 0	     0	 1	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	11	 0	 0	 0	 0	 0	 1	 0	79	 0	 1	 0	 0	 1	     0	 2	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	 7	 0	 0	 0	 0	 0	 0	 0	 0	30	 0	 0	 0	 0	     0	 0	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	13	 0	 0	 2	 0	 0	 0	 0	 1	 0	79	 2	 0	 0	     0	 0	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	 9	 1	 0	 1	 0	 0	 0	 0	 0	 0	 1	58	 0	 0	     0	 0	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	 8	 0	 0	 0	 0	 0	 0	 0	 0	 0	 3	 0	44	 1	     0	 0	 0	 0	 0	 0	0	 0	 0	 1	 0	0	 0	0
+Predicted	14	 1	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	71	     0	 1	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	24	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	    13	 0	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	12	 0	 0	 0	 0	 0	 0	 2	 0	 0	 0	 0	 0	 1	     0	63	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	23	 0	 0	 0	 0	 0	 1	 0	 0	 0	 0	 0	 0	 0	     0	 0	 9	 0	 0	 0	0	 0	 0	 0	 0	0	 0	0
+         	19	 0	 0	 0	 1	 1	 0	 0	 0	 0	 0	 0	 0	 1	     0	 0	 0	35	 1	 0	0	 0	 0	 0	 0	0	 0	0
+         	20	 0	 0	 0	 1	 0	 1	 0	 0	 0	 0	 0	 0	 1	     0	 0	 0	 2	34	 0	0	 0	 0	 0	 0	0	 0	0
+         	22	 0	 0	 0	 0	 0	 0	 1	 0	 0	 0	 0	 0	 0	     0	 0	 0	 0	 0	23	0	 0	 0	 0	 0	0	 0	0
+         	 2	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	     0	 0	 0	 0	 0	 0	6	 0	 0	 0	 0	0	 0	0
+         	 4	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 1	 0	     0	 1	 0	 0	 0	 0	0	21	 0	 0	 0	0	 0	0
+         	 3	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	     0	 0	 0	 0	 0	 0	0	 0	11	 0	 0	0	 0	0
+         	 6	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	     0	 0	 0	 0	 0	 0	0	 0	 0	26	 0	0	 0	0
+         	26	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	     0	 0	 0	 0	 0	 0	0	 0	 0	 0	 2	0	 0	0
+         	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	     0	 0	 0	 0	 0	 0	0	 0	 0	 0	 0	2	 0	0
+         	25	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	     0	 0	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 2	0
+         	 1	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	 0	     0	 0	 0	 0	 0	 0	0	 0	 0	 0	 0	0	 0	1
+Accuracy:  0.944
+Accuracy 0.944
+Accuracy:  0.944
