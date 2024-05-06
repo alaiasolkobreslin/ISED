@@ -14,6 +14,7 @@ from tqdm import tqdm
 import scallopy
 
 import csv
+import time
 
 mnist_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -31,13 +32,21 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     target_transform: Optional[Callable] = None,
     download: bool = False,
   ):
+    if train:
+      length = 5000 * 2
+    else:
+      length = 500 * 2
+    
     # Contains a MNIST dataset
-    self.mnist_dataset = torchvision.datasets.MNIST(
-      root,
-      train=train,
-      transform=transform,
-      target_transform=target_transform,
-      download=download,
+    self.mnist_dataset = torch.utils.data.Subset(
+      torchvision.datasets.MNIST(
+        root,
+        train=train,
+        transform=transform,
+        target_transform=target_transform,
+        download=download,
+      ),
+      range(length)
     )
     self.index_map = list(range(len(self.mnist_dataset)))
     random.shuffle(self.index_map)
@@ -162,13 +171,17 @@ class Trainer():
   def train_epoch(self, epoch):
     self.network.train()
     iter = tqdm(self.train_loader, total=len(self.train_loader))
+    train_loss = 0
     for (data, target) in iter:
       self.optimizer.zero_grad()
       output = self.network(data)
       loss = self.loss(output, target)
+      train_loss += loss.item()
       loss.backward()
       self.optimizer.step()
       iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}")
+    return train_loss
+    
 
   def test_epoch(self, epoch):
     self.network.eval()
@@ -187,12 +200,19 @@ class Trainer():
       if test_loss < self.best_loss:
         self.best_loss = test_loss
         torch.save(self.network, os.path.join(model_dir, "sum_2_best.pt"))
+    return correct.item() / num_items
 
   def train(self, n_epochs):
-    self.test_epoch(0)
+    dict = {}
     for epoch in range(1, n_epochs + 1):
-      self.train_epoch(epoch)
-      self.test_epoch(epoch)
+      t0 = time.time()
+      train_loss = self.train_epoch(epoch)
+      t1 = time.time()
+      dict['L ' + str(epoch)] = round(train_loss, ndigits=4)
+      dict['T ' + str(epoch)] = round(t1 - t0, ndigits=4)
+      acc = self.test_epoch(epoch)
+      dict['A ' + str(epoch)] = round(acc, ndigits=6)
+    return dict
 
 
 if __name__ == "__main__":
@@ -229,20 +249,19 @@ if __name__ == "__main__":
   losses = ['L ' + str(i+1) for i in range(args.n_epochs)]
   accuracies = ['A ' + str(i+1) for i in range(args.n_epochs)]
   times = ['T ' + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['task name', 'random seed',
-                  'sample count'] + losses + accuracies + times
+  field_names = ['random seed'] + losses + accuracies + times
   
   dir_path = os.path.dirname(os.path.realpath(__file__))
-  results_file =  dir_path + '/experiments10/mnist-r.csv'
-
-  with open(results_file, 'w', newline='') as csvfile:
-      writer = csv.DictWriter(csvfile, fieldnames=field_names)
-      writer.writeheader()
-      csvfile.close()
+  results_file =  dir_path + '/experiments10/sum_2.csv'
 
   # Dataloaders
   train_loader, test_loader = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
 
   # Create trainer and train
   trainer = Trainer(train_loader, test_loader, model_dir, learning_rate, loss_fn, k, provenance)
-  trainer.train(n_epochs)
+  dict = trainer.train(n_epochs)
+  dict['random seed'] = args.seed
+  with open(results_file, 'a', newline='') as csvfile:
+      writer = csv.DictWriter(csvfile, fieldnames=field_names)
+      writer.writerow(dict)
+      csvfile.close()
