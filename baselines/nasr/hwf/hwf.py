@@ -131,8 +131,8 @@ class RLHWFNet(nn.Module):
     self.rewards = []
     self.perception = HWFNet()
 
-  def forward(self, x):
-    return self.perception.forward(x)
+  def forward(self, x, lengths):
+    return self.perception.forward(x, lengths)
 
 def validation(symbols, lengths):
     a = a.argmax(dim=1)

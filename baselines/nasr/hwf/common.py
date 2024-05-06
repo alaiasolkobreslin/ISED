@@ -52,11 +52,11 @@ def validate(val_loader, model, final_output, args):
     iter = tqdm(val_loader, total=len(val_loader))
 
     with torch.no_grad():
-        for i, (images, target) in enumerate(iter):
+        for i, (images, lengths, target) in enumerate(iter):
             images = tuple(image.to(args.gpu_id) for image in images)
             target = target.to(args.gpu_id)
 
-            preds = model(images)
+            preds = model(images, lengths)
             final_output(model,target,args, *preds) # this populates model.rewards
             rewards = np.array(model.rewards)
             rewards_mean = rewards.mean()
@@ -106,7 +106,7 @@ class Trainer():
     for i, (images, lengths, target) in enumerate(iter):
       images = tuple(image.to(self.args.gpu_id) for image in images)
       target = target.to(self.args.gpu_id)
-      preds = self.network(images)
+      preds = self.network(images, lengths)
       self.final_output(self.model,target,self.args,*preds)
       rewards = np.array(self.model.rewards)
       rewards_mean = rewards.mean()
@@ -153,7 +153,7 @@ class Trainer():
         images = tuple(image.to(self.args.gpu_id) for image in images)
         target = target.to(self.args.gpu_id)
         
-        preds = self.network(images)
+        preds = self.network(images, lengths)
         output = self.final_output(self.model,target,self.args,*preds)
 
         rewards = np.array(self.model.rewards)
