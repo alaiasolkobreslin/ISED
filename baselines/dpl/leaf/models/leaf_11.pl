@@ -21,5 +21,5 @@ leaf_11('undulate', 'obovate',     _,         L) :- L = 'Syzygium cumini'.
 leaf_11('undulate', 'elliptical',  _,         L) :- L = 'Terminalia Arjuna'.
 
 
-main(M, S, T, L) :- margin(M, M2), shape(S, S2), texture(T, T2),
+main(X, L) :- margin(X, M2), shape(X, S2), texture(X, T2),
                     leaf_11(M2, S2, T2, L).

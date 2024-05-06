@@ -25,6 +25,9 @@ from torch import nn
 
 from argparse import ArgumentParser
 
+import torch.nn as nn
+import torch.nn.functional as F
+
 
 leaves_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -165,6 +168,7 @@ class LeavesDataset(torch.utils.data.Dataset):
     
     # Get all image paths and their labels
     self.samples = []
+    data_root = "/workspace/neuro-symbolic-dataset/data"
     data_dir = os.path.join(data_root, data_dir)
     data_dirs = os.listdir(data_dir)
     for sample_group in data_dirs:
@@ -188,7 +192,7 @@ class LeavesDataset(torch.utils.data.Dataset):
     (img_path, label) = self.samples[self.index_map[idx]]
     img = Image.open(open(img_path, "rb"))
     img = self.transform(img)
-    return (img, label)
+    return (img, self.labels[label])
   
   @staticmethod
   def collate_fn(batch):
@@ -196,10 +200,9 @@ class LeavesDataset(torch.utils.data.Dataset):
     labels = torch.stack([torch.tensor(item[1]).long() for item in batch])
     return (imgs, labels)
   
-data_root = '/workspace/deepproblog-alaia/'
+dir_path = os.path.dirname(os.path.realpath(__name__))
+data_root = os.path.join(dir_path, 'data')
 leaf_dataset = LeavesDataset(data_root, 'leaf_11', 40)
-# train_percentage = 0.7
-# num_train = int(len(leaf_dataset) * train_percentage)
 num_train = 330
 num_test = len(leaf_dataset) - num_train
 (train_dataset, test_dataset) = torch.utils.data.random_split(leaf_dataset, [num_train, num_test])
@@ -245,11 +248,11 @@ class LeafOperator(Dataset, TorchDataset):
         self.size = size
         self.arity = arity
         self.seed = seed
-        mnist_indices = list(range(len(self.dataset)))
+        leaf_indices = list(range(len(self.dataset)))
         if seed is not None:
             rng = random.Random(seed)
-            rng.shuffle(mnist_indices)
-        dataset_iter = iter(mnist_indices)
+            rng.shuffle(leaf_indices)
+        dataset_iter = iter(leaf_indices)
         # Build list of examples (mnist indices)
         self.data = []
         try:
@@ -281,7 +284,7 @@ class LeafOperator(Dataset, TorchDataset):
 
     def to_query(self, i: int) -> Query:
         """Generate queries"""
-        mnist_indices = self.data[i]
+        leaf_indices = self.data[i]
         expected_result = self._get_label(i)
 
         # Build substitution dictionary for the arguments
@@ -295,7 +298,7 @@ class LeafOperator(Dataset, TorchDataset):
                     "tensor",
                     Term(
                         self.dataset_name,
-                        Constant(mnist_indices[i][j]),
+                        Constant(leaf_indices[i][j]),
                     ),
                 )
                 inner_vars.append(t)
@@ -322,10 +325,10 @@ class LeafOperator(Dataset, TorchDataset):
             )
 
     def _get_label(self, i: int):
-        mnist_indices = self.data[i]
+        leaf_indices = self.data[i]
         # Figure out what the ground truth is, first map each parameter to the value:
         ground_truth = [
-            self.dataset[i[0]][1] for i in mnist_indices
+            self.dataset[i[0]][1] for i in leaf_indices
         ]
         # Then compute the expected value:
         expected_result = self.operator(ground_truth)
@@ -344,33 +347,14 @@ class Leaf_Images(object):
 Leaf_train = Leaf_Images("train")
 Leaf_test = Leaf_Images("test")
 
-def execute_leaf_11(margin, shape, texture):
-  if margin == 'serrate': return 'Ocimum basilicum'
-  elif margin == 'indented': return 'Jatropha curcas'
-  elif margin == 'lobed': return 'Platanus orientalis'
-  elif margin == 'serrulate': return "Citrus limon"
-  elif margin == 'entire':
-    if shape == 'ovate': return 'Pongamia Pinnata'
-    elif shape == 'lanceolate': return 'Mangifera indica'
-    elif shape == 'oblong': return 'Syzygium cumini'
-    elif shape == 'obovate': return "Psidium guajava"
-    else:
-      if texture == 'leathery': return "Alstonia Scholaris"
-      elif texture == 'rough': return "Terminalia Arjuna"
-      elif texture == 'glossy': return "Citrus limon"
-      else: return "Punica granatum"
-  else:
-    if shape == 'elliptical': return 'Terminalia Arjuna'
-    elif shape == 'lanceolate': return "Mangifera indica"
-    else: return 'Syzygium cumini'
 
 def leaf_11(n: int, dataset: str, seed=None):
     return LeafOperator(
         dataset_name=dataset,
         function_name="main",
-        operator=lambda x: execute_leaf_11(x[0], x[1], x[2]), #define solution here
+        operator=lambda x: x[0], #define solution here
         size=n,
-        arity=3,
+        arity=1,
         seed=seed,
     )
 
@@ -387,21 +371,21 @@ name = "leaf_11{}_{}_{}".format(method, N, args.seed)
 train_set = leaf_11(N, "train")
 test_set = leaf_11(N, "test")
 
-train_set = train_set.subset(0, 10000)
-test_set = test_set.subset(0, 1000)
+# train_set = train_set.subset(0, 10000)
+# test_set = test_set.subset(0, 1000)
 
 network_margin = Leaf_Net_Margin()
 network_shape = Leaf_Net_Shape()
 network_texture = Leaf_Net_Texture()
 
-net_margin = Network(network_margin, "Leaf_Net_Margin", batching=True)
-net_shape = Network(network_margin, "Leaf_Net_Shape", batching=True)
-net_texture = Network(network_margin, "Leaf_Net_Texture", batching=True)
+net_margin = Network(network_margin, "leaf_net_margin", batching=True)
+net_shape = Network(network_margin, "leaf_net_shape", batching=True)
+net_texture = Network(network_margin, "leaf_net_texture", batching=True)
 net_margin.optimizer = torch.optim.Adam(network_margin.parameters(), lr=1e-3)
 net_shape.optimizer = torch.optim.Adam(network_shape.parameters(), lr=1e-3)
 net_texture.optimizer = torch.optim.Adam(network_texture.parameters(), lr=1e-3)
 
-model = Model("models/leaf_11.pl", [net_margin, net_shape, net_texture])
+model = Model("/workspace/neuro-symbolic-dataset/baselines/dpl/leaf/models/leaf_11.pl", [net_margin, net_shape, net_texture])
 if method == "exact":
     model.set_engine(ExactEngine(model), cache=False)
 elif method == "geometric_mean":
