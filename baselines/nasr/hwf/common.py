@@ -104,7 +104,7 @@ class Trainer():
 
     eps = np.finfo(np.float32).eps.item()
     for i, (images, lengths, target) in enumerate(iter):
-      images = tuple(image.to(self.args.gpu_id) for image in images)
+      images = torch.stack([image.to(self.args.gpu_id) for image in images])
       target = target.to(self.args.gpu_id)
       preds = self.network(images, lengths)
       self.final_output(self.model,target,self.args,*preds)
@@ -130,7 +130,7 @@ class Trainer():
       
       if self.args.print_freq >= 0 and i % self.args.print_freq == 0:
         stats2 = {'epoch': epoch, 'train': i, 'avr_train_loss': avg_loss, 'avr_train_reward': rewards_mean}
-        with open(f"model/nasr/detail_log.txt", "a") as f:
+        with open(f"model/detail_log.txt", "a") as f:
           f.write(json.dumps(stats2) + "\n")
       self.model.rewards = []
       self.model.shared_log_probs = []

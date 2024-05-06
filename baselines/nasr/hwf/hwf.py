@@ -14,13 +14,15 @@ from PIL import Image
 
 import common
 
+symbol_mapping = [str(i) for i in range(10)] + ['+', '*', '-', '/']
+
 def hwf(expr):
   n = len(expr)
   for i in range(n):
       if i % 2 == 0 and not expr[i].isdigit():
-          raise Exception("Invalid HWF")
+          return None # invalid HWF
       elif i % 2 == 1 and expr[i] not in ['+', '*', '-', '/']:
-          raise Exception("Invalid HWF")
+          return None # invalid HWF
   return eval(expr)
 
 
@@ -150,12 +152,14 @@ def final_output(model,ground_truth, args, symbols, lengths):
 
   predictions = []
   for i in range(len(s_symbols)):
-    prediction = hwf(s_symbols[i])
+    idxs = s_symbols[i].tolist()
+    formula = ''.join([symbol_mapping[idx] for idx in idxs])
+    prediction = hwf(formula)
     predictions.append(prediction)
     reward = common.compute_reward(prediction,ground_truth[i])
     model.rewards.append(reward)
   
-  return torch.stack(predictions)
+  return torch.tensor([x if x is not None else torch.nan for x in predictions])
 
 
 if __name__ == "__main__":
