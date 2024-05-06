@@ -192,7 +192,7 @@ class LeavesDataset(torch.utils.data.Dataset):
     (img_path, label) = self.samples[self.index_map[idx]]
     img = Image.open(open(img_path, "rb"))
     img = self.transform(img)
-    return (img, self.labels[label])
+    return (img, label)
   
   @staticmethod
   def collate_fn(batch):
