@@ -9,6 +9,7 @@ from experiments.mnist_op import MNISTSort2Model, MNISTAddSubModel, MNISTNot3Or4
 from experiments.mnist_op import MNISTHowMany3Or4Model
 import torch
 import wandb
+import random
 
 from experiments.mnist_op.data import sum_2, sum_3, sum_4, mult_2, mod_2, eq_2, less_than, not_3_or_4, how_many_3_or_4, add_sub
 from inference_models import NoPossibleActionsException
@@ -131,7 +132,7 @@ if __name__ == '__main__':
         op = how_many_3_or_4
         model = MNISTHowMany3Or4Model(config).to(device)
     if config["test"]:
-        train_set = op(config["N"], "full_train")
+        train_set = op(config["N"], "train")
         val_set = op(config["N"], "test")
     else:
         train_set = op(config["N"], "train")
@@ -228,12 +229,12 @@ if __name__ == '__main__':
         val_explain_acc = 0.
         val_digit_acc = 0.
         for i, batch in enumerate(val_loader):
-            numb1, numb2, label, label_digits = batch
-            x = torch.cat([numb1, numb2], dim=1)
-            # label = batch[-2]
-            # label_digits = batch[-1]
-            # numbs = batch[:-2]
-            # x = torch.cat(numbs, dim=1).to(device)
+            # numb1, numb2, label, label_digits = batch
+            # x = torch.cat([numb1, numb2], dim=1)
+            label = batch[-2]
+            label_digits = batch[-1]
+            numbs = batch[:-2]
+            x = torch.cat(numbs, dim=1).to(device)
 
             test_result = test(x.to(device), label.to(device), label_digits, model, device)
             val_acc += test_result[0]

@@ -12,7 +12,7 @@ parameters:
   runs:
     values: [ 10 ]
   epochs:
-    values: [10]
+    values: [100]
   batch_size:
     values: [ 16 ]
   amt_samples:
