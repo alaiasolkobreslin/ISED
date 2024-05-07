@@ -182,7 +182,7 @@ class Trainer():
       for (data, target) in iter:
         output = self.network(data)
         test_loss += self.loss(output, target).item()
-        pred = output.data.max(1, keepdim=True)[1]
+        pred = output.data.max(1, keepdim=True)[1] - 9
         correct += pred.eq(target.data.view_as(pred)).sum()
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
