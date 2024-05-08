@@ -22,6 +22,12 @@ def mod_2(a, b):
 def mult_2(a, b):
   return a * b
 
+def not_3_4(a):
+  return a!=3 and a!=4
+
+def add_mod_3(a, b):
+  return (a + b) % 3
+
 def sort(*num_list):
   num_list = list(num_list)
   return np.argsort(num_list)
