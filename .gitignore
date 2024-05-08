@@ -20,5 +20,3 @@ generation-pipeline/data
 model
 data
 .tmp
-
-baselines/dpl/mnist/outputs

@@ -27,9 +27,9 @@ from tqdm import tqdm
 
 def compute_reward(prediction, ground_truth):
     if prediction == ground_truth:
-        reward = 1
+        reward = 1.0
     else:
-        reward = 0
+        reward = 0.0
     return reward
 
 def adjust_learning_rate(optimizer, epoch, args):

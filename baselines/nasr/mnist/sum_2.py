@@ -167,7 +167,7 @@ if __name__ == "__main__":
   parser.add_argument('--print-freq', default=5, type=int)
   parser.add_argument('--seed', default=1234, type=int)
 
-  parser.add_argument('--epochs', default=20, type=int)
+  parser.add_argument('--epochs', default=100, type=int)
   parser.add_argument('--warmup', default=10, type=int)
   parser.add_argument('-b', '--batch-size', default=16, type=int)
   parser.add_argument('--learning-rate', default=0.0001, type=float)
