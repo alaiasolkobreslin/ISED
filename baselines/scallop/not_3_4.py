@@ -163,11 +163,10 @@ class Trainer():
       for (data, target) in iter:
         output = self.network(data)
         test_loss += self.loss(output, target).item()
-        pred = output.data.max(1, keepdim=True)[1]
-        correct += pred.eq(target.data.view_as(pred)).sum()
+        correct += len([() for p in torch.abs(output - target) if p < 0.5])
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
-    return correct.item() / num_items
+    return correct / num_items
 
   def train(self, n_epochs):
     dict = {}
