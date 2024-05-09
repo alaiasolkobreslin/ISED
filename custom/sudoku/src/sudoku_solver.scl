@@ -1,0 +1,65 @@
+type distinct_nine(bound a:i32, bound b:i32, bound c:i32, bound d:i32, bound e:i32, bound f:i32, bound g:i32, bound h:i32, bound i:i32)
+type op(bound a:i32, b:i32)
+type board(
+    x1:i32, x2:i32, x3:i32, x4:i32, x5:i32, x6:i32, x7:i32, x8:i32, x9:i32, x10:i32, x11:i32, x12:i32, x13:i32, x14:i32, x15:i32, 
+    x16:i32, x17:i32, x18:i32, x19:i32, x20:i32, x21:i32, x22:i32, x23:i32, x24:i32, x25:i32, x26:i32, x27:i32, x28:i32, x29:i32, x30:i32, 
+    x31:i32, x32:i32, x33:i32, x34:i32, x35:i32, x36:i32, x37:i32, x38:i32, x39:i32, x40:i32, x41:i32, x42:i32, x43:i32, x44:i32, x45:i32, 
+    x46:i32, x47:i32, x48:i32, x49:i32, x50:i32, x51:i32, x52:i32, x53:i32, x54:i32, x55:i32, x56:i32, x57:i32, x58:i32, x59:i32, x60:i32, 
+    x61:i32, x62:i32, x63:i32, x64:i32, x65:i32, x66:i32, x67:i32, x68:i32, x69:i32, x70:i32, x71:i32, x72:i32, x73:i32, x74:i32, x75:i32, 
+    x76:i32, x77:i32, x78:i32, x79:i32, x80:i32, x81:i32)
+type get_prediction(
+    x1:i32, x2:i32, x3:i32, x4:i32, x5:i32, x6:i32, x7:i32, x8:i32, x9:i32, x10:i32, x11:i32, x12:i32, x13:i32, x14:i32, x15:i32, 
+    x16:i32, x17:i32, x18:i32, x19:i32, x20:i32, x21:i32, x22:i32, x23:i32, x24:i32, x25:i32, x26:i32, x27:i32, x28:i32, x29:i32, x30:i32, 
+    x31:i32, x32:i32, x33:i32, x34:i32, x35:i32, x36:i32, x37:i32, x38:i32, x39:i32, x40:i32, x41:i32, x42:i32, x43:i32, x44:i32, x45:i32, 
+    x46:i32, x47:i32, x48:i32, x49:i32, x50:i32, x51:i32, x52:i32, x53:i32, x54:i32, x55:i32, x56:i32, x57:i32, x58:i32, x59:i32, x60:i32, 
+    x61:i32, x62:i32, x63:i32, x64:i32, x65:i32, x66:i32, x67:i32, x68:i32, x69:i32, x70:i32, x71:i32, x72:i32, x73:i32, x74:i32, x75:i32, 
+    x76:i32, x77:i32, x78:i32, x79:i32, x80:i32, x81:i32)
+
+rel distinct_nine(a, b, c, d, e, f, g, h, i) =
+  a != b, a != c, a != d, a != e, a != f, a != g, a != h, a != i,
+  b != c, b != d, b != e, b != f, b != g, b != h, b != i,
+  c != d, c != e, c != f, c != g, c != h, c != i,
+  d != e, d != f, d != g, d != h, d != i, 
+  e != f, e != g, e != h, e != i,
+  f != g, f != h, f != i, g != h, g != i, h != i
+
+rel op(0, x) = x == 1 or x == 2 or x == 3 or x == 4 or x == 5 or x == 6 or x == 7 or x == 8 or x == 9
+rel op(a, a) = a != 0
+
+rel board(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25, x26, x27, x28, x29, x30, 
+          x31, x32, x33, x34, x35, x36, x37, x38, x39, x40, x41, x42, x43, x44, x45, x46, x47, x48, x49, x50, x51, x52, x53, x54, x55, x56, x57, x58, x59, x60, 
+          x61, x62, x63, x64, x65, x66, x67, x68, x69, x70, x71, x72, x73, x74, x75, x76, x77, x78, x79, x80, x81) =
+    digit_1(x1), digit_2(x2), digit_3(x3), digit_4(x4), digit_5(x5), digit_6(x6), digit_7(x7), digit_8(x8), digit_9(x9), digit_10(x10), digit_11(x11), digit_12(x12), 
+    digit_13(x13), digit_14(x14), digit_15(x15), digit_16(x16), digit_17(x17), digit_18(x18), digit_19(x19), digit_20(x20), digit_21(x21), digit_22(x22), digit_23(x23), 
+    digit_24(x24), digit_25(x25), digit_26(x26), digit_27(x27), digit_28(x28), digit_29(x29), digit_30(x30), digit_31(x31), digit_32(x32), digit_33(x33), digit_34(x34), 
+    digit_35(x35), digit_36(x36), digit_37(x37), digit_38(x38), digit_39(x39), digit_40(x40), digit_41(x41), digit_42(x42), digit_43(x43), digit_44(x44), digit_45(x45), 
+    digit_46(x46), digit_47(x47), digit_48(x48), digit_49(x49), digit_50(x50), digit_51(x51), digit_52(x52), digit_53(x53), digit_54(x54), digit_55(x55), digit_56(x56), 
+    digit_57(x57), digit_58(x58), digit_59(x59), digit_60(x60), digit_61(x61), digit_62(x62), digit_63(x63), digit_64(x64), digit_65(x65), digit_66(x66), digit_67(x67), 
+    digit_68(x68), digit_69(x69), digit_70(x70), digit_71(x71), digit_72(x72), digit_73(x73), digit_74(x74), digit_75(x75), digit_76(x76), digit_77(x77), digit_78(x78), 
+    digit_79(x79), digit_80(x80), digit_81(x81)
+
+rel get_prediction(
+        n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23, n24, n25, n26, n27, n28, n29, n30, 
+        n31, n32, n33, n34, n35, n36, n37, n38, n39, n40, n41, n42, n43, n44, n45, n46, n47, n48, n49, n50, n51, n52, n53, n54, n55, n56, n57, n58, n59, n60, 
+        n61, n62, n63, n64, n65, n66, n67, n68, n69, n70, n71, n72, n73, n74, n75, n76, n77, n78, n79, n80, n81) =
+    board(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25, x26, x27, x28, x29, x30, 
+          x31, x32, x33, x34, x35, x36, x37, x38, x39, x40, x41, x42, x43, x44, x45, x46, x47, x48, x49, x50, x51, x52, x53, x54, x55, x56, x57, x58, x59, x60, 
+          x61, x62, x63, x64, x65, x66, x67, x68, x69, x70, x71, x72, x73, x74, x75, x76, x77, x78, x79, x80, x81),
+    op(x1, n1), op(x2, n2), op(x3, n3), op(x4, n4), op(x5, n5), op(x6, n6), op(x7, n7), op(x8, n8), op(x9, n9), op(x10, n10), op(x11, n11), op(x12, n12), 
+    op(x13, n13), op(x14, n14), op(x15, n15), op(x16, n16), op(x17, n17), op(x18, n18), op(x19, n19), op(x20, n20), op(x21, n21), op(x22, n22), op(x23, n23), op(x24, n24), 
+    op(x25, n25), op(x26, n26), op(x27, n27), op(x28, n28), op(x29, n29), op(x30, n30), op(x31, n31), op(x32, n32), op(x33, n33), op(x34, n34), op(x35, n35), op(x36, n36), 
+    op(x37, n37), op(x38, n38), op(x39, n39), op(x40, n40), op(x41, n41), op(x42, n42), op(x43, n43), op(x44, n44), op(x45, n45), op(x46, n46), op(x47, n47), op(x48, n48), 
+    op(x49, n49), op(x50, n50), op(x51, n51), op(x52, n52), op(x53, n53), op(x54, n54), op(x55, n55), op(x56, n56), op(x57, n57), op(x58, n58), op(x59, n59), op(x60, n60), 
+    op(x61, n61), op(x62, n62), op(x63, n63), op(x64, n64), op(x65, n65), op(x66, n66), op(x67, n67), op(x68, n68), op(x69, n69), op(x70, n70), op(x71, n71), op(x72, n72), 
+    op(x73, n73), op(x74, n74), op(x75, n75), op(x76, n76), op(x77, n77), op(x78, n78), op(x79, n79), op(x80, n80), op(x81, n81),
+    distinct_nine(n1,  n2,  n3,  n4,  n5,  n6,  n7,  n8,  n9 ), distinct_nine(n10, n11, n12, n13, n14, n15, n16, n17, n18), distinct_nine(n19, n20, n21, n22, n23, n24, n25, n26, n27),
+    distinct_nine(n28, n29, n30, n31, n32, n33, n34, n35, n36), distinct_nine(n37, n38, n39, n40, n41, n42, n43, n44, n45), distinct_nine(n46, n47, n48, n49, n50, n51, n52, n53, n54),
+    distinct_nine(n55, n56, n57, n58, n59, n60, n61, n62, n63), distinct_nine(x64, n65, n66, n67, n68, n69, n70, n71, n72), distinct_nine(n73, n74, n75, n76, n77, n78, n79, n80, n81),
+
+    distinct_nine(n1,  n10, n19, n28, n37, n46, n55, n64, n73), distinct_nine(n2,  n11, n20, n29, n38, n47, n56, n65, n74), distinct_nine(n3,  n12, n21, n30, n39, n48, n57, n66, n75),
+    distinct_nine(n4,  n13, n22, n31, n40, n49, n58, n67, n76), distinct_nine(n5,  n14, n23, n32, n41, n50, n59, n68, n77), distinct_nine(n6,  n15, n24, n33, n42, n51, n60, n69, n78),
+    distinct_nine(n7,  n16, n25, n34, n43, n52, n61, n70, n79), distinct_nine(n8,  n17, n26, n35, n44, n53, n62, n71, n80), distinct_nine(n9,  n18, n27, n36, n45, n54, n63, n72, n81),
+    
+    distinct_nine(n1,  n2,  n3,  n10, n11, n12, n19, n20, n21), distinct_nine(n4,  n5,  n6,  n13, n14, n15, n22, n23, n24), distinct_nine(n7,  n8,  n9,  n16, n17, n18, n25, n26, n27),
+    distinct_nine(n28, n29, n30, n37, n38, n39, n46, n47, n48), distinct_nine(n31, n32, n33, n40, n41, n42, n49, n50, n51), distinct_nine(n34, n35, n36, n43, n44, n45, n52, n53, n54),
+    distinct_nine(n55, n56, n57, n64, n65, n66, n73, n74, n75), distinct_nine(n58, n59, n60, n67, n68, n69, n76, n77, n78), distinct_nine(n61, n62, n63, n70, n71, n72, n79, n80, n81)
