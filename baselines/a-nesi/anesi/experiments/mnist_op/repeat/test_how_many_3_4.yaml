@@ -8,7 +8,7 @@ parameters:
   arity:
     values: [ 8 ]
   op:
-    values: [ 'how_many_3_4']
+    values: [ 'how_many_3_or_4']
   runs:
     values: [ 10 ]
   epochs:

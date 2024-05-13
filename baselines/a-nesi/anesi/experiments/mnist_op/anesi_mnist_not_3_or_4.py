@@ -15,5 +15,5 @@ class MNISTNot3Or4Model(MNISTModel):
             return [1] * math.ceil(math.log2(max_y))
         raise NotImplementedError
 
-    def op(self, n1: torch.Tensor, n2: torch.Tensor) -> torch.Tensor:
-        return n1 != 3 and n2 != 4
+    def op(self, n1: torch.Tensor) -> torch.Tensor:
+        return torch.logical_and(n1 != 3, n1 != 4)

@@ -6,9 +6,9 @@ parameters:
   N:
     values: [ 1 ]
   arity:
-    values: [ 2 ]
+    values: [ 1 ]
   op:
-    values: [ 'not_3_4']
+    values: [ 'not_3_or_4']
   runs:
     values: [ 10 ]
   epochs:
