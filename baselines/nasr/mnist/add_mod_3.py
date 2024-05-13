@@ -167,7 +167,7 @@ if __name__ == "__main__":
   parser.add_argument('--print-freq', default=5, type=int)
   parser.add_argument('--seed', default=1234, type=int)
 
-  parser.add_argument('--epochs', default=10, type=int)
+  parser.add_argument('--epochs', default=100, type=int)
   parser.add_argument('--warmup', default=0, type=int)
   parser.add_argument('-b', '--batch-size', default=16, type=int)
   parser.add_argument('--learning-rate', default=0.0001, type=float)
@@ -197,11 +197,11 @@ if __name__ == "__main__":
   (train_loader, valid_loader, test_loader) = mnist_add_mod_3_loader(data_dir, args.batch_size, args.batch_size)
   trainer = common.Trainer(train_loader, valid_loader, test_loader, model, model_dir, final_output, args)
   results_dict = trainer.train(args.epochs)
-  results_dict['task name'] = 'sum_4'
+  results_dict['task name'] = 'add_mod_3'
   results_dict['random seed'] = args.seed
   
   dir_path = os.path.dirname(os.path.realpath(__file__))
-  results_file =  dir_path + '/experiments10/sum_4.csv'
+  results_file =  dir_path + '/experiments10/add_mod_3.csv'
   
   losses = ['L ' + str(i+1) for i in range(args.epochs)]
   accuracies = ['A ' + str(i+1) for i in range(args.epochs)]
