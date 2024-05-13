@@ -4,6 +4,7 @@ from typing import *
 import json
 from PIL import Image
 import csv
+import time
 
 import torch
 import torch.nn as nn
@@ -214,13 +215,16 @@ class Trainer():
       return self.advanced_indecater_grads(data, eqn_len, target)
 
   def train_epoch(self, epoch):
+    train_loss = 0
+    print(f"Epoch {epoch}")
     self.network.train()
     for (data, eqn_len, target) in self.train_loader:
       self.optimizer.zero_grad()
       loss = self.grads(data, eqn_len, target)
+      train_loss += loss
       loss.backward()
       self.optimizer.step()
-    print(f"Epoch {epoch}")
+    return train_loss
 
   def test(self):
     num_items = len(self.test_loader.dataset)
@@ -242,23 +246,33 @@ class Trainer():
   def train(self, n_epochs):
     dict = {}
     for epoch in range(1, n_epochs + 1):
-      self.train_epoch(epoch)
+      t0 = time.time()
+      train_loss = self.train_epoch(epoch)
+      t1 = time.time()
       acc = self.test()
-      dict["accuracy epoch " + str(epoch)] = round(float(acc), ndigits=6)
+      dict["L " + str(epoch)] = round(float(train_loss), ndigits=6)
+      dict["A " + str(epoch)] = round(float(acc), ndigits=6)
+      dict["T " + str(epoch)] = round(t1 - t0, ndigits=6)
       print(f"Test accuracy: {acc}")
     torch.save(self.network, model_dir+f"/{self.grad_type}_{self.seed}_last.pkl")
     return dict
 
+def hwf(expr):
+    n = len(expr)
+    for i in range(n):
+      if i % 2 == 0 and not expr[i].isdigit():
+        raise Exception("Invalid HWF")
+      elif i % 2 == 1 and expr[i] not in ['+', '*', '-', '/']:
+        raise Exception("Invalid HWF")
+    return eval("".join(expr))
+
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("hwf")
-  parser.add_argument("--n-epochs", type=int, default=30)
+  parser.add_argument("--n-epochs", type=int, default=100)
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--digit", type=int, default=7)
-  parser.add_argument("--sample-count", type=int, default=2)
-  parser.add_argument("--grad_type", type=str, default='icr')
-  parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--jit", action="store_true")
   parser.add_argument("--dispatch", type=str, default="parallel")
   args = parser.parse_args()
@@ -268,45 +282,44 @@ if __name__ == "__main__":
   batch_size = args.batch_size
   learning_rate = args.learning_rate
   digits = args.digit
-  sample_count = args.sample_count
-  grad_type = args.grad_type
 
-  accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'grad_type', 'sample count'] + accuracies
+  accuracies = ["A " + str(i+1) for i in range(args.n_epochs)]
+  times = ["T " + str(i+1) for i in range(args.n_epochs)]
+  losses = ["L " + str(i+1) for i in range(args.n_epochs)]
+  field_names = ['random seed', 'grad_type', 'task_type', 'sample count'] + accuracies + times + losses
 
-  #with open('baselines/reinforce/results/hwf.csv', 'w', newline='') as csvfile:
-  #  writer = csv.DictWriter(csvfile, fieldnames=field_names)
-  #  writer.writeheader()
-  #  csvfile.close()
+  with open('baselines/reinforce/icr.csv', 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=field_names)
+        writer.writeheader()
+        csvfile.close()
 
-  def hwf(expr):
-    n = len(expr)
-    for i in range(n):
-      if i % 2 == 0 and not expr[i].isdigit():
-        raise Exception("Invalid HWF")
-      elif i % 2 == 1 and expr[i] not in ['+', '*', '-', '/']:
-        raise Exception("Invalid HWF")
-    return eval("".join(expr))
+  for grad_type in ['reinforce', 'icr']:
+    for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
+        torch.manual_seed(seed)
+        random.seed(seed)
 
-  # Data
-  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../finite_diff/data"))
-  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), f"../../model/hwf"))
-  os.makedirs(model_dir, exist_ok=True)
+        if grad_type == 'reinforce': sample_count = 100
+        elif grad_type == 'icr': sample_count = 2
+        print(sample_count)
+        print(seed)
+        print(grad_type)
 
-  for seed in [9175]:
-    torch.manual_seed(seed)
-    random.seed(seed)
+        # Data
+        data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../finite_diff/data"))
+        model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), f"../../model/hwf"))
+        os.makedirs(model_dir, exist_ok=True)
 
-    # Dataloaders
-    train_loader, test_loader = hwf_loader(data_dir, batch_size)
+        # Dataloaders
+        train_loader, test_loader = hwf_loader(data_dir, batch_size)
 
-    # Create trainer and train
-    trainer = Trainer(SymbolNet, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, digits, sample_count, seed, hwf)
-    dict = trainer.train(n_epochs)
-    dict["random seed"] = seed
-    dict['grad_type'] = grad_type
-    dict['sample count'] = sample_count
-    with open('baselines/reinforce/results/hwf.csv', 'a', newline='') as csvfile:
-      writer = csv.DictWriter(csvfile, fieldnames=field_names)
-      writer.writerow(dict)
-      csvfile.close()
+        # Create trainer and train
+        trainer = Trainer(SymbolNet, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, digits, sample_count, seed, hwf)
+        dict = trainer.train(n_epochs)
+        dict["random seed"] = seed
+        dict['grad_type'] = grad_type
+        dict['task_type'] = "hwf"
+        dict['sample count'] = sample_count
+        with open('baselines/reinforce/icr.csv', 'a', newline='') as csvfile:
+          writer = csv.DictWriter(csvfile, fieldnames=field_names)
+          writer.writerow(dict)
+          csvfile.close()

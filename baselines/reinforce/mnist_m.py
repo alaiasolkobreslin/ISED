@@ -299,10 +299,10 @@ class Trainer():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("mnist_r")
-  parser.add_argument("--n-epochs", type=int, default=1)
-  parser.add_argument("--batch-size", type=int, default=100)
+  parser.add_argument("--n-epochs", type=int, default=50)
+  parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
-  parser.add_argument("--digit", type=int, default=12)
+  # parser.add_argument("--digit", type=int, default=12)
   parser.add_argument("--sample-count", type=int, default=1)
   parser.add_argument("--grad_type", type=str, default='icr')
   parser.add_argument("--seed", type=int, default=1234)
@@ -314,7 +314,7 @@ if __name__ == "__main__":
   n_epochs = args.n_epochs
   batch_size = args.batch_size
   learning_rate = args.learning_rate
-  digits = args.digit
+  # digits = args.digit
   sample_count = args.sample_count
   grad_type = args.grad_type
 
@@ -322,91 +322,88 @@ if __name__ == "__main__":
   times = ["T " + str(i+1) for i in range(args.n_epochs)]
   losses = ["L " + str(i+1) for i in range(args.n_epochs)]
   field_names = ['random seed', 'grad_type', 'task_type', 'sample count'] + accuracies + times + losses
+  
+  for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
+    torch.manual_seed(seed)
+    random.seed(seed)
 
-  with open('baselines/reinforce/icr.csv', 'w', newline='') as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames=field_names)
-    writer.writeheader()
-    csvfile.close()
-
-  for task_type in ['sum_2', 'sum_3', 'sum_4', 'add_sub', 'eq', 'how_many_3_4', 'less_than', 'mod', 'mult', 'sort_2', 'not_3_4', 'add_mod_3']:
-    if task_type == 'sum':
-      task = task_program.sum_m
-      task_type = f'sum_{digits}'
-      l = loss_fn
-    elif task_type == 'sum_2':
-      task = task_program.sum_m
-      digits = 2
-      sample_count = 5
-      l = loss_fn
-    elif task_type == 'sum_3':
-      task = task_program.sum_m
-      digits = 3
-      sample_count = 4
-      l = loss_fn
-    elif task_type == 'sum_4':
-      task = task_program.sum_m
-      digits = 4
-      sample_count = 3
-      l = loss_fn
-    elif task_type == 'add_sub':
-      task = task_program.add_sub
-      digits = 3
-      sample_count = 4
-      l = loss_fn
-    elif task_type == 'eq':
-      task = task_program.eq
-      digits = 2
-      sample_count = 5
-      l = loss_fn
-    elif task_type == 'how_many_3_4':
-      task = task_program.how_many_3_4
-      digits = 8
-      sample_count = 2
-      l = loss_fn
-    elif task_type == 'less_than':
-      task = task_program.less_than
-      digits = 2
-      sample_count = 5
-      l = loss_fn
-    elif task_type == 'mod':
-      task = task_program.mod_2
-      digits = 2
-      sample_count = 5
-      l = loss_fn
-    elif task_type == 'add_mod_3':
-      task = task_program.add_mod_3
-      digits = 2
-      sample_count = 5
-      l = loss_fn
-    elif task_type == 'not_3_4':
-      task = task_program.not_3_4
-      digits = 1
-      sample_count = 10
-      l = loss_fn
-    elif task_type == 'mult':
-      task = task_program.mult_2
-      digits = 2
-      sample_count = 5
-      l = loss_fn
-    elif task_type == 'sort_2':
-      task = task_program.sort
-      digits = 2
-      l = sort_loss_fn
-      sample_count = 5
-    elif task_type == 'sort_4':
-      task = task_program.sort
-      digits = 4
-      l = sort_loss_fn
-    else:
-      raise Exception("Wrong Task name")
-    
-    for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
-      print(task_type)
-      print(digits)
-      torch.manual_seed(seed)
-      random.seed(seed)
+    for task_type in ['sum_2', 'sum_3', 'sum_4', 'add_sub', 'eq', 'how_many_3_4', 'less_than', 'mod', 'mult', 'sort_2', 'not_3_4', 'add_mod_3']:
+      if task_type == 'sum':
+        task = task_program.sum_m
+        task_type = f'sum_{digits}'
+        l = loss_fn
+      elif task_type == 'sum_2':
+        task = task_program.sum_m
+        digits = 2
+        sample_count = 5
+        l = loss_fn
+      elif task_type == 'sum_3':
+        task = task_program.sum_m
+        digits = 3
+        sample_count = 4
+        l = loss_fn
+      elif task_type == 'sum_4':
+        task = task_program.sum_m
+        digits = 4
+        sample_count = 3
+        l = loss_fn
+      elif task_type == 'add_sub':
+        task = task_program.add_sub
+        digits = 3
+        sample_count = 4
+        l = loss_fn
+      elif task_type == 'eq':
+        task = task_program.eq
+        digits = 2
+        sample_count = 5
+        l = loss_fn
+      elif task_type == 'how_many_3_4':
+        task = task_program.how_many_3_4
+        digits = 8
+        sample_count = 2
+        l = loss_fn
+      elif task_type == 'less_than':
+        task = task_program.less_than
+        digits = 2
+        sample_count = 5
+        l = loss_fn
+      elif task_type == 'mod':
+        task = task_program.mod_2
+        digits = 2
+        sample_count = 5
+        l = loss_fn
+      elif task_type == 'add_mod_3':
+        task = task_program.add_mod_3
+        digits = 2
+        sample_count = 5
+        l = loss_fn
+      elif task_type == 'not_3_4':
+        task = task_program.not_3_4
+        digits = 1
+        sample_count = 10
+        l = loss_fn
+      elif task_type == 'mult':
+        task = task_program.mult_2
+        digits = 2
+        sample_count = 5
+        l = loss_fn
+      elif task_type == 'sort_2':
+        task = task_program.sort
+        digits = 2
+        l = sort_loss_fn
+        sample_count = 5
+      elif task_type == 'sort_4':
+        task = task_program.sort
+        digits = 4
+        l = sort_loss_fn
+      else:
+        raise Exception("Wrong Task name")
 
       if grad_type == 'reinforce': sample_count = 100
+      print(task_type)
+      print(sample_count)
+      print(seed)
+      print(grad_type)
       
       # Data
       data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))

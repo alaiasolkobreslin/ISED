@@ -3,6 +3,7 @@ import random
 from typing import *
 from PIL import Image
 import csv
+import pickle
 import time
 
 import torch
@@ -11,7 +12,74 @@ import torch.nn.functional as F
 import torchvision
 import torch.optim as optim
 
+from openai import OpenAI
+import json
 from argparse import ArgumentParser
+
+client = OpenAI(
+  api_key='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'
+)
+
+queries = {}
+dict_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../finite_diff"))
+with open(dict_dir+'/neuro-symbolic/leaf11.pkl', 'rb') as f: 
+  queries = pickle.load(f)
+
+l11_4_system = "You are an expert in classifying plant species based on the margin, shape, and texture of the leaves. You are designed to output a single JSON."
+l11_4_one = ['entire', 'lobed', 'serrate']
+l11_4_two = ['cordate', 'lanceolate', 'oblong', 'oval', 'ovate', 'palmate']
+l11_4_three = ['glossy', 'papery', 'smooth']
+l11_labels = ['Alstonia Scholaris', 'Citrus limon', 'Jatropha curcas', 'Mangifera indica', 'Ocimum basilicum',
+              'Platanus orientalis', 'Pongamia Pinnata', 'Psidium guajava', 'Punica granatum', 'Syzygium cumini', 'Terminalia Arjuna']
+
+def call_llm(plants, features):
+  user_list = "* " + "\n* ".join(plants)
+  question = "\n\nClassify each into one of: " + ", ".join(features) + "."
+  format = "\n\nGive your answer without explanation."
+  user_msg = user_list + question
+  if user_msg in queries.keys():
+    return queries[user_msg]
+  raise Exception("WRONG")
+  response = client.chat.completions.create(
+              model="gpt-4-1106-preview", #
+              messages=[
+                {"role": "system", "content": l11_4_system},
+                {"role": "user", "content": user_msg + format}
+              ],
+              top_p=0.00000001
+            )
+  if response.choices[0].finish_reason == 'stop':
+    ans = response.choices[0].message.content
+    if ans[3:7] == 'json': ans  = ans[7:-3]
+    print(ans) #
+    queries[user_msg] = ans
+    return ans
+  raise Exception("LLM failed to provide an answer") 
+
+def parse_response(result, target):
+  dict = json.loads(result)
+  plants = []
+  for plant in dict.keys():
+    if dict[plant] == target: plants.append(plant)
+  return plants
+
+def classify_llm(feature1, feature2, feature3):
+  result1 = call_llm(l11_labels, l11_4_one)
+  plants1 = parse_response(result1, feature1)
+  if len(plants1) == 1: return plants1[0]
+  elif len(plants1) == 0: 
+    plants1 = l11_labels # return 'unknown'
+  else:
+    results2 = call_llm(plants1, l11_4_two)
+    plants2 = parse_response(results2, feature2)
+    if len(plants2) == 1: return plants2[0]
+    elif len(plants2) == 0: 
+      plants2 = plants1  # return 'unknown'
+    results3 = call_llm(plants2, l11_4_three)
+    plants3 = parse_response(results3, feature3)
+    if len(plants3) == 1: return plants3[0]
+    elif len(plants3) == 0: return plants2[random.randrange(len(plants2))] # return 'unknown'
+    else: return plants3[random.randrange(len(plants3))]
 
 leaves_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -32,8 +100,7 @@ class LeavesDataset(torch.utils.data.Dataset):
     transform: Optional[Callable] = leaves_img_transform,
   ):
     self.transform = transform
-    self.labels = ['Alstonia Scholaris', 'Citrus limon', 'Jatropha curcas', 'Mangifera indica', 'Ocimum basilicum',
-                   'Platanus orientalis', 'Pongamia Pinnata', 'Psidium guajava', 'Punica granatum', 'Syzygium cumini', 'Terminalia Arjuna']
+    self.labels = l11_labels
     
     # Get all image paths and their labels
     self.samples = []
@@ -117,9 +184,13 @@ class LeafNet(nn.Module):
 class LeavesNet(nn.Module):
   def __init__(self, dim):
     super(LeavesNet, self).__init__()
-    self.net1 = LeafNet(6, 2304)
-    self.net2 = LeafNet(5, 2304)
-    self.net3 = LeafNet(4, 2304)
+    self.f1 = l11_4_one
+    self.f2 = l11_4_two
+    self.f3 = l11_4_three
+
+    self.net1 = LeafNet(len(self.f1), 2304)
+    self.net2 = LeafNet(len(self.f2), 2304)
+    self.net3 = LeafNet(len(self.f3), 2304)
     self.dim = dim
 
   def forward(self, x):
@@ -128,37 +199,16 @@ class LeavesNet(nn.Module):
     has_f3 = self.net3(x)
     return has_f1, has_f2, has_f3
   
-def classify_11(margin, shape, texture):
-  if margin == 'serrate': return 'Ocimum basilicum'
-  elif margin == 'indented': return 'Jatropha curcas'
-  elif margin == 'lobed': return 'Platanus orientalis'
-  elif margin == 'serrulate': return "Citrus limon"
-  elif margin == 'entire':
-    if shape == 'ovate': return 'Pongamia Pinnata'
-    elif shape == 'lanceolate': return 'Mangifera indica'
-    elif shape == 'oblong': return 'Syzygium cumini'
-    elif shape == 'obovate': return "Psidium guajava"
-    else:
-      if texture == 'leathery': return "Alstonia Scholaris"
-      elif texture == 'rough': return "Terminalia Arjuna"
-      elif texture == 'glossy': return "Citrus limon"
-      else: return "Punica granatum"
-  else:
-    if shape == 'elliptical': return 'Terminalia Arjuna'
-    elif shape == 'lanceolate': return "Mangifera indica"
-    else: return 'Syzygium cumini'
-
-l11_margin = ['entire', 'indented', 'lobed', 'serrate', 'serrulate', 'undulate']
-l11_shape = ['elliptical', 'lanceolate', 'oblong', 'obovate', 'ovate']
-l11_texture = ['glossy', 'leathery', 'medium', 'rough']
-l11_labels = ['Alstonia Scholaris', 'Citrus limon', 'Jatropha curcas', 'Mangifera indica', 'Ocimum basilicum',
-              'Platanus orientalis', 'Pongamia Pinnata', 'Psidium guajava', 'Punica granatum', 'Syzygium cumini', 'Terminalia Arjuna']
-  
 def loss_fn(data, target):
     pred = []
     x = data.flatten(0, -2).int()
     for margin, shape, texture in x:
-      y_pred = classify_11(l11_margin[margin], l11_shape[shape], l11_texture[texture])
+      r = (l11_4_one[margin], l11_4_two[shape], l11_4_three[texture])
+      if r in cache: 
+        y_pred = cache[r]
+      else: 
+        y_pred = classify_llm(*r)
+        cache[r] = y_pred
       pred.append(torch.tensor(l11_labels.index(y_pred)))
     acc = torch.where(torch.stack(pred).reshape(data.shape[:-1]) == target, 1., 0.)
     return acc
@@ -176,10 +226,10 @@ class Trainer():
     self.sample_count = sample_count
     self.loss_fn = loss_fn
     self.seed = seed
-    self.cats = [6,5,4]
+    self.cats = [3,6,3]
 
   def indecater_multiplier(self, batch_size):
-    ind = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15]
+    ind = [0, 1, 2, 6, 7, 8, 9, 10, 11, 12, 13, 14]
     icr_mult = torch.zeros((self.dim, 6, self.sample_count, batch_size, self.dim))
     icr_replacement = torch.zeros((self.dim, 6, self.sample_count, batch_size, self.dim))
     for i in range(self.dim):
@@ -223,7 +273,7 @@ class Trainer():
     f_mean = f_sample.mean(dim=0)
     batch_size = data.shape[0]
 
-    outer_samples = torch.stack([samples] * 15, dim=0)
+    outer_samples = torch.stack([samples] * 12, dim=0)
     m, r = self.indecater_multiplier(batch_size)
     outer_samples = outer_samples * (1 - m) + r
     outer_loss = self.loss_fn(outer_samples, target.unsqueeze(0).unsqueeze(0).unsqueeze(0))
@@ -239,42 +289,11 @@ class Trainer():
     loss = loss.mean(dim=0)
     return loss
   
-  def advanced_indecater_grads(self, data, target):
-    logits1, logits2, logits3 = self.network(data)
-    d1 = torch.distributions.Categorical(logits=logits1)
-    d2 = torch.distributions.Categorical(logits=logits2)
-    d3 = torch.distributions.Categorical(logits=logits3)
-    samples1 = d1.sample((self.sample_count * self.dim,))
-    samples2 = d2.sample((self.sample_count * self.dim,))
-    samples3 = d3.sample((self.sample_count * self.dim,))
-    samples = torch.stack((samples1, samples2, samples3), dim=2)
-    f_sample = self.loss_fn(samples, target.unsqueeze(0))
-    f_mean = f_sample.mean(dim=0)
-    batch_size = data.shape[0]
-
-    samples = samples.reshape((self.dim, self.sample_count, batch_size, self.dim))
-    m, r = self.indecater_multiplier(batch_size)
-    outer_samples = outer_samples * (1 - m) + r
-    outer_loss = self.loss_fn(outer_samples, target.unsqueeze(0).unsqueeze(0).unsqueeze(0))
-    
-    variable_loss = outer_loss.mean(dim=2).permute(2,0,1)
-    probs = torch.cat((F.softmax(logits1, dim=-1), F.softmax(logits2, dim=-1), F.softmax(logits3, dim=-1)), dim=1)
-    indecater_expression = variable_loss.detach() * probs
-    indecater_expression = indecater_expression.sum(dim=-1)
-    indecater_expression = indecater_expression.sum(dim=-1)
-
-    icr_prob = (f_mean - indecater_expression).detach() + indecater_expression
-    loss = -torch.log(indecater_expression + 1e-8) # -torch.log(icr_prob + 1e-8)
-    loss = loss.mean(dim=0)
-    return loss
-  
   def grads(self, data, target):
     if self.grad_type == 'reinforce':
       return self.reinforce_grads(data, target)
     elif self.grad_type == 'icr':
       return self.indecater_grads(data, target)
-    elif self.grad_type == 'advanced_icr':
-      return self.advanced_indecater_grads(data, target)
 
   def train_epoch(self, epoch):
     train_loss = 0
@@ -322,10 +341,10 @@ class Trainer():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("leaves")
-  parser.add_argument("--n-epochs", type=int, default=100)
+  parser.add_argument("--n-epochs", type=int, default=50)
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
-  parser.add_argument("--sample-count", type=int, default=7)
+  parser.add_argument("--sample-count", type=int, default=9)
   parser.add_argument("--train-num", type=int, default=30)
   parser.add_argument("--test-num", type=int, default=10)
   parser.add_argument("--grad_type", type=str, default='reinforce')
@@ -339,18 +358,20 @@ if __name__ == "__main__":
   n_epochs = args.n_epochs
   batch_size = args.batch_size
   learning_rate = args.learning_rate
-  sample_count = args.sample_count
   grad_type = args.grad_type
+  sample_count = args.sample_count
   dim = 3
+  cache = {}
 
   accuracies = ["A " + str(i+1) for i in range(args.n_epochs)]
   times = ["T " + str(i+1) for i in range(args.n_epochs)]
   losses = ["L " + str(i+1) for i in range(args.n_epochs)]
   field_names = ['random seed', 'grad_type', 'task_type', 'sample count'] + accuracies + times + losses
 
-  for seed in [548, 6787, 8371]:
+  for seed in [3177, 5848, 9175, 8725, 1234]: # 1357, 2468, 548, 6787, 8371
       torch.manual_seed(seed)
       random.seed(seed)
+      
       if grad_type == 'reinforce': sample_count = 100
       print(sample_count)
       print(seed)
@@ -358,7 +379,7 @@ if __name__ == "__main__":
 
       # Data
       data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
-      model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
+      model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves_llm"))
       os.makedirs(model_dir, exist_ok=True)
 
       # Dataloaders
@@ -371,6 +392,7 @@ if __name__ == "__main__":
       dict['grad_type'] = grad_type
       dict['task_type'] = "leaf"
       dict['sample count'] = sample_count
+
       with open('baselines/reinforce/icr.csv', 'a', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
         writer.writerow(dict)
