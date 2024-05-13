@@ -216,9 +216,8 @@ if __name__ == "__main__":
   times = ['T ' + str(i+1) for i in range(args.epochs)]
   field_names = ['task name', 'random seed'] + losses + rewards + accuracies + times
 
-  with open(results_file, 'w', newline='') as csvfile:
+  with open(results_file, 'a', newline='') as csvfile:
       writer = csv.DictWriter(csvfile, fieldnames=field_names)
-      writer.writeheader()
       writer.writerow(results_dict)
       csvfile.close()
   
