@@ -162,14 +162,14 @@ def final_output(model,ground_truth, args, a, b):
 
 
 if __name__ == "__main__":
-  parser = ArgumentParser('leaf')
+  parser = ArgumentParser('sum_2')
   parser.add_argument('--gpu-id', default='cuda:0', type=str)
   parser.add_argument('-j', '--workers', default=0, type=int)
   parser.add_argument('--print-freq', default=5, type=int)
   parser.add_argument('--seed', default=1234, type=int)
 
-  parser.add_argument('--epochs', default=11, type=int)
-  parser.add_argument('--warmup', default=10, type=int)
+  parser.add_argument('--epochs', default=100, type=int)
+  parser.add_argument('--warmup', default=0, type=int)
   parser.add_argument('-b', '--batch-size', default=16, type=int)
   parser.add_argument('--learning-rate', default=0.0001, type=float)
   parser.add_argument('--weight-decay', default=3e-1, type=float)

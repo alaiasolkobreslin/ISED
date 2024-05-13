@@ -10,6 +10,7 @@ import numpy as np
 from time import time
 import random
 from typing import Optional, Callable
+import csv
 
 from argparse import ArgumentParser
 
@@ -167,14 +168,14 @@ def final_output(model,ground_truth, args, a, b, c, d):
 
 
 if __name__ == "__main__":
-  parser = ArgumentParser('leaf')
+  parser = ArgumentParser('sum_4')
   parser.add_argument('--gpu-id', default='cuda:0', type=str)
   parser.add_argument('-j', '--workers', default=0, type=int)
   parser.add_argument('--print-freq', default=5, type=int)
   parser.add_argument('--seed', default=1234, type=int)
 
-  parser.add_argument('--epochs', default=20, type=int)
-  parser.add_argument('--warmup', default=10, type=int)
+  parser.add_argument('--epochs', default=100, type=int)
+  parser.add_argument('--warmup', default=0, type=int)
   parser.add_argument('-b', '--batch-size', default=16, type=int)
   parser.add_argument('--learning-rate', default=0.0001, type=float)
   parser.add_argument('--weight-decay', default=3e-1, type=float)
@@ -202,4 +203,22 @@ if __name__ == "__main__":
 
   (train_loader, valid_loader, test_loader) = mnist_sum_4_loader(data_dir, args.batch_size, args.batch_size)
   trainer = common.Trainer(train_loader, valid_loader, test_loader, model, model_dir, final_output, args)
-  trainer.train(args.epochs)
+  results_dict = trainer.train(args.epochs)
+  results_dict['task name'] = 'sum_4'
+  results_dict['random seed'] = args.seed
+  
+  dir_path = os.path.dirname(os.path.realpath(__file__))
+  results_file =  dir_path + '/experiments10/sum_4.csv'
+  
+  losses = ['L ' + str(i+1) for i in range(args.epochs)]
+  accuracies = ['A ' + str(i+1) for i in range(args.epochs)]
+  rewards = ['R ' + str(i+1) for i in range(args.epochs)]
+  times = ['T ' + str(i+1) for i in range(args.epochs)]
+  field_names = ['task name', 'random seed'] + losses + rewards + accuracies + times
+
+  with open(results_file, 'w', newline='') as csvfile:
+      writer = csv.DictWriter(csvfile, fieldnames=field_names)
+      writer.writeheader()
+      writer.writerow(results_dict)
+      csvfile.close()
+  
