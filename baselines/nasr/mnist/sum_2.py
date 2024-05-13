@@ -168,7 +168,7 @@ if __name__ == "__main__":
   parser.add_argument('--print-freq', default=5, type=int)
   parser.add_argument('--seed', default=1234, type=int)
 
-  parser.add_argument('--epochs', default=100, type=int)
+  parser.add_argument('--epochs', default=11, type=int)
   parser.add_argument('--warmup', default=10, type=int)
   parser.add_argument('-b', '--batch-size', default=16, type=int)
   parser.add_argument('--learning-rate', default=0.0001, type=float)
@@ -202,16 +202,17 @@ if __name__ == "__main__":
   results_dict['random seed'] = args.seed
   
   dir_path = os.path.dirname(os.path.realpath(__file__))
-  results_file =  dir_path + '/experiments10/mnist-r.csv'
+  results_file =  dir_path + '/experiments10/sum_2.csv'
   
-  losses = ['L ' + str(i+1) for i in range(1,args.epochs+1)]
-  accuracies = ['A ' + str(i+1) for i in range(1,args.epochs+1)]
-  rewards = ['R ' + str(i+1) for i in range(1,args.epochs+1)]
-  times = ['T ' + str(i+1) for i in range(1,args.epochs+1)]
+  losses = ['L ' + str(i+1) for i in range(args.epochs)]
+  accuracies = ['A ' + str(i+1) for i in range(args.epochs)]
+  rewards = ['R ' + str(i+1) for i in range(args.epochs)]
+  times = ['T ' + str(i+1) for i in range(args.epochs)]
   field_names = ['task name', 'random seed'] + losses + rewards + accuracies + times
 
   with open(results_file, 'w', newline='') as csvfile:
       writer = csv.DictWriter(csvfile, fieldnames=field_names)
       writer.writeheader()
+      writer.writerow(results_dict)
       csvfile.close()
   

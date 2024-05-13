@@ -199,7 +199,7 @@ class Trainer():
         train_loss, train_rewards = self.train_epoch(epoch)
         t1 = time.time()
         dict['L ' + str(epoch)] = round(train_loss, ndigits=4)
-        dict['R' + str(epoch)] = round(train_rewards, ndigits=4)
+        dict['R ' + str(epoch)] = round(train_rewards, ndigits=4)
         dict['T ' + str(epoch)] = round(t1 - t0, ndigits=4)
         loss, valid_rewards = validate(self.valid_loader, self.model, self.final_output, self.args)
         test_loss, _, test_accuracy = self.test_epoch(epoch)
