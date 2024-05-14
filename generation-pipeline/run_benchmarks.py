@@ -78,7 +78,6 @@ class TaskNet(nn.Module):
             output_mapping: output.OutputMapping,
             sample_count: int,
             batch_size_train: int,
-            check_symmetry: bool,
             caching: bool):
         super(TaskNet, self).__init__()
 
@@ -101,7 +100,6 @@ class TaskNet(nn.Module):
                                       output_mapping=output_mapping,
                                       batch_size=batch_size_train,
                                       loss_aggregator=loss_aggregator,
-                                      check_symmetry=check_symmetry,
                                       caching=caching,
                                       sample_count=sample_count)
 
@@ -155,7 +153,6 @@ class Trainer():
             output_mapping: output.OutputMapping,
             sample_count: int,
             batch_size_train: int,
-            check_symmetry: bool,
             caching: bool):
         self.network = TaskNet(unstructured_datasets=unstructured_datasets,
                                config=config,
@@ -163,7 +160,6 @@ class Trainer():
                                output_mapping=output_mapping,
                                sample_count=sample_count,
                                batch_size_train=batch_size_train,
-                               check_symmetry=check_symmetry,
                                caching=caching)
         self.output_mapping = output_mapping
         self.optimizers = [optim.Adam(
@@ -293,10 +289,7 @@ if __name__ == "__main__":
 
     random_seeds = [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]
     sample_counts = [100]
-    tasks = ['mult_2_mnist', 'mult_2_svhn', 'add_sub_mnist', 'add_sub_svhn',
-             'add_mod_3_mnist', 'add_mod_3_svhn', 'eq_2_mnist', 'eq_2_svhn',
-             'how_many_3_or_4_mnist', 'how_many_3_or_4_svhn', 'not_3_or_4_mnist',
-             'not_3_or_4_svhn', 'less_than_mnist', 'less_than_svhn']
+    tasks = ['mod_2_mnist']
 
     losses = ['L ' + str(i+1) for i in range(args.n_epochs)]
     accuracies = ['A ' + str(i+1) for i in range(args.n_epochs)]
@@ -305,7 +298,7 @@ if __name__ == "__main__":
                    'sample count'] + losses + accuracies + times
     
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    results_file =  dir_path + '/experiments10/mnist-r.csv'
+    results_file =  dir_path + '/experiments10/mod2.csv'
 
     with open(results_file, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)
@@ -356,7 +349,6 @@ if __name__ == "__main__":
                                   output_mapping=om,
                                   sample_count=n_samples,
                                   batch_size_train=batch_size_train,
-                                  check_symmetry=args.symmetry,
                                   caching=args.caching)
                 dict = trainer.train(n_epochs)
                 dict["task name"] = task
