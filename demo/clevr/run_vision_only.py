@@ -339,24 +339,23 @@ class CLEVRProgram:
 
 class DiscreteClevrEvaluator:
   def __init__(self):
-
     self.ctx = scallopy.ScallopContext("difftopkproofs")
     self.ctx.import_file(os.path.abspath(os.path.join(os.path.abspath(__file__), "../scl/clevr_eval_vision_only.scl")))
 
     # Setup scallopy forward function
 
   def __call__(
-      self, 
+      self,
       program, # [("Count", 0, 1), ...]
       objs_mask, # 10 bool mask
-      rela_objs_mask, # 100 bool mask 
+      rela_objs_mask, # 100 bool mask
       shape, # ["sphere", "cube", ..., "cube"] (size 10)
       color, # ["blue", "blue", ..., "red"] (size 10)
       mat, # ["rubber", "metal", ..., "metal"] (size 10)
       size, # ["large", "small", ..., "small"] (size 10)
       rela, # ["left", "behind", ""] (size 100)
   ):
-    
+
     shapes = [(i, s) for (i, s) in enumerate(shape) if objs_mask[i]]
     colors = [(i, c) for (i, c) in enumerate(color) if objs_mask[i]]
     mats = [(i, c) for (i, c) in enumerate(mat) if objs_mask[i]]
@@ -396,7 +395,7 @@ class DiscreteClevrEvaluator:
     #       disjunctions[sg_key].append(list(disj_group.values()))
 
     # y_pred_values, y_pred_probs = self.reason(output_relations=output_relations, **facts, disjunctions=disjunctions)
-    
+
     temp_ctx = self.ctx.clone()
     self.reason = temp_ctx.forward_function(output="result")
     result = self.reason(**facts)
@@ -404,7 +403,7 @@ class DiscreteClevrEvaluator:
     return result_idx
 
 
-# TODO: There seems some error with the initialization setup for PaddedListInputMapping. 
+# TODO: There seems some error with the initialization setup for PaddedListInputMapping.
 bb_evaluate = blackbox.BlackBoxFunction(
   DiscreteClevrEvaluator(),
   input_mappings=(
@@ -438,7 +437,7 @@ class CLEVRVisionOnlyDataset(torch.utils.data.Dataset):
   def __init__(self, root: str, question_path: str, train: bool = True, device: str = "cpu"):
     self.name = "train" if train else "val"
     self.device = device
-  
+
     self.scenes = json.load(open(args.scene_path, 'r'))['scenes']
     self.questions = json.load(open(os.path.join(root, question_path)))["questions"]
 
@@ -662,7 +661,7 @@ class CLEVRVisionOnlyNet(nn.Module):
     # self.reason = self.ctx.forward_function(dispatch='single', debug_provenance=True)
     self.reason = self.ctx.forward_function(output="result", output_mapping=all_answers)
 
-    # TODO: Setup blackbox here 
+    # TODO: Setup blackbox here
 
   def prob_mat_to_clauses(self, batch_prob, batch_split, all_elements):
     splits = [(0, r) if i == 0 else (batch_split[i - 1], r) for (i, r) in enumerate(batch_split)]
@@ -678,12 +677,12 @@ class CLEVRVisionOnlyNet(nn.Module):
   def forward(self, x, ys):
     (programs, images, orig_boxes, pred_boxes, rela_objs, batch_split) = x
     output_relations = [p.result_type for p in programs]
-    
+
     total_obj_ct = sum([len(bbox) for bbox in orig_boxes])
     total_rela_ct =  sum([len(bbox) * len(bbox) - 1 for bbox in orig_boxes])
 
     shape_prob, color_prob, mat_prob, size_prob, rela_prob, objs, batched_rela_objs, batch_rela_split, = self.sg_model(images, orig_boxes, pred_boxes, rela_objs, batch_split)
-    
+
     shapes = self.prob_mat_to_clauses(shape_prob, batch_split, all_shapes)
     colors = self.prob_mat_to_clauses(color_prob, batch_split, all_colors)
     mats = self.prob_mat_to_clauses(mat_prob, batch_split, all_mats)
@@ -734,21 +733,21 @@ class CLEVRVisionOnlyNet(nn.Module):
     # output_relations = [p.result_type for p in programs]
     # total_obj_ct = sum([len(bbox) for bbox in orig_boxes])
     # total_rela_ct =  sum(rela_objs)
-    
+
     shape_prob, color_prob, mat_prob, size_prob, rela_prob, objs, batched_rela_objs, batch_rela_split, = self.sg_model(images, orig_boxes, pred_boxes, rela_objs, batch_split)
     batch_size = len(objs)
     objs_mask = torch.zeros(batch_size, max_obj_num, dtype=torch.bool)
     for i, obj_ls in enumerate(objs):
       for obj in obj_ls:
         objs_mask[i][obj] = True
-    
+
     rela_objs_mask = torch.zeros(batch_size, max_obj_num ** 2, dtype=torch.bool)
     for i, rela_obj_ls in enumerate(rela_objs):
       for rela_obj in rela_obj_ls:
         rela_objs_mask[i][all_obj_pair_idx.index(tuple(rela_obj))]  = True
 
     splits = [(0, r) if i == 0 else (batch_split[i - 1], r) for (i, r) in enumerate(batch_split)]
-    
+
     batched_lens = []
     batched_shape_probs = torch.ones(batch_size, max_obj_num, len(all_shapes))*(1/len(all_shapes))
     batched_color_probs = torch.ones(batch_size, max_obj_num, len(all_colors))*(1/len(all_colors))
@@ -773,17 +772,17 @@ class CLEVRVisionOnlyNet(nn.Module):
         batched_rela_probs[batch_num][rela_idxs,:] = rela_prob[current_idx:next_idx, :]
         current_idx = next_idx
 
-    
+
     batched_shape_inputs = inp.PaddedListInput(batched_shape_probs,batched_lens)
     batched_color_inputs = inp.PaddedListInput(batched_color_probs,batched_lens)
     batched_mat_inputs = inp.PaddedListInput(batched_mat_probs,batched_lens)
     batched_size_inputs = inp.PaddedListInput(batched_size_probs,batched_lens)
     batched_rela_inputs = inp.PaddedListInput(batched_rela_probs,batched_lens)
-      
+
     result = bb_evaluate(
       programs, # [("Count", 0, 1), ...]
       objs_mask, # 10 bool mask
-      rela_objs_mask, # 100 bool mask 
+      rela_objs_mask, # 100 bool mask
       batched_shape_inputs, # ["sphere", "cube", ..., "cube"] (size 10)
       batched_color_inputs, # ["blue", "blue", ..., "red"] (size 10)
       batched_mat_inputs, # ["rubber", "metal", ..., "metal"] (size 10)
@@ -818,10 +817,10 @@ class Trainer():
       for u in y_pred_values:
         if str(u) == str(v):
           y.append(torch.tensor([1.0]))
-          if recorded: 
+          if recorded:
             print('here')
           recorded = True
-        else: 
+        else:
           y.append(torch.tensor([0.0]))
       y_batched.append(torch.stack(y))
 
@@ -948,7 +947,7 @@ if __name__ == "__main__":
   dataset_dir = os.path.join(data_dir, "CLEVR")
   model_dir = os.path.join(dataset_dir, "models")
 
- 
+
 
   # Argument parser
   # Argument parser
@@ -988,10 +987,10 @@ if __name__ == "__main__":
 
   if args.phase == "train":
     num = args.train_num
-  else: 
+  else:
     num = args.val_num
 
-  question_path = os.path.join(data_dir, "CLEVR", "questions",   f"CLEVR_{args.phase}_questions_obj_{args.max_obj}_clause_{args.max_clause}_image_split.cropped_{num}.json")
+  question_path = os.path.join(data_dir, "CLEVR", "questions", f"CLEVR_{args.phase}_questions_obj_{args.max_obj}_clause_{args.max_clause}_image_split.cropped_{num}.json")
   scene_path = os.path.join(data_dir, "CLEVR", "scenes", f"CLEVR_{args.phase}_scenes.json")
   assert os.path.exists(question_path)
   assert os.path.exists(scene_path)
