@@ -147,7 +147,11 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "discrete_output_mapping",
+      "range": [
+        0,
+        3
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -185,7 +189,11 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "discrete_output_mapping",
+      "range": [
+        -9,
+        19
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -215,7 +223,11 @@
     ],
     "output": {
       "type": "bool",
-      "output_mapping": "unknown"
+      "output_mapping": "discrete_output_mapping",
+      "range": [
+        0,
+        2
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -231,14 +243,18 @@
         "type": "List[digit]",
         "strategy": "list",
         "preprocess": "id",
-        "length": 3,
+        "length": 8,
         "dataset": "MNIST",
         "unstructured_input_type": "List[Tensor[1 x 28 x 28]]"
       }
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "discrete_output_mapping",
+      "range": [
+        0,
+        9
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -268,7 +284,11 @@
     ],
     "output": {
       "type": "bool",
-      "output_mapping": "unknown"
+      "output_mapping": "discrete_output_mapping",
+      "range": [
+        0,
+        2
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -298,7 +318,11 @@
     ],
     "output": {
       "type": "bool",
-      "output_mapping": "unknown"
+      "output_mapping": "discrete_output_mapping",
+      "range": [
+        0,
+        2
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -328,7 +352,11 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "discrete_output_mapping",
+      "range": [
+        0,
+        10
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
@@ -358,7 +386,11 @@
     ],
     "output": {
       "type": "int",
-      "output_mapping": "unknown"
+      "output_mapping": "discrete_output_mapping",
+      "range": [
+        0,
+        82
+      ]
     },
     "learning_rate": 0.0001,
     "batch_size_train": 16,
