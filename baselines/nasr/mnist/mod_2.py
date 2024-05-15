@@ -212,7 +212,6 @@ if __name__ == "__main__":
 
   with open(results_file, 'a', newline='') as csvfile:
       writer = csv.DictWriter(csvfile, fieldnames=field_names)
-      writer.writeheader()
       writer.writerow(results_dict)
       csvfile.close()
   

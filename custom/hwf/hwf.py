@@ -218,7 +218,7 @@ if __name__ == "__main__":
   # Command line arguments
   parser = ArgumentParser("hwf")
   parser.add_argument("--model-name", type=str, default="hwf.pkl")
-  parser.add_argument("--n-epochs", type=int, default=100)
+  parser.add_argument("--n-epochs", type=int, default=50)
   parser.add_argument("--sample-count", type=int, default=100)
   parser.add_argument("--dataset-prefix", type=str, default="expr")
   parser.add_argument("--batch-size", type=int, default=16)
