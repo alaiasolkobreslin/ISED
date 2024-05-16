@@ -105,11 +105,8 @@ class BlackBoxFunction(torch.nn.Module):
                 sampled_indices.append(sampled_indices_i)
         to_compute_inputs = self.zip_batched_inputs(to_compute_inputs)
 
-
-        print("before")
         # Get the outputs from the black-box function
         results = self.invoke_function_on_batched_inputs(to_compute_inputs)
-        print("after")
 
         # Aggregate the probabilities
         result_probs = torch.ones((batch_size, self.sample_count)).to(self.device)
@@ -157,8 +154,8 @@ class BlackBoxFunction(torch.nn.Module):
 
     def invoke_function_on_batched_inputs(self, batched_inputs):
         #TODO: fix
-        # return [self.process_batch(i) for i in batched_inputs]
-        return self.pool.map(self.process_batch, batched_inputs)
+        return [self.process_batch(i) for i in batched_inputs]
+        # return self.pool.map(self.process_batch, batched_inputs)
 
     def __getstate__(self):
         self_dict = self.__dict__.copy()

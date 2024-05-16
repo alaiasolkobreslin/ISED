@@ -61,6 +61,8 @@ all_colors = ["gray", "red", "blue", "green", "brown", "purple", "cyan", "yellow
 all_sizes = ["large", "small"]
 all_mats = ["metal", "rubber"]
 all_relas = ["left", "behind"]
+all_horizontal_relas = ["left", "right"]
+all_vertical_relas = ["behind", "front"]
 all_bools = ["true", "false", "True", "False"]
 all_nums = [str(i) for i in range(10)]
 all_answers = all_shapes + all_colors + all_sizes + all_mats + all_relas + all_bools + all_nums
@@ -337,58 +339,6 @@ class CLEVRProgram:
     return repr(self.__dict__)
 
 
-class DiscreteClevrEvaluator:
-  def __init__(self):
-    self.ctx = scallopy.ScallopContext()
-    self.ctx.import_file(os.path.abspath(os.path.join(os.path.abspath(__file__), "../scl/clevr_eval_vision_only.scl")))
-
-  def __call__(
-      self,
-      program, # [("Count", 0, 1), ...]
-      objs_mask, # 10 bool mask
-      rela_objs_mask, # 100 bool mask
-      shape, # ["sphere", "cube", ..., "cube"] (size 10)
-      color, # ["blue", "blue", ..., "red"] (size 10)
-      mat, # ["rubber", "metal", ..., "metal"] (size 10)
-      size, # ["large", "small", ..., "small"] (size 10)
-      rela, # ["left", "behind", ""] (size 100)
-  ):
-
-    shapes = [(i, s) for (i, s) in enumerate(shape) if objs_mask[i]]
-    colors = [(i, c) for (i, c) in enumerate(color) if objs_mask[i]]
-    mats = [(i, c) for (i, c) in enumerate(mat) if objs_mask[i]]
-    sizes = [(i, c) for (i, c) in enumerate(size) if objs_mask[i]]
-    # relas = [(*all_obj_pair_idx.index(i), c) for (i, c) in enumerate(rela) if rela_objs_mask[i]]
-    rela_a = [all_obj_pair_idx[i] for i,v in enumerate(rela_objs_mask) if v]
-    a, b = zip(*rela_a)
-    relas = list(zip(a, b, rela))
-    objs = [(i,) for (i, is_obj) in enumerate(objs_mask) if is_obj]
-
-    scene_graph = [{"obj": objs, "shape": shapes, "color": colors, "material": mats, "size": sizes, "relate": relas} for objs, shapes, colors, mats, sizes, relas in zip(objs, shapes, colors, mats, sizes, relas)]
-    combined_dict = {}
-    for d in scene_graph:
-        for key, value in d.items():
-            if key in combined_dict:
-                combined_dict[key].append(value)
-            else:
-                combined_dict[key] = [value]
-    facts = {**program.facts(), **combined_dict}
-
-    temp_ctx = self.ctx.clone()
-
-    for (rela_name, facts) in facts.items():
-      temp_ctx.add_facts(rela_name, facts)
-
-    temp_ctx.run()
-
-    result = list(temp_ctx.relation("result"))
-
-    if len(result) > 0:
-      return result[0][0]
-    else:
-      return "false"
-
-
 class CLEVRVisionOnlyDataset(torch.utils.data.Dataset):
   def __init__(self, root: str, question_path: str, train: bool = True, device: str = "cpu"):
     self.name = "train" if train else "val"
@@ -423,12 +373,6 @@ class CLEVRVisionOnlyDataset(torch.utils.data.Dataset):
     orig_boxes = extract_bounding_boxes(scene)
     pred_boxes = normalize_box(orig_boxes, height, width)
 
-    # answer = {'size': [], 'shape': [], 'rela': [], 'material': [], 'color': []}
-    # for obj in scene['objects']:
-    #   answer['size'].append(all_sizes.index(obj['size']))
-    #   answer['shape'].append(all_shapes.index(obj['shape']))
-    #   answer['material'].append(all_mats.index(obj['material']))
-    #   answer['color'].append(all_colors.index(obj['color']))
     scene_info = scene_to_answer(scene)
 
     # Return all of the information
@@ -450,7 +394,8 @@ class CLEVRVisionOnlyDataset(torch.utils.data.Dataset):
     batched_answer = []
     batched_pred_bboxes = []
     batched_orig_bboxes = []
-    batched_rela_objs = []
+    batched_horizontal_rela_objs = []
+    batched_vertical_rela_objs = []
     batched_scenes = {}
 
     for _, question, image, orig_boxes, pred_boxes, answer, scene_info in batch:
@@ -529,23 +474,27 @@ class SceneGraphModel(nn.Module):
     self.color_clf = MLPClassifier(input_dim=dim * dim * hidden_dim + 4, output_dim=8, latent_dim=args.latent_dim, n_layers=args.model_layer, dropout_rate=0.2)
     self.size_clf = MLPClassifier(input_dim=dim * dim * hidden_dim + 4, output_dim=2, latent_dim=args.latent_dim, n_layers=args.model_layer, dropout_rate=0.2)
     self.mat_clf = MLPClassifier(input_dim=dim * dim * hidden_dim + 4, output_dim=2, latent_dim=args.latent_dim, n_layers=args.model_layer, dropout_rate=0.2) #
-    self.rela_clf = MLPClassifier(input_dim=(dim * dim * hidden_dim + 4) * 2, output_dim=2, latent_dim=args.latent_dim, n_layers=args.rela_model_layer, dropout_rate=0.2) #layer 3
+    self.hor_rela_clf = MLPClassifier(input_dim=(dim * dim * hidden_dim + 4) * 2, output_dim=2, latent_dim=args.latent_dim, n_layers=args.rela_model_layer, dropout_rate=0.2) # Horizontal classify
+    self.ver_rela_clf = MLPClassifier(input_dim=(dim * dim * hidden_dim + 4) * 2, output_dim=2, latent_dim=args.latent_dim, n_layers=args.rela_model_layer, dropout_rate=0.2) # Vertical classify
 
     # A dictionary indexing these classifiers
-    self.models = {"shape": self.shape_clf, "color": self.color_clf, "size": self.size_clf, "mat": self.mat_clf, "relate": self.rela_clf}
+    self.models = {
+      "shape": self.shape_clf,
+      "color": self.color_clf,
+      "size": self.size_clf,
+      "mat": self.mat_clf,
+      "hor_relate": self.hor_rela_clf,
+      "ver_relate": self.ver_rela_clf,
+    }
 
   def batch_predict(self, relation, features, batch_split):
-
     model = self.models[relation]
     logits = model(features)
     current_split = 0
     probs = []
     for split in batch_split:
       current_logits = logits[current_split:split]
-      if relation == 'relate':
-        current_probs = torch.sigmoid(current_logits)
-      else:
-        current_probs = torch.softmax(current_logits, dim=1)
+      current_probs = torch.softmax(current_logits, dim=1)
       probs.append(current_probs)
       current_split = split
     return torch.cat(probs).reshape(features.shape[0], -1)
@@ -588,9 +537,62 @@ class SceneGraphModel(nn.Module):
     color_prob = self.batch_predict("color", batched_features, batch_split)
     mat_prob = self.batch_predict("mat", batched_features, batch_split)
     size_prob = self.batch_predict("size", batched_features, batch_split)
-    rela_prob = self.batch_predict("relate", batched_rela_vecs, batch_rela_split)
+    hor_rela_prob = self.batch_predict("hor_relate", batched_rela_vecs, batch_rela_split)
+    ver_rela_prob = self.batch_predict("ver_relate", batched_rela_vecs, batch_rela_split)
 
-    return shape_prob, color_prob, mat_prob, size_prob, rela_prob, objs, batched_rela_objs, batch_rela_split,
+    return shape_prob, color_prob, mat_prob, size_prob, hor_rela_prob, ver_rela_prob, objs, batched_rela_objs, batch_rela_split,
+
+
+class DiscreteClevrEvaluator:
+  def __init__(self):
+    self.ctx = scallopy.ScallopContext()
+    self.ctx.import_file(os.path.abspath(os.path.join(os.path.abspath(__file__), "../scl/clevr_eval_vision_only.scl")))
+
+  def __call__(
+      self,
+      program, # [("Count", 0, 1), ...]
+      objs_mask, # 10 bool mask
+      rela_objs_mask, # 100 bool mask
+      shape, # ["sphere", "cube", ..., "cube"] (size 10)
+      color, # ["blue", "blue", ..., "red"] (size 10)
+      mat, # ["rubber", "metal", ..., "metal"] (size 10)
+      size, # ["large", "small", ..., "small"] (size 10)
+      horizontal_rela, # ["left", "right", ""] (size 100)
+      vertical_rela, # ["front", "behind", ""] (size 100)
+  ):
+    shapes = [(i, s) for (i, s) in enumerate(shape) if objs_mask[i]]
+    colors = [(i, c) for (i, c) in enumerate(color) if objs_mask[i]]
+    mats = [(i, c) for (i, c) in enumerate(mat) if objs_mask[i]]
+    sizes = [(i, c) for (i, c) in enumerate(size) if objs_mask[i]]
+    # relas = [(*all_obj_pair_idx.index(i), c) for (i, c) in enumerate(rela) if rela_objs_mask[i]]
+    rela_a = [all_obj_pair_idx[i] for i, v in enumerate(rela_objs_mask) if v]
+    a, b = zip(*rela_a)
+    relas = list(zip(a, b, horizontal_rela)) + list(zip(a, b, vertical_rela))
+    objs = [(i,) for (i, is_obj) in enumerate(objs_mask) if is_obj]
+
+    scene_graph = [{"obj": objs, "shape": shapes, "color": colors, "material": mats, "size": sizes, "relate": relas} for objs, shapes, colors, mats, sizes, relas in zip(objs, shapes, colors, mats, sizes, relas)]
+    combined_dict = {}
+    for d in scene_graph:
+        for key, value in d.items():
+            if key in combined_dict:
+                combined_dict[key].append(value)
+            else:
+                combined_dict[key] = [value]
+    facts = {**program.facts(), **combined_dict}
+
+    temp_ctx = self.ctx.clone()
+
+    for (rela_name, facts) in facts.items():
+      temp_ctx.add_facts(rela_name, facts)
+
+    temp_ctx.run()
+
+    result = list(temp_ctx.relation("result"))
+
+    if len(result) > 0:
+      return result[0][0]
+    else:
+      return "false"
 
 
 class CLEVRVisionOnlyNet(nn.Module):
@@ -608,7 +610,7 @@ class CLEVRVisionOnlyNet(nn.Module):
   ]
   relations = program_relations + scene_graph_relations
 
-  def __init__(self, device, k):
+  def __init__(self, device, sample_count):
     super(CLEVRVisionOnlyNet, self).__init__()
     self.device = device
 
@@ -624,19 +626,20 @@ class CLEVRVisionOnlyNet(nn.Module):
         blackbox.NonProbabilisticInput(combine=identity),
 
         # batch_size * 10 * 3
-        blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_shapes, combine=identity), combine=identity),
+        blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_shapes, combine=identity), combine=identity), # Shape
 
         # batch_size * 10 * 8
-        blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_colors, combine=identity), combine=identity),
+        blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_colors, combine=identity), combine=identity), # Color
 
         # batch_size * 10 * 2
-        blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_mats, combine=identity), combine=identity),
+        blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_mats, combine=identity), combine=identity), # Material
 
         # batch_size * 10 * 2
-        blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_sizes, combine=identity), combine=identity),
+        blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_sizes, combine=identity), combine=identity), # Size
 
         # batch_size * 100 * 2
-        blackbox.PaddedListInputMapping(100, blackbox.DiscreteInputMapping(all_relas, combine=identity), combine=identity),
+        blackbox.PaddedListInputMapping(100, blackbox.DiscreteInputMapping(all_horizontal_relas, combine=identity), combine=identity), # Horizontal relation
+        blackbox.PaddedListInputMapping(100, blackbox.DiscreteInputMapping(all_vertical_relas, combine=identity), combine=identity), # Verticle relation
       ),
       output_mapping=blackbox.DiscreteOutputMapping(
         all_answers,
@@ -644,10 +647,10 @@ class CLEVRVisionOnlyNet(nn.Module):
         device=self.device,
       ),
       batch_size=32,
+      sample_count=sample_count,
       loss_aggregator="min_max",
       device=self.device,
     )
-
 
   def prob_mat_to_clauses(self, batch_prob, batch_split, all_elements):
     splits = [(0, r) if i == 0 else (batch_split[i - 1], r) for (i, r) in enumerate(batch_split)]
@@ -659,68 +662,10 @@ class CLEVRVisionOnlyNet(nn.Module):
     batched_facts = [[(batch_prob[i, j], (e, batched_rela_objs[i, 0], batched_rela_objs[i, 1])) for i in range(begin, end) for (j, e) in enumerate(all_elements)] for (begin, end) in splits]
     return batched_facts
 
-  # Fake a sg output
-  def forward(self, x, ys):
-    (programs, images, orig_boxes, pred_boxes, rela_objs, batch_split) = x
-    output_relations = [p.result_type for p in programs]
-
-    total_obj_ct = sum([len(bbox) for bbox in orig_boxes])
-    total_rela_ct =  sum([len(bbox) * len(bbox) - 1 for bbox in orig_boxes])
-
-    shape_prob, color_prob, mat_prob, size_prob, rela_prob, objs, batched_rela_objs, batch_rela_split, = self.sg_model(images, orig_boxes, pred_boxes, rela_objs, batch_split)
-
-    shapes = self.prob_mat_to_clauses(shape_prob, batch_split, all_shapes)
-    colors = self.prob_mat_to_clauses(color_prob, batch_split, all_colors)
-    mats = self.prob_mat_to_clauses(mat_prob, batch_split, all_mats)
-    sizes = self.prob_mat_to_clauses(size_prob, batch_split, all_sizes)
-    relas = self.prob_mat_to_rela_clauses(rela_prob, batched_rela_objs, batch_rela_split, all_relas)
-    scene_graphs = [{"obj": objs, "shape": shapes, "color": colors, "material": mats, "size": sizes, "relate": relas} for objs, shapes, colors, mats, sizes, relas in zip(objs, shapes, colors, mats, sizes, relas)]
-
-    list_facts = [{**program.facts(), **scene_graph} for (program, scene_graph) in zip(programs, scene_graphs)]
-    facts = {k: [fs[k] for fs in list_facts] for k in self.relations}
-
-    disjunctions = {}
-    for sg_key, batched_sg_facts in facts.items():
-      if sg_key in ['shape', 'color', 'material', 'size']:
-        if not sg_key in disjunctions:
-          disjunctions[sg_key] = []
-
-        for sg_facts in batched_sg_facts:
-          disj_group = {}
-          for fid, (prob, sg_fact) in enumerate(sg_facts):
-            if not sg_key == 'relate':
-                oid, _ = sg_fact
-                if not oid in disj_group:
-                    disj_group[oid] = []
-                disj_group[oid].append(fid)
-          disjunctions[sg_key].append(list(disj_group.values()))
-
-    # y_pred_values, y_pred_probs = self.reason(output_relations=output_relations, **facts, disjunctions=disjunctions)
-    y_pred_probs = self.reason(**facts)
-    y_pred_values = all_answers
-
-    missing_pred = []
-    for y in ys:
-      if not str(y) in y_pred_values:
-        missing_pred.append(y)
-    if not len(missing_pred) == 0:
-      to_extend = torch.zeros(y_pred_probs.shape[0], len(missing_pred))
-      y_pred_probs = torch.cat((y_pred_probs, to_extend), dim=1)
-      y_pred_values = y_pred_values + missing_pred
-
-    y_pred_probs [y_pred_probs == 0] = float('-inf')
-    softmaxed_probs = F.softmax(y_pred_probs, dim=1)
-    softmaxed_probs = torch.nan_to_num(softmaxed_probs, 0)
-
-    return y_pred_values, softmaxed_probs
-
   def bb_forward(self, x, ys, max_obj_num=10):
     (programs, images, orig_boxes, pred_boxes, rela_objs, batch_split) = x
-    # output_relations = [p.result_type for p in programs]
-    # total_obj_ct = sum([len(bbox) for bbox in orig_boxes])
-    # total_rela_ct =  sum(rela_objs)
 
-    shape_prob, color_prob, mat_prob, size_prob, rela_prob, objs, batched_rela_objs, batch_rela_split, = self.sg_model(images, orig_boxes, pred_boxes, rela_objs, batch_split)
+    shape_prob, color_prob, mat_prob, size_prob, hor_rela_prob, ver_rela_prob, objs, batched_rela_objs, batch_rela_split, = self.sg_model(images, orig_boxes, pred_boxes, rela_objs, batch_split)
     batch_size = len(objs)
     objs_mask = torch.zeros(batch_size, max_obj_num, dtype=torch.bool).to(self.device)
     for i, obj_ls in enumerate(objs):
@@ -739,8 +684,8 @@ class CLEVRVisionOnlyNet(nn.Module):
     batched_color_probs = (torch.ones(batch_size, max_obj_num, len(all_colors)) * (1 / len(all_colors))).to(self.device)
     batched_mat_probs = (torch.ones(batch_size, max_obj_num, len(all_mats)) * (1 / len(all_mats))).to(self.device)
     batched_size_probs = (torch.ones(batch_size, max_obj_num, len(all_sizes)) * (1 / len(all_sizes))).to(self.device)
-    batched_rela_probs = (torch.ones(batch_size, max_obj_num ** 2, len(all_relas)) * (1 / len(all_relas))).to(self.device)
-
+    batched_hor_rela_probs = (torch.ones(batch_size, max_obj_num ** 2, len(all_relas)) * (1 / len(all_relas))).to(self.device)
+    batched_ver_rela_probs = (torch.ones(batch_size, max_obj_num ** 2, len(all_relas)) * (1 / len(all_relas))).to(self.device)
 
     for batch_num, (begin, end) in enumerate(splits):
       obj_ct = end - begin
@@ -755,15 +700,16 @@ class CLEVRVisionOnlyNet(nn.Module):
       for batch_num, next_idx in enumerate(batch_rela_split):
         obj_pairs = batched_rela_objs[current_idx:next_idx]
         rela_idxs = [all_obj_pair_idx.index((i,j)) for i,j in obj_pairs]
-        batched_rela_probs[batch_num][rela_idxs,:] = rela_prob[current_idx:next_idx, :]
+        batched_hor_rela_probs[batch_num][rela_idxs,:] = hor_rela_prob[current_idx:next_idx, :]
+        batched_ver_rela_probs[batch_num][rela_idxs,:] = ver_rela_prob[current_idx:next_idx, :]
         current_idx = next_idx
-
 
     batched_shape_inputs = inp.PaddedListInput(batched_shape_probs,batched_lens)
     batched_color_inputs = inp.PaddedListInput(batched_color_probs,batched_lens)
     batched_mat_inputs = inp.PaddedListInput(batched_mat_probs,batched_lens)
     batched_size_inputs = inp.PaddedListInput(batched_size_probs,batched_lens)
-    batched_rela_inputs = inp.PaddedListInput(batched_rela_probs,batched_lens)
+    batched_hor_rela_inputs = inp.PaddedListInput(batched_hor_rela_probs,batched_lens)
+    batched_ver_rela_inputs = inp.PaddedListInput(batched_ver_rela_probs,batched_lens)
 
     result = self.bb_evaluate(
       programs, # [("Count", 0, 1), ...]
@@ -773,19 +719,20 @@ class CLEVRVisionOnlyNet(nn.Module):
       batched_color_inputs, # ["blue", "blue", ..., "red"] (size 10)
       batched_mat_inputs, # ["rubber", "metal", ..., "metal"] (size 10)
       batched_size_inputs, # ["large", "small", ..., "small"] (size 10)
-      batched_rela_inputs, # ["left", "behind", ""] (size 100)
+      batched_hor_rela_inputs, # ["left", "right", ...] (size 100)
+      batched_ver_rela_inputs, # ["front", "behind", ...] (size 100)
     )
 
     return result
 
 
 class Trainer():
-  def __init__(self, train_loader, test_loader, device, model_root, learning_rate, k, phase = "train"):
+  def __init__(self, train_loader, test_loader, device, model_root, learning_rate, sample_count, phase = "train"):
     self.device = device
     if not model_root == None and os.path.exists(model_root + '.best.pt'):
       self.network = torch.load(open(model_root + '.latest.pt', 'rb'))
     else:
-      self.network = CLEVRVisionOnlyNet(device, k=k).to(device)
+      self.network = CLEVRVisionOnlyNet(device, sample_count).to(device)
 
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
@@ -937,7 +884,7 @@ if __name__ == "__main__":
 
   # Training hyperparameters
   parser.add_argument("--batch-size", type=int, default=32)
-  parser.add_argument("--learning-rate", type=float, default=0.0001)
+  parser.add_argument("--learning-rate", type=float, default=0.0005)
   parser.add_argument("--latent-dim", type=float, default=1024)
   parser.add_argument("--model_layer", type=int, default=2)
   parser.add_argument("--rela_model_layer", type=int, default=3)
@@ -945,8 +892,7 @@ if __name__ == "__main__":
   parser.add_argument("--max_clause", type=float, default=10)
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopbottomkclauses")
-  parser.add_argument("--train-top-k", type=int, default=3)
-  parser.add_argument("--test-top-k", type=int, default=1)
+  parser.add_argument("--sample-count", type=int, default=8)
   parser.add_argument("--model_path", type=str, default="")
   parser.add_argument("--dataset_dir", type=str, default=dataset_dir)
   parser.add_argument("--use-cuda", action="store_true")
@@ -966,14 +912,14 @@ if __name__ == "__main__":
   args.scene_path = scene_path
   args.question_path = question_path
 
-  args.use_cuda = True
-  args.gpu = 0
+  # args.use_cuda = True
+  # args.gpu = 0
 
   # Parameters
   torch.manual_seed(args.seed)
   random.seed(args.seed)
   device = f"cuda:{args.gpu}" if args.use_cuda else "cpu"
-  model_name = f"vision_only_model_{args.learning_rate}_topbotk_{args.train_top_k}_obj_{args.max_obj}_clause_{args.max_clause}_train_{args.train_num}_model_{args.model_layer}_rmodel_{args.rela_model_layer}_latent_{args.latent_dim}_{args.train_question_type}"
+  model_name = f"vision_only_model_{args.learning_rate}_sample_{args.sample_count}_obj_{args.max_obj}_clause_{args.max_clause}_train_{args.train_num}_model_{args.model_layer}_rmodel_{args.rela_model_layer}_latent_{args.latent_dim}_{args.train_question_type}"
   args.model_path = os.path.join(model_dir, model_name)
 
   if args.train_question_type == "count_only":
@@ -996,10 +942,10 @@ if __name__ == "__main__":
   train_loader, test_loader = clevr_vision_only_loader(args.dataset_dir, train_question_path, test_question_path, args.batch_size, device)
 
   if args.phase == 'train':
-    trainer = Trainer(train_loader, test_loader, device, args.model_path, args.learning_rate, args.train_top_k)
+    trainer = Trainer(train_loader, test_loader, device, args.model_path, args.learning_rate, args.sample_count)
     trainer.train(args.n_epochs)
   else:
-    trainer = Trainer(train_loader, test_loader, device, args.model_path, args.learning_rate, args.test_top_k)
+    trainer = Trainer(train_loader, test_loader, device, args.model_path, args.learning_rate, args.sample_count)
     if args.test_question_type == "scene":
       trainer.test_scene(0)
     else:
