@@ -65,9 +65,11 @@ rel eval_objs(e, o) = same_material_expr(e, f), eval_objs(f, p), material(p, m),
 rel eval_objs(e, o) = same_shape_expr(e, f), eval_objs(f, p), shape(p, s), shape(o, s), o != p
 
 // relation
-rel relate("right", p, o) :- relate("left", o, p)
-rel relate("front", p, o) :- relate("behind", o, p)
-rel eval_objs(e, o) = relate_expr(e, f, r), eval_objs(f, p), relate(r, p, o), o != p
+// rel relate(p, o, "right") :- relate(o, p, "left")
+rel relate(p, o, "left") :- relate(o, p, "right")
+// rel relate(p, o, "front") :- relate(o, p, "behind")
+rel relate(p, o, "behind") :- relate(o, p, "front")
+rel eval_objs(e, o) = relate_expr(e, f, r), eval_objs(f, p), relate(p, o, r), o != p
 
 // eval query
 rel eval_query(e, s) = query_size_expr(e, f), eval_objs(f, o), size(o, s)

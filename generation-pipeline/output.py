@@ -62,17 +62,22 @@ class OutputMapping:
 
 
 class DiscreteOutputMapping(OutputMapping):
-    def __init__(self, elements: List[Any], loss_aggregator):
+    def __init__(self, elements: List[Any], loss_aggregator, device):
         super().__init__(loss_aggregator)
         self.elements = elements
         self.element_indices = {e: i for (i, e) in enumerate(elements)}
+        self.device = device
 
     def dim(self):
         return len(self.elements)
 
-    def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
+    def vectorize(
+        self,
+        results: List,
+        result_probs: torch.Tensor,
+    ) -> torch.Tensor:
         batch_size, sample_count = result_probs.shape
-        result_tensor = torch.zeros((batch_size, len(self.elements)), device=DEVICE)
+        result_tensor = torch.zeros((batch_size, len(self.elements))).to(self.device)
         for i in range(batch_size):
             for j in range(sample_count):
                  if results[i][j] != RESERVED_FAILURE:

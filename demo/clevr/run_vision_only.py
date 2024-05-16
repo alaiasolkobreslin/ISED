@@ -339,10 +339,8 @@ class CLEVRProgram:
 
 class DiscreteClevrEvaluator:
   def __init__(self):
-    self.ctx = scallopy.ScallopContext("difftopkproofs")
+    self.ctx = scallopy.ScallopContext()
     self.ctx.import_file(os.path.abspath(os.path.join(os.path.abspath(__file__), "../scl/clevr_eval_vision_only.scl")))
-
-    # Setup scallopy forward function
 
   def __call__(
       self,
@@ -362,9 +360,9 @@ class DiscreteClevrEvaluator:
     sizes = [(i, c) for (i, c) in enumerate(size) if objs_mask[i]]
     # relas = [(*all_obj_pair_idx.index(i), c) for (i, c) in enumerate(rela) if rela_objs_mask[i]]
     rela_a = [all_obj_pair_idx[i] for i,v in enumerate(rela_objs_mask) if v]
-    a,b = zip(*rela_a)
-    relas = list(zip(a,b,rela))
-    objs = [tuple(i) for i in enumerate(objs_mask)]
+    a, b = zip(*rela_a)
+    relas = list(zip(a, b, rela))
+    objs = [(i,) for (i, is_obj) in enumerate(objs_mask) if is_obj]
 
     scene_graph = [{"obj": objs, "shape": shapes, "color": colors, "material": mats, "size": sizes, "relate": relas} for objs, shapes, colors, mats, sizes, relas in zip(objs, shapes, colors, mats, sizes, relas)]
     combined_dict = {}
@@ -375,62 +373,20 @@ class DiscreteClevrEvaluator:
             else:
                 combined_dict[key] = [value]
     facts = {**program.facts(), **combined_dict}
-    # facts = {k: [fs[k] for fs in list_facts] for k in self.ctx.relations()}
-    # facts = {k: list_facts[k] for k in self.ctx.relations()}
-
-    # disjunctions = {}
-    # for sg_key, batched_sg_facts in list(facts.items()):
-    #   if sg_key in ['shape', 'color', 'material', 'size']:
-    #     if not sg_key in disjunctions:
-    #       disjunctions[sg_key] = []
-
-    #     for sg_facts in batched_sg_facts:
-    #       disj_group = {}
-    #       for fid, (prob, sg_fact) in enumerate(sg_facts):
-    #         if not sg_key == 'relate':
-    #             oid, _ = sg_fact
-    #             if not oid in disj_group:
-    #                 disj_group[oid] = []
-    #             disj_group[oid].append(fid)
-    #       disjunctions[sg_key].append(list(disj_group.values()))
-
-    # y_pred_values, y_pred_probs = self.reason(output_relations=output_relations, **facts, disjunctions=disjunctions)
 
     temp_ctx = self.ctx.clone()
-    self.reason = temp_ctx.forward_function(output="result")
-    result = self.reason(**facts)
-    result_idx = all_answers.index(result)
-    return result_idx
 
+    for (rela_name, facts) in facts.items():
+      temp_ctx.add_facts(rela_name, facts)
 
-# TODO: There seems some error with the initialization setup for PaddedListInputMapping.
-bb_evaluate = blackbox.BlackBoxFunction(
-  DiscreteClevrEvaluator(),
-  input_mappings=(
-    blackbox.NonProbabilisticInput(combine=identity),
-    blackbox.NonProbabilisticInput(combine=identity),
-    blackbox.NonProbabilisticInput(combine=identity),
+    temp_ctx.run()
 
-    # batch_size * 10 * 3
-    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_shapes, combine=identity), combine=identity),
+    result = list(temp_ctx.relation("result"))
 
-    # batch_size * 10 * 8
-    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_colors, combine=identity), combine=identity),
-
-    # batch_size * 10 * 2
-    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_mats, combine=identity), combine=identity),
-
-    # batch_size * 10 * 2
-    blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_sizes, combine=identity), combine=identity),
-
-    # batch_size * 100 * 2
-    blackbox.PaddedListInputMapping(100, blackbox.DiscreteInputMapping(all_relas, combine=identity), combine=identity),
-
-  ),
-  output_mapping=blackbox.DiscreteOutputMapping(all_answers, "add_mult"),
-  batch_size=32,
-  loss_aggregator="add_mult",
-)
+    if len(result) > 0:
+      return result[0][0]
+    else:
+      return "false"
 
 
 class CLEVRVisionOnlyDataset(torch.utils.data.Dataset):
@@ -476,7 +432,15 @@ class CLEVRVisionOnlyDataset(torch.utils.data.Dataset):
     scene_info = scene_to_answer(scene)
 
     # Return all of the information
-    return (question['image_index'], clevr_program, image, orig_boxes.to(self.device), pred_boxes.to(self.device), answer, scene_info)
+    return (
+      question['image_index'],
+      clevr_program,
+      image.to(self.device),
+      orig_boxes.to(self.device),
+      pred_boxes.to(self.device),
+      answer,
+      scene_info,
+    )
 
   @staticmethod
   def collate_fn(batch):
@@ -497,7 +461,7 @@ class CLEVRVisionOnlyDataset(torch.utils.data.Dataset):
       batched_images.append(image)
       indexes = torch.tensor(range(pred_boxes.shape[0]))
       two_object_index = torch.tensor([(i, j) for (i, j) in torch.cartesian_prod(indexes, indexes) if not i == j])
-      batched_rela_objs.append(two_object_index)
+      batched_rela_objs.append(two_object_index.to(device))
 
       for qt, info in scene_info.items():
         if not qt in batched_scenes:
@@ -521,7 +485,6 @@ class CLEVRVisionOnlyDataset(torch.utils.data.Dataset):
     elif type(answer) == int: return answer
     elif answer.isdigit(): return int(answer)
     else: return answer
-
 
 def clevr_vision_only_loader(root: str, train_question_path: str, test_question_path: str, batch_size: int, device: str):
   train_loader = torch.utils.data.DataLoader(CLEVRVisionOnlyDataset(root, train_question_path, True, device), collate_fn=CLEVRVisionOnlyDataset.collate_fn, batch_size=batch_size, shuffle=True)
@@ -580,9 +543,9 @@ class SceneGraphModel(nn.Module):
     for split in batch_split:
       current_logits = logits[current_split:split]
       if relation == 'relate':
-        current_probs = F.sigmoid(current_logits)
+        current_probs = torch.sigmoid(current_logits)
       else:
-        current_probs = F.softmax(current_logits, dim=1)
+        current_probs = torch.softmax(current_logits, dim=1)
       probs.append(current_probs)
       current_split = split
     return torch.cat(probs).reshape(features.shape[0], -1)
@@ -647,21 +610,44 @@ class CLEVRVisionOnlyNet(nn.Module):
 
   def __init__(self, device, k):
     super(CLEVRVisionOnlyNet, self).__init__()
+    self.device = device
 
     # Setup scene graph model
     self.sg_model = SceneGraphModel(device)
 
-    # Setup scallopy context
-    self.ctx = scallopy.ScallopContext("difftopbottomkclauses", k=k)
-    # self.ctx = scallopy.ScallopContext("diffminmaxprob")
-    self.ctx.import_file(os.path.abspath(os.path.join(os.path.abspath(__file__), "../scl/clevr_eval_vision_only.scl")))
-    self.ctx.set_non_probabilistic(self.program_relations)
+    # TODO: There seems some error with the initialization setup for PaddedListInputMapping.
+    self.bb_evaluate = blackbox.BlackBoxFunction(
+      DiscreteClevrEvaluator(),
+      input_mappings=(
+        blackbox.NonProbabilisticInput(combine=identity),
+        blackbox.NonProbabilisticInput(combine=identity),
+        blackbox.NonProbabilisticInput(combine=identity),
 
-    # Setup scallopy forward function
-    # self.reason = self.ctx.forward_function(dispatch='single', debug_provenance=True)
-    self.reason = self.ctx.forward_function(output="result", output_mapping=all_answers)
+        # batch_size * 10 * 3
+        blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_shapes, combine=identity), combine=identity),
 
-    # TODO: Setup blackbox here
+        # batch_size * 10 * 8
+        blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_colors, combine=identity), combine=identity),
+
+        # batch_size * 10 * 2
+        blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_mats, combine=identity), combine=identity),
+
+        # batch_size * 10 * 2
+        blackbox.PaddedListInputMapping(10, blackbox.DiscreteInputMapping(all_sizes, combine=identity), combine=identity),
+
+        # batch_size * 100 * 2
+        blackbox.PaddedListInputMapping(100, blackbox.DiscreteInputMapping(all_relas, combine=identity), combine=identity),
+      ),
+      output_mapping=blackbox.DiscreteOutputMapping(
+        all_answers,
+        "min_max",
+        device=self.device,
+      ),
+      batch_size=32,
+      loss_aggregator="min_max",
+      device=self.device,
+    )
+
 
   def prob_mat_to_clauses(self, batch_prob, batch_split, all_elements):
     splits = [(0, r) if i == 0 else (batch_split[i - 1], r) for (i, r) in enumerate(batch_split)]
@@ -736,7 +722,7 @@ class CLEVRVisionOnlyNet(nn.Module):
 
     shape_prob, color_prob, mat_prob, size_prob, rela_prob, objs, batched_rela_objs, batch_rela_split, = self.sg_model(images, orig_boxes, pred_boxes, rela_objs, batch_split)
     batch_size = len(objs)
-    objs_mask = torch.zeros(batch_size, max_obj_num, dtype=torch.bool)
+    objs_mask = torch.zeros(batch_size, max_obj_num, dtype=torch.bool).to(self.device)
     for i, obj_ls in enumerate(objs):
       for obj in obj_ls:
         objs_mask[i][obj] = True
@@ -749,11 +735,11 @@ class CLEVRVisionOnlyNet(nn.Module):
     splits = [(0, r) if i == 0 else (batch_split[i - 1], r) for (i, r) in enumerate(batch_split)]
 
     batched_lens = []
-    batched_shape_probs = torch.ones(batch_size, max_obj_num, len(all_shapes))*(1/len(all_shapes))
-    batched_color_probs = torch.ones(batch_size, max_obj_num, len(all_colors))*(1/len(all_colors))
-    batched_mat_probs = torch.ones(batch_size, max_obj_num, len(all_mats))*(1/len(all_mats))
-    batched_size_probs = torch.ones(batch_size, max_obj_num, len(all_sizes))*(1/len(all_sizes))
-    batched_rela_probs = torch.ones(batch_size, max_obj_num ** 2, len(all_relas))*(1/len(all_relas))
+    batched_shape_probs = (torch.ones(batch_size, max_obj_num, len(all_shapes)) * (1 / len(all_shapes))).to(self.device)
+    batched_color_probs = (torch.ones(batch_size, max_obj_num, len(all_colors)) * (1 / len(all_colors))).to(self.device)
+    batched_mat_probs = (torch.ones(batch_size, max_obj_num, len(all_mats)) * (1 / len(all_mats))).to(self.device)
+    batched_size_probs = (torch.ones(batch_size, max_obj_num, len(all_sizes)) * (1 / len(all_sizes))).to(self.device)
+    batched_rela_probs = (torch.ones(batch_size, max_obj_num ** 2, len(all_relas)) * (1 / len(all_relas))).to(self.device)
 
 
     for batch_num, (begin, end) in enumerate(splits):
@@ -779,7 +765,7 @@ class CLEVRVisionOnlyNet(nn.Module):
     batched_size_inputs = inp.PaddedListInput(batched_size_probs,batched_lens)
     batched_rela_inputs = inp.PaddedListInput(batched_rela_probs,batched_lens)
 
-    result = bb_evaluate(
+    result = self.bb_evaluate(
       programs, # [("Count", 0, 1), ...]
       objs_mask, # 10 bool mask
       rela_objs_mask, # 100 bool mask
@@ -809,30 +795,14 @@ class Trainer():
     self.min_test_loss = 100000000.0
     self.phase = phase
 
-  def _loss_fn(self, y_pred_values, y_pred_probs, y_values):
-    y_batched = []
-    for v in y_values:
-      y = []
-      recorded = False
-      for u in y_pred_values:
-        if str(u) == str(v):
-          y.append(torch.tensor([1.0]))
-          if recorded:
-            print('here')
-          recorded = True
-        else:
-          y.append(torch.tensor([0.0]))
-      y_batched.append(torch.stack(y))
+  def _loss_fn(self, y_pred_probs, y_values):
+    batch_size, _ = y_pred_probs.shape
+    gt_tensor = torch.tensor([[1.0 if y_values[i] == all_answers[j] else 0.0 for j in range(len(all_answers))] for i in range(batch_size)]).to(self.device)
+    return self.loss_fn(y_pred_probs, gt_tensor)
 
-    y = torch.stack(y_batched).to(self.device)
-    y = y.reshape(y_pred_probs.shape[0], y_pred_probs.shape[1])
-    # print(y_pred_probs)
-    assert torch.sum(y) == y.shape[0]
-    return self.loss_fn(y_pred_probs, y)
-
-  def _num_correct(self, y_pred_values, y_pred_probs, y_values):
+  def _num_correct(self, y_pred_probs, y_values):
     indices = torch.argmax(y_pred_probs, dim=1).to("cpu")
-    predicted = [y_pred_values[i][0] for i in indices]
+    predicted = [all_answers[i] for i in indices]
     return sum([1 if x == y else 0 for (x, y) in zip(predicted, y_values)])
 
   def train_epoch(self, epoch):
@@ -845,9 +815,9 @@ class Trainer():
       batch_size = len(y)
 
       # Do the prediction and obtain the loss/accuracy
-      (y_pred_values, y_pred_probs) = self.network.bb_forward(x, y)
-      loss = self._loss_fn(y_pred_values, y_pred_probs, y)
-      num_correct = self._num_correct(y_pred_values, y_pred_probs, y)
+      (_, y_pred_probs, _) = self.network.bb_forward(x, y)
+      loss = self._loss_fn(y_pred_probs, y)
+      num_correct = self._num_correct(y_pred_probs, y)
 
       # Compute loss
       self.optimizer.zero_grad()
@@ -876,9 +846,9 @@ class Trainer():
         batch_size = len(y)
 
         # Do the prediction and obtain the loss/accuracy
-        (y_pred_values, y_pred_probs) = self.network(x, y)
-        loss = self._loss_fn(y_pred_values, y_pred_probs, y)
-        num_correct = self._num_correct(y_pred_values, y_pred_probs, y)
+        (_, y_pred_probs, _) = self.network.bb_forward(x, y)
+        loss = self._loss_fn(y_pred_probs, y)
+        num_correct = self._num_correct(y_pred_probs, y)
 
         # Stats
         test_loss += loss.detach()
@@ -947,8 +917,6 @@ if __name__ == "__main__":
   dataset_dir = os.path.join(data_dir, "CLEVR")
   model_dir = os.path.join(dataset_dir, "models")
 
-
-
   # Argument parser
   # Argument parser
   parser = ArgumentParser("clevr_vision_only")
@@ -997,6 +965,9 @@ if __name__ == "__main__":
 
   args.scene_path = scene_path
   args.question_path = question_path
+
+  args.use_cuda = True
+  args.gpu = 0
 
   # Parameters
   torch.manual_seed(args.seed)

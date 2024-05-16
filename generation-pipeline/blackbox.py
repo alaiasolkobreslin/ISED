@@ -27,7 +27,8 @@ class BlackBoxFunction(torch.nn.Module):
             check_symmetry: bool = True,
             caching: bool = True,
             sample_count: int = 100,
-            timeout_seconds: int = 5000):
+            timeout_seconds: int = 5000,
+            device: str = "cpu"):
         super(BlackBoxFunction, self).__init__()
         assert type(input_mappings) == tuple, "input_mappings must be a tuple"
         self.function = function
@@ -43,6 +44,7 @@ class BlackBoxFunction(torch.nn.Module):
         self.timeout_seconds = timeout_seconds
         self.timeout_decorator = self.decorator
         self.error_message = os.strerror(errno.ETIME)
+        self.device = device
 
     def get_batch_size(self, input: Any):
         if type(input) == torch.Tensor:
@@ -89,7 +91,7 @@ class BlackBoxFunction(torch.nn.Module):
         to_compute_inputs, sampled_indices = [], []
         for (input_i, input_mapping_i) in zip(inputs, self.input_mappings):
             if isinstance(input_mapping_i, NonProbabilisticInput):
-                to_compute_inputs.append([input_i for _ in range(self.sample_count)])
+                to_compute_inputs.append([[input_i[task_id] for _ in range(self.sample_count)] for task_id in range(batch_size)])
             else:
                 sampled_indices_i, sampled_elements_i = input_mapping_i.sample(
                     input_i, sample_count=self.sample_count)
@@ -103,12 +105,16 @@ class BlackBoxFunction(torch.nn.Module):
                 sampled_indices.append(sampled_indices_i)
         to_compute_inputs = self.zip_batched_inputs(to_compute_inputs)
 
+
+        print("before")
         # Get the outputs from the black-box function
         results = self.invoke_function_on_batched_inputs(to_compute_inputs)
+        print("after")
 
         # Aggregate the probabilities
-        result_probs = torch.ones((batch_size, self.sample_count), device=DEVICE)
-        for i, (input_tensor, sampled_index) in enumerate(zip(inputs[3:], sampled_indices)):
+        result_probs = torch.ones((batch_size, self.sample_count)).to(self.device)
+        sampled_input_mappings = [inp for (i, inp) in enumerate(inputs) if not isinstance(self.input_mappings[i], NonProbabilisticInput)]
+        for i, (input_tensor, sampled_index) in enumerate(zip(sampled_input_mappings, sampled_indices)):
             gathered_probs = input_tensor.gather(1, sampled_index)
             if self.loss_aggregator == ADD_MULT:
                 result_probs *= gathered_probs
@@ -151,8 +157,7 @@ class BlackBoxFunction(torch.nn.Module):
 
     def invoke_function_on_batched_inputs(self, batched_inputs):
         #TODO: fix
-        return [self.process_batch(i) for i in batched_inputs]
-
+        # return [self.process_batch(i) for i in batched_inputs]
         return self.pool.map(self.process_batch, batched_inputs)
 
     def __getstate__(self):
