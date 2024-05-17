@@ -10,10 +10,10 @@ from deepproblog.model import Model
 from deepproblog.network import Network
 from deepproblog.train import train_model
 
-N = 1
+N = 7
 method = 'exact'
 name = "hwf_{}_{}".format(method, N)
-curriculum = False
+curriculum = True
 
 print("Training HWF with N={} and curriculum={}".format(N, curriculum))
 
@@ -55,7 +55,7 @@ train_log = train_model(
     loader,
     50,
     log_iter=50,
-    inital_test=False,
+    inital_test=True,
     test_iter=100,
     test=lambda x: [
         ("Val_accuracy", get_confusion_matrix(x, val_dataset, eps=1e-6).accuracy()),

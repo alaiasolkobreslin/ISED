@@ -10,6 +10,7 @@ import numpy as np
 from time import time
 import random
 from typing import Optional, Callable
+import time
 
 from argparse import ArgumentParser
 
@@ -53,8 +54,8 @@ def validate(val_loader, model, final_output, args):
 
     with torch.no_grad():
         for i, (images, lengths, target) in enumerate(iter):
-            images = tuple(image.to(args.gpu_id) for image in images)
-            target = target.to(args.gpu_id)
+            images = torch.stack([image.to("cpu") for image in images])
+            target = target.to("cpu")
 
             preds = model(images, lengths)
             final_output(model,target,args, *preds) # this populates model.rewards
@@ -104,8 +105,8 @@ class Trainer():
 
     eps = np.finfo(np.float32).eps.item()
     for i, (images, lengths, target) in enumerate(iter):
-      images = torch.stack([image.to(self.args.gpu_id) for image in images])
-      target = target.to(self.args.gpu_id)
+      images = torch.stack([image.to("cpu") for image in images])
+      target = target.to("cpu")
       preds = self.network(images, lengths)
       self.final_output(self.model,target,self.args,*preds)
       rewards = np.array(self.model.rewards)
@@ -150,8 +151,8 @@ class Trainer():
     eps = np.finfo(np.float32).eps.item()
     with torch.no_grad():
       for i, (images, lengths, target) in enumerate(iter):
-        images = tuple(image.to(self.args.gpu_id) for image in images)
-        target = target.to(self.args.gpu_id)
+        images = torch.stack([image.to("cpu") for image in images])
+        target = target.to("cpu")
         
         preds = self.network(images, lengths)
         output = self.final_output(self.model,target,self.args,*preds)
@@ -186,6 +187,7 @@ class Trainer():
     return avg_loss, rewards_mean, perc
 
   def train(self, n_epochs):
+    dict = {}
     ckpt_path = os.path.join('outputs', 'nasr/')
     best_loss = None
     best_reward = None
@@ -193,9 +195,16 @@ class Trainer():
     with open(f"{self.path}/detail_log.txt", 'w'): pass
     for epoch in range(1, n_epochs+1):
         lr = adjust_learning_rate(self.optimizer, epoch, self.args)
+        t0 = time.time()
         train_loss, train_rewards = self.train_epoch(epoch)
+        t1 = time.time()
+        dict['L ' + str(epoch)] = round(train_loss, ndigits=4)
+        dict['R ' + str(epoch)] = round(train_rewards, ndigits=4)
+        dict['T ' + str(epoch)] = round(t1 - t0, ndigits=4)
         loss, valid_rewards = validate(self.valid_loader, self.model, self.final_output, self.args)
         test_loss, _, test_accuracy = self.test_epoch(epoch)
+        
+        dict['A ' + str(epoch)] = round(test_accuracy.item(), ndigits=6)
       
         if best_reward is None or valid_rewards > best_reward :
             best_reward = valid_rewards
@@ -219,3 +228,5 @@ class Trainer():
     print(f"Best Model Test Loss: {avg_loss}")
     print(f"Best Model Test Reward: {rewards_mean}")
     print(f"Best Model Test Accuracy: {perc}")
+    
+    return dict

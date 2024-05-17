@@ -24,6 +24,6 @@ parse([N1,*,N2|T], R) :-
     parse([N3|T],R).
 
 parse([N1,/,N2|T], R) :-
-    N2 \== 0,
+    N2 \= 0,
     N3 is N1/N2,
     parse([N3|T],R).
