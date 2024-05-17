@@ -6,12 +6,12 @@ from torch.utils.data import DataLoader
 from experiments.mnist_op import MNISTSum2Model, MNISTSum3Model, MNISTSum4Model
 from experiments.mnist_op import MNISTMult2Model, MNISTMod2Model, MNISTEqualModel
 from experiments.mnist_op import MNISTSort2Model, MNISTAddSubModel, MNISTNot3Or4Model
-from experiments.mnist_op import MNISTHowMany3Or4Model
+from experiments.mnist_op import MNISTHowMany3Or4Model, MNISTAddMod3Model
 import torch
 import wandb
 import random
 
-from experiments.mnist_op.data import sum_2, sum_3, sum_4, mult_2, mod_2, eq_2, less_than, not_3_or_4, how_many_3_or_4, add_sub
+from experiments.mnist_op.data import sum_2, sum_3, sum_4, mult_2, mod_2, eq_2, less_than, not_3_or_4, how_many_3_or_4, add_sub, add_mod_3
 from inference_models import NoPossibleActionsException
 
 SWEEP = True
@@ -131,6 +131,9 @@ if __name__ == '__main__':
     elif config["op"] == "how_many_3_or_4":
         op = how_many_3_or_4
         model = MNISTHowMany3Or4Model(config).to(device)
+    elif config["op"] == "add_mod_3":
+        op = add_mod_3
+        model = MNISTAddMod3Model(config).to(device)
     if config["test"]:
         train_set = op(config["N"], "train")
         val_set = op(config["N"], "test")

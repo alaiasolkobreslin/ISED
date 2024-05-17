@@ -1,1 +1,1 @@
-from .MNIST import sum_2, sum_3, sum_4, mult_2, mod_2, eq_2, less_than, not_3_or_4, how_many_3_or_4, add_sub
+from .MNIST import sum_2, sum_3, sum_4, mult_2, mod_2, eq_2, less_than, not_3_or_4, how_many_3_or_4, add_sub, add_mod_3

@@ -171,6 +171,17 @@ def how_many_3_or_4(n: int, dataset: str, seed=None):
         arity=8,
         seed=seed,
     )
+    
+def add_mod_3(n: int, dataset: str, seed=None):
+
+    return MNISTOperator(
+        dataset_name=dataset,
+        function_name="add_mod_3",
+        operator=(lambda x: (x[0] + x[1]) % 3),
+        size=n,
+        arity=2,
+        seed=seed,
+    )
 
 class MNISTOperator(TorchDataset):
     def __getitem__(self, index: int) -> Tuple[np.array, np.array, int, List[int]]:

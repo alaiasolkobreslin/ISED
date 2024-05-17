@@ -10,3 +10,4 @@ from .anesi_mnist_sort_2 import MNISTSort2Model
 from .anesi_mnist_sum_2 import MNISTSum2Model
 from .anesi_mnist_sum_3 import MNISTSum3Model
 from .anesi_mnist_sum_4 import MNISTSum4Model
+from .anesi_mnist_add_mod_3 import MNISTAddMod3Model
