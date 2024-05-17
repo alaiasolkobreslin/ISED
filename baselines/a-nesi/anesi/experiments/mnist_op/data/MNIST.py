@@ -155,7 +155,7 @@ def add_sub(n: int, dataset: str, seed=None):
     return MNISTOperator(
         dataset_name=dataset,
         function_name="add_sub",
-        operator=(lambda x: x[0] + x[1] - x[2]),
+        operator=(lambda x: x[0] + x[1] - x[2] + 9),
         size=n,
         arity=3,
         seed=seed,

@@ -16,4 +16,4 @@ class MNISTAddSubModel(MNISTModel):
         raise NotImplementedError
 
     def op(self, n1: torch.Tensor, n2: torch.Tensor, n3: torch.tensor) -> torch.Tensor:
-        return n1 + n2 - n3
+        return n1 + n2 - n3 + 9
