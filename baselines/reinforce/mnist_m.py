@@ -406,7 +406,7 @@ if __name__ == "__main__":
       print(grad_type)
       
       # Data
-      data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
+      data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
       model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), f"../../model/{task_type}"))
       os.makedirs(model_dir, exist_ok=True)
 

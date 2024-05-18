@@ -210,7 +210,7 @@ if __name__ == "__main__":
   random.seed(args.seed)
 
   # Load data
-  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../benchmarks/data"))
+  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
   model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
   if not os.path.exists(model_dir): os.makedirs(model_dir)
 

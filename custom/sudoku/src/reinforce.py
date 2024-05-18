@@ -240,10 +240,11 @@ class Trainer():
 
 if __name__ == "__main__":
   parser = ArgumentParser('sudoku_reinforce')
-  parser.add_argument('--gpu-id', default='mps', type=str)
+  parser.add_argument('--seed', default=1234, type=int)
+  parser.add_argument('--gpu-id', default=0, type=int)
   parser.add_argument('--print-freq', default=100, type=int)
   parser.add_argument('--solver', type=str, default='prolog')
-  parser.add_argument('-j', '--workers', default=0, type=int) 
+  parser.add_argument('-j', '--workers', default=4, type=int) 
 
   parser.add_argument('--block-len', default=81, type=int)
   parser.add_argument('--data', type=str, default='big_kaggle')
@@ -261,22 +262,21 @@ if __name__ == "__main__":
   parser.add_argument('--grad-type', type=str, default='reinforce')
   args = parser.parse_args()
 
-  for seed in [3177, 5848, 9175]:
-    torch.manual_seed(seed)
-    train_dataset = SudokuDataset_RL(args.data,'-train')
-    test_dataset = SudokuDataset_RL(args.data,'-valid')
+  torch.manual_seed(seed)
+  train_dataset = SudokuDataset_RL(args.data,'-train')
+  test_dataset = SudokuDataset_RL(args.data,'-valid')
 
-    # Model
-    model = get_model(block_len=args.block_len)
-    model.load_pretrained_models(args.data)
-    model.to(args.gpu_id)
+  # Model
+  model = get_model(block_len=args.block_len)
+  model.load_pretrained_models(args.data)
+  model.to(args.gpu_id)
 
-    model_dir = os.path.join('outputs', f'{args.grad_type}')
-    os.makedirs(model_dir, exist_ok=True)
+  model_dir = os.path.join('outputs', f'{args.grad_type}')
+  os.makedirs(model_dir, exist_ok=True)
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers)
+  train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
+  test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers)
 
-    # load pre_trained models
-    trainer = Trainer(model, loss_fn, train_loader, test_loader, model_dir, args.lr, args.grad_type, args.block_len, args.sample_count, args.batch_size, args.print_freq, seed, args)
-    trainer.train(args.epochs)
+  # load pre_trained models
+  trainer = Trainer(model, loss_fn, train_loader, test_loader, model_dir, args.lr, args.grad_type, args.block_len, args.sample_count, args.batch_size, args.print_freq, seed, args)
+  trainer.train(args.epochs)

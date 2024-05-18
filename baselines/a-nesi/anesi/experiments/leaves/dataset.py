@@ -58,7 +58,7 @@ class LeavesDataset(torch.utils.data.Dataset):
     return (img, label)
 
 def leaves_loader():
-  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../../neuro-symbolic-dataset/benchmarks/data"))
+  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../data"))
   dataset = LeavesDataset(data_root, "leaf_11", 40)
   num_train = 30*11
   num_test = len(dataset) - num_train
