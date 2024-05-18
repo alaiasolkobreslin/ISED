@@ -20,8 +20,8 @@ class SudokuNet(nn.Module):
         self.network = get_model(block_len=81)
         self.network.load_pretrained_models('big_kaggle')
         
-        self.base_ctx = scallopy.Context(provenance)
-        self.base_ctx.import_file("src/demo.scl")
+        self.base_ctx = scallopy.Context(provenance = provenance, k=1)
+        self.base_ctx.import_file("src/sudoku_solver.scl")
         self.base_ctx.add_relation("digit_1", int, input_mapping=list(range(10)))
         self.base_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
         self.base_ctx.add_relation("digit_3", int, input_mapping=list(range(10)))
@@ -260,7 +260,7 @@ if __name__ == "__main__":
 
   parser.add_argument('--epochs', default=1, type=int)
   parser.add_argument('--warmup', default=10, type=int)
-  parser.add_argument('-b', '--batch-size', default=256, type=int)
+  parser.add_argument('-b', '--batch-size', default=2, type=int)
   parser.add_argument('--lr', default=0.00001, type=float)
   parser.add_argument('--weight-decay', default=3e-1, type=float)
   parser.add_argument('--clip-grad-norm', default=1., type=float)
