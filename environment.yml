@@ -1,4 +1,4 @@
-name: ANeSI
+name: ISED
 channels:
   - conda-forge
   - defaults
@@ -17,11 +17,11 @@ dependencies:
   - libsqlite=3.40.0
   - libzlib=1.2.13
   - llvm-openmp=15.0.5
-  - mkl=2022.1.0
   - ncurses=6.3
   - ninja=1.11.0
   - numpy=1.23.5
   - openssl=3.0.7
+  - openai=1.6.1
   - pip=22.3.1
   - pycparser=2.21
   - python=3.9.15
@@ -33,10 +33,10 @@ dependencies:
   - sleef=3.5.1
   - tbb=2021.7.0
   - tk=8.6.12
+  - torchvision=0.13.1
   - tqdm=4.64.1
   - typing_extensions=4.4.0
   - tzdata=2022f
-  - wandb==0.13.5
   - wheel=0.38.4
   - xz=5.2.6
   - yaml=0.2.5
