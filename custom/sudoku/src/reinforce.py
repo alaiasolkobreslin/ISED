@@ -74,7 +74,7 @@ class Trainer():
     self.seed = seed
     self.device = torch.device("cuda")
 
-    if grad_type == 'icr' or grad_type == 'advanced_icr': self.indecater_multiplier()
+    if grad_type == 'icr': self.indecater_multiplier()
 
   def indecater_multiplier(self):
     self.icr_mult = torch.zeros((self.dim, 2, self.sample_count, self.batch_size, self.dim)).to(self.device)
@@ -109,35 +109,6 @@ class Trainer():
     ground_truth_boards = torch.argmax(target,dim=2)
     solution_boards_new = torch.argmax(solution_boards,dim=2)+1
     masking_prob = masking_boards.sigmoid()
-    
-    d = torch.distributions.Bernoulli(logits=masking_prob)
-    samples = d.sample((self.sample_count,))
-    cleaned_boards = solution_boards_new * samples
-
-    f_sample, _ = self.loss_fn(cleaned_boards, solution_boards_new.repeat(self.sample_count,1), ground_truth_boards.repeat(self.sample_count,1))
-    f_mean = f_sample.mean(dim=0)
-
-    outer_samples = torch.stack([samples] * 2, dim=0)
-    outer_samples = torch.stack([outer_samples] * self.dim, dim=0)
-    outer_samples = outer_samples * (1 - self.icr_mult) + self.icr_replacement
-    outer_clean_boards = outer_samples * solution_boards_new
-    outer_loss = self.loss_fn(outer_clean_boards, solution_boards_new.repeat(self.dim, 2, self.sample_count,1), ground_truth_boards.repeat(self.dim, 2, self.sample_count,1))
-    
-    variable_loss = outer_loss.mean(dim=2).permute(2,0,1)
-    indecater_expression = variable_loss.detach() * masking_prob
-    indecater_expression = indecater_expression.sum(dim=-1)
-    indecater_expression = indecater_expression.sum(dim=-1)
-
-    icr_prob = (f_mean - indecater_expression).detach() + indecater_expression
-    loss = -torch.log(indecater_expression + 1e-8) # -torch.log(icr_prob + 1e-8)
-    loss = loss.mean(dim=0)
-    return loss
-  
-  def advanced_indecater_grads(self, data, target):
-    solution_boards, masking_boards = self.network(data)
-    ground_truth_boards = torch.argmax(target,dim=2)
-    solution_boards_new = torch.argmax(solution_boards,dim=2)+1
-    masking_prob = masking_boards.sigmoid()
 
     d = torch.distributions.Categorical(logits=masking_prob)
     samples = d.sample((self.sample_count * self.dim,))
@@ -164,8 +135,6 @@ class Trainer():
       return self.reinforce_grads(data, target)
     elif self.grad_type == 'icr':
       return self.indecater_grads(data, target)
-    elif self.grad_type == 'advanced_icr':
-      return self.advanced_indecater_grads(data, target)
     
   def adjust_learning_rate(self, epoch):
     lr = self.args.lr
@@ -192,7 +161,7 @@ class Trainer():
       #  torch.nn.utils.clip_grad_norm_(self.network.parameters(), max_norm=self.args.clip_grad_norm, norm_type=2)
       
       self.optimizer.step()
-      torch.mps.empty_cache() 
+      torch.cuda.empty_cache()
 
       if counter % self.log_it == 0:
         print(f"Epoch {epoch} iterations {counter}",
@@ -211,7 +180,7 @@ class Trainer():
         r, l = self.grads(data, target)
         reward += float(r * data.shape[0])
         loss += float(l * data.shape[0])
-        torch.mps.empty_cache()
+        torch.cuda.empty_cache()
       avg_loss = loss/n
       avg_reward = reward/n 
       print(f'----[rl][Epoch {epoch}] \t \t AvgLoss {avg_loss:.4f} \t \t AvgReward {avg_reward:.4f}')
@@ -262,7 +231,7 @@ if __name__ == "__main__":
   parser.add_argument('--grad-type', type=str, default='reinforce')
   args = parser.parse_args()
 
-  torch.manual_seed(seed)
+  torch.manual_seed(args.seed)
   train_dataset = SudokuDataset_RL(args.data,'-train')
   test_dataset = SudokuDataset_RL(args.data,'-valid')
 

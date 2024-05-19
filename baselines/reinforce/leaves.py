@@ -239,42 +239,11 @@ class Trainer():
     loss = loss.mean(dim=0)
     return loss
   
-  def advanced_indecater_grads(self, data, target):
-    logits1, logits2, logits3 = self.network(data)
-    d1 = torch.distributions.Categorical(logits=logits1)
-    d2 = torch.distributions.Categorical(logits=logits2)
-    d3 = torch.distributions.Categorical(logits=logits3)
-    samples1 = d1.sample((self.sample_count * self.dim,))
-    samples2 = d2.sample((self.sample_count * self.dim,))
-    samples3 = d3.sample((self.sample_count * self.dim,))
-    samples = torch.stack((samples1, samples2, samples3), dim=2)
-    f_sample = self.loss_fn(samples, target.unsqueeze(0))
-    f_mean = f_sample.mean(dim=0)
-    batch_size = data.shape[0]
-
-    samples = samples.reshape((self.dim, self.sample_count, batch_size, self.dim))
-    m, r = self.indecater_multiplier(batch_size)
-    outer_samples = outer_samples * (1 - m) + r
-    outer_loss = self.loss_fn(outer_samples, target.unsqueeze(0).unsqueeze(0).unsqueeze(0))
-    
-    variable_loss = outer_loss.mean(dim=2).permute(2,0,1)
-    probs = torch.cat((F.softmax(logits1, dim=-1), F.softmax(logits2, dim=-1), F.softmax(logits3, dim=-1)), dim=1)
-    indecater_expression = variable_loss.detach() * probs
-    indecater_expression = indecater_expression.sum(dim=-1)
-    indecater_expression = indecater_expression.sum(dim=-1)
-
-    icr_prob = (f_mean - indecater_expression).detach() + indecater_expression
-    loss = -torch.log(indecater_expression + 1e-8) # -torch.log(icr_prob + 1e-8)
-    loss = loss.mean(dim=0)
-    return loss
-  
   def grads(self, data, target):
     if self.grad_type == 'reinforce':
       return self.reinforce_grads(data, target)
     elif self.grad_type == 'icr':
       return self.indecater_grads(data, target)
-    elif self.grad_type == 'advanced_icr':
-      return self.advanced_indecater_grads(data, target)
 
   def train_epoch(self, epoch):
     train_loss = 0

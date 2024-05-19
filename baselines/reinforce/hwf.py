@@ -181,38 +181,11 @@ class Trainer():
     loss = loss.mean(dim=0)
     return loss
   
-  def advanced_indecater_grads(self, data, eqn_len, target):
-    data = torch.cat([d[:eqn_len[i]] for i, d in enumerate(data)], dim=0)
-    logits = self.network(data)
-    d = torch.distributions.Categorical(logits=logits)
-    samples = d.sample((self.sample_count,))
-    f_sample = self.loss_fn(samples, eqn_len, target, self.task)
-    f_mean = f_sample.mean(dim=0)
-    batch_size = data[0].shape[0]
-
-    samples = samples.reshape((self.dim, self.sample_count, batch_size, self.dim))
-    outer_samples = torch.stack([samples] * 14, dim=1)
-    m, r = self.indecater_multiplier(batch_size)
-    outer_samples = outer_samples * (1 - m) + r
-    outer_loss = self.loss_fn(outer_samples, eqn_len, target, self.task)
-    
-    variable_loss = outer_loss.mean(dim=2).permute(2,0,1)
-    indecater_expression = variable_loss.detach() * F.softmax(logits, dim=-1)
-    indecater_expression = indecater_expression.sum(dim=-1)
-    indecater_expression = indecater_expression.sum(dim=-1)
-
-    icr_prob = (f_mean - indecater_expression).detach() + indecater_expression
-    loss = -torch.log(indecater_expression + 1e-8) # -torch.log(icr_prob + 1e-8)
-    loss = loss.mean(dim=0)
-    return loss
-  
   def grads(self, data, eqn_len, target):
     if self.grad_type == 'reinforce':
       return self.reinforce_grads(data, eqn_len, target)
     elif self.grad_type == 'icr':
       return self.indecater_grads(data, eqn_len, target)
-    elif self.grad_type == 'advanced_icr':
-      return self.advanced_indecater_grads(data, eqn_len, target)
 
   def train_epoch(self, epoch):
     train_loss = 0
