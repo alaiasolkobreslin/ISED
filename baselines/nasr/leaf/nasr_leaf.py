@@ -265,7 +265,7 @@ class Trainer():
 
       model.rewards = []
       model.shared_log_probs = []
-      torch.mps.empty_cache()   
+      torch.cuda.empty_cache()  
     
     return (train_loss/num_items), rewards_mean
 
@@ -299,7 +299,7 @@ class Trainer():
         test_loss += float(policy_loss.item() * images.size(0))
         model.rewards = []
         model.saved_log_probs = []
-        torch.mps.empty_cache()
+        torch.cuda.empty_cache()
 
         # output = validation(f1, f2, f3)
         num_correct += (output==target.cpu()).sum()

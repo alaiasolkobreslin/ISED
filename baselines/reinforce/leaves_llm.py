@@ -3,7 +3,6 @@ import random
 from typing import *
 from PIL import Image
 import csv
-import pickle
 import time
 
 import torch
@@ -17,13 +16,10 @@ import json
 from argparse import ArgumentParser
 
 client = OpenAI(
-  api_key='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'
+  api_key=os.environ["OPENAI_API_KEY"]
 )
 
 queries = {}
-dict_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../finite_diff"))
-with open(dict_dir+'/neuro-symbolic/leaf11.pkl', 'rb') as f: 
-  queries = pickle.load(f)
 
 l11_4_system = "You are an expert in classifying plant species based on the margin, shape, and texture of the leaves. You are designed to output a single JSON."
 l11_4_one = ['entire', 'lobed', 'serrate']
@@ -39,9 +35,8 @@ def call_llm(plants, features):
   user_msg = user_list + question
   if user_msg in queries.keys():
     return queries[user_msg]
-  raise Exception("WRONG")
   response = client.chat.completions.create(
-              model="gpt-4-1106-preview", #
+              model="gpt-4-1106-preview",
               messages=[
                 {"role": "system", "content": l11_4_system},
                 {"role": "user", "content": user_msg + format}
