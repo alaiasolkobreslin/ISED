@@ -203,7 +203,7 @@ class Scallop_Leaf_Net(nn.Module):
     self.texture_net = Leaf_Net_Texture()
     self.shape_net = Leaf_Net_Shape()
     self.base_ctx = scallopy.Context(provenance)
-    self.base_ctx.import_file("leaves/config.scl")
+    self.base_ctx.import_file("baselines/scallop/leaves_config.scl")
     self.base_ctx.add_relation("margin", str, input_mapping=self.margin_net.f1)
     self.base_ctx.add_relation("shape", str, input_mapping=self.shape_net.f2)    
     self.base_ctx.add_relation("texture", str, input_mapping=self.texture_net.f3)

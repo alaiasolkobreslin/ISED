@@ -21,7 +21,7 @@ class SudokuNet(nn.Module):
         self.network.load_pretrained_models('big_kaggle')
         
         self.base_ctx = scallopy.Context(provenance = provenance, k=1)
-        self.base_ctx.import_file("src/sudoku_solver.scl")
+        self.base_ctx.import_file("src/sudoku_solver/sudoku_scallop.scl")
         self.base_ctx.add_relation("digit_1", int, input_mapping=list(range(10)))
         self.base_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
         self.base_ctx.add_relation("digit_3", int, input_mapping=list(range(10)))
@@ -141,7 +141,7 @@ def adjust_learning_rate(optimizer, epoch, args):
     
 class Trainer():
   def __init__(self, train_loader, test_loader, path, args):
-    self.device = torch.device("mps")
+    self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     self.network = SudokuNet(args.provenance).to(self.device)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -188,7 +188,7 @@ class Trainer():
       num_items += images.size(0)
       train_loss += loss.item()
 
-      torch.mps.empty_cache() 
+      torch.cuda.empty_cache()
       
       if args.print_freq >= 0 and i % args.print_freq == 0:
         avg_loss = train_loss/num_items
@@ -214,7 +214,7 @@ class Trainer():
         num_items += images.size(0)
         test_loss += loss.item()
         
-        torch.mps.empty_cache()
+        ttorch.cuda.empty_cache()
 
         if args.print_freq >= 0 and i % args.print_freq == 0:
           avg_loss = (test_loss / num_items)
