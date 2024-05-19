@@ -22,16 +22,11 @@ except Exception:
 def compute_reward(final_solution,ground_truth_board):
     final_solution = list(map(int, final_solution))
     ground_truth_board = list(map(int,ground_truth_board))
-    if final_solution == ground_truth_board:
-        reward = 10
-    else:
-        reward = 0
     partial_reward = 0.0
     for i,j in zip(final_solution,ground_truth_board):
         if i == j:
             partial_reward+=1
-    reward += partial_reward/81
-    return reward
+    return partial_reward/81
 
 def loss_fn(clean_boards, solution_boards_new, ground_truth_boards):
   final_boards = []
@@ -72,17 +67,7 @@ class Trainer():
     self.log_it = log_it
     self.args = args
     self.seed = seed
-    self.device = torch.device("cuda")
-
-    if grad_type == 'icr': self.indecater_multiplier()
-
-  def indecater_multiplier(self):
-    self.icr_mult = torch.zeros((self.dim, 2, self.sample_count, self.batch_size, self.dim)).to(self.device)
-    self.icr_replacement = torch.zeros((self.dim, 2, self.sample_count, self.batch_size, self.dim)).to(self.device)
-    for i in range(self.dim):
-      for j in range(2):
-        self.icr_mult[i,j,:,:,i] = 1
-        self.icr_replacement[i,j,:,:,i] = j
+    self.device = torch.device("CUDA")
 
   def reinforce_grads(self, data, target):
     solution_boards, masking_boards = self.network(data)
@@ -92,7 +77,7 @@ class Trainer():
 
     d = torch.distributions.Bernoulli(logits=masking_prob)
     samples = d.sample((self.sample_count,))
-    cleaned_boards = solution_boards_new * samples
+    cleaned_boards = (solution_boards_new) * samples
 
     f_sample, _ = self.loss_fn(cleaned_boards, solution_boards_new.repeat(self.sample_count,1), ground_truth_boards.repeat(self.sample_count,1))
     f_mean = f_sample.mean(dim=0)
@@ -109,26 +94,22 @@ class Trainer():
     ground_truth_boards = torch.argmax(target,dim=2)
     solution_boards_new = torch.argmax(solution_boards,dim=2)+1
     masking_prob = masking_boards.sigmoid()
-
-    d = torch.distributions.Categorical(logits=masking_prob)
-    samples = d.sample((self.sample_count * self.dim,))
-    f_sample = self.loss_fn(samples, target)
-    f_mean = f_sample.mean(dim=0)
-
-    samples = samples.reshape((self.dim, self.sample_count, self.batch_size, self.dim))
-    outer_samples = torch.stack([samples] * 10, dim=1)
-    outer_samples = outer_samples * (1 - self.icr_mult) + self.icr_replacement
-    outer_loss = self.loss_fn(outer_samples, target)
     
-    variable_loss = outer_loss.mean(dim=2).permute(2,0,1)
-    indecater_expression = variable_loss.detach() * F.softmax(logits, dim=-1)
+    d = torch.distributions.Bernoulli(logits=masking_prob)
+    outer_samples = d.sample((self.sample_count,))
+    outer_clean_boards = outer_samples * solution_boards_new
+    solution_boards_new = solution_boards_new.repeat(self.sample_count,1,1)
+    ground_truth_boards = ground_truth_boards.repeat(self.sample_count,1,1)
+    outer_loss, _ = self.loss_fn(outer_clean_boards, solution_boards_new, ground_truth_boards)
+    
+    variable_loss = outer_loss.mean(dim=0).unsqueeze(-1).unsqueeze(-1)
+    indecater_expression = variable_loss.detach() * masking_prob.cpu().unsqueeze(-1) * solution_boards.cpu()
     indecater_expression = indecater_expression.sum(dim=-1)
     indecater_expression = indecater_expression.sum(dim=-1)
 
-    icr_prob = (f_mean - indecater_expression).detach() + indecater_expression
-    loss = -torch.log(indecater_expression + 1e-8) # -torch.log(icr_prob + 1e-8)
+    loss = -torch.log(indecater_expression + 1e-8)
     loss = loss.mean(dim=0)
-    return loss
+    return outer_loss.mean(dim=0).mean(dim=0),loss
   
   def grads(self, data, target):
     if self.grad_type == 'reinforce':
@@ -148,7 +129,6 @@ class Trainer():
 
   def train_epoch(self, epoch):
     counter = 1
-    n = 0
     self.network.train()
     for (data, target) in self.train_loader:
       self.optimizer.zero_grad()
@@ -156,12 +136,9 @@ class Trainer():
       target = target.to(self.args.gpu_id)
       acc, loss = self.grads(data, target)
       loss.backward()
-      
-      #if self.args.clip_grad_norm > 0:
-      #  torch.nn.utils.clip_grad_norm_(self.network.parameters(), max_norm=self.args.clip_grad_norm, norm_type=2)
-      
+       
       self.optimizer.step()
-      torch.cuda.empty_cache()
+      torch.cuda.empty_cache() 
 
       if counter % self.log_it == 0:
         print(f"Epoch {epoch} iterations {counter}",
@@ -187,11 +164,11 @@ class Trainer():
 
     if self.best_loss is None or loss < self.best_loss:
       self.best_loss = loss
-      torch.save(self.network.state_dict(), f'{self.model_dir}/checkpoint_best_L.pth')  
+      torch.save(self.network.state_dict(), f'{self.model_dir}/checkpoint_best_L_{self.seed}.pth')  
 
     if self.best_reward is None or reward > self.best_reward:
       self.best_reward = reward
-      torch.save(self.network.state_dict(), f'{self.model_dir}/checkpoint_best_R_{self.grad_type}_{self.seed}.pth')
+      torch.save(self.network.state_dict(), f'{self.model_dir}/checkpoint_best_R_{self.seed}.pth')
 
   def train(self, n_epochs):
     # self.test_epoch(0)
@@ -205,47 +182,47 @@ class Trainer():
       self.test_epoch(epoch)
       time2 = time.time()
       print(time2 - time1)
-      torch.save(model.state_dict(), f'{self.model_dir}/checkpoint_last_{epoch}_{self.grad_type}_{self.seed}.pth')
+      torch.save(model.state_dict(), f'{self.model_dir}/checkpoint_{self.seed}_{epoch}.pth')
 
 if __name__ == "__main__":
   parser = ArgumentParser('sudoku_reinforce')
-  parser.add_argument('--seed', default=1234, type=int)
   parser.add_argument('--gpu-id', default=0, type=int)
-  parser.add_argument('--print-freq', default=100, type=int)
+  parser.add_argument('-j', '--workers', default=4, type=int)
   parser.add_argument('--solver', type=str, default='prolog')
-  parser.add_argument('-j', '--workers', default=4, type=int) 
+  parser.add_argument('-j', '--workers', default=0, type=int) 
 
   parser.add_argument('--block-len', default=81, type=int)
-  parser.add_argument('--data', type=str, default='big_kaggle')
+  parser.add_argument('--data', type=str, default='satnet')
   parser.add_argument('--noise-setting', default='xxx/yyy.json', type=str)
   parser.add_argument('--train-only-mask', default = False, type = bool)
 
-  parser.add_argument('--epochs', default=1, type=int)
+  parser.add_argument('--epochs', default=5, type=int)
   parser.add_argument('--warmup', default=10, type=int)
   parser.add_argument('-b', '--batch-size', default=256, type=int)
   parser.add_argument('--lr', default=0.00001, type=float)
   parser.add_argument('--weight-decay', default=3e-1, type=float)
   parser.add_argument('--clip-grad-norm', default=1., type=float)
   parser.add_argument('--disable-cos', action='store_true')
-  parser.add_argument('--sample-count', default=2, type=int)
+  parser.add_argument('--sample-count', default=3, type=int)
   parser.add_argument('--grad-type', type=str, default='reinforce')
   args = parser.parse_args()
 
-  torch.manual_seed(args.seed)
-  train_dataset = SudokuDataset_RL(args.data,'-train')
-  test_dataset = SudokuDataset_RL(args.data,'-valid')
+  for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
+    torch.manual_seed(seed)
+    train_dataset = SudokuDataset_RL(args.data,'-train')
+    test_dataset = SudokuDataset_RL(args.data,'-valid')
 
-  # Model
-  model = get_model(block_len=args.block_len)
-  model.load_pretrained_models(args.data)
-  model.to(args.gpu_id)
+    # Model
+    model = get_model(block_len=args.block_len)
+    model.load_pretrained_models(args.data)
+    model.to(args.gpu_id)
 
-  model_dir = os.path.join('outputs', f'{args.grad_type}')
-  os.makedirs(model_dir, exist_ok=True)
+    model_dir = os.path.join('checkpoint', f'{args.grad_type}')
+    os.makedirs(model_dir, exist_ok=True)
 
-  train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
-  test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers)
 
-  # load pre_trained models
-  trainer = Trainer(model, loss_fn, train_loader, test_loader, model_dir, args.lr, args.grad_type, args.block_len, args.sample_count, args.batch_size, args.print_freq, seed, args)
-  trainer.train(args.epochs)
+    # load pre_trained models
+    trainer = Trainer(model, loss_fn, train_loader, test_loader, model_dir, args.lr, args.grad_type, args.block_len, args.sample_count, args.batch_size, args.print_freq, seed, args)
+    trainer.train(args.epochs)

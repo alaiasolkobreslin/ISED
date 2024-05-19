@@ -5,7 +5,6 @@ import csv
 import time
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
@@ -140,7 +139,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--learning-rate", type=float, default=5e-4)
     parser.add_argument("--sample-count", type=int, default=100)
-    parser.add_argument("--grad_type", type=str, default='icr')
+    parser.add_argument("--grad_type", type=str, default='reinforce')
     parser.add_argument("--jit", action="store_true")
     parser.add_argument("--dispatch", type=str, default="parallel")
     args = parser.parse_args()
@@ -173,9 +172,3 @@ if __name__ == "__main__":
           writer = csv.DictWriter(csvfile, fieldnames=field_names)
           writer.writerow(dict)
           csvfile.close()
-
-
-
-
-
-

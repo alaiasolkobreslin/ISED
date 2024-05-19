@@ -151,14 +151,6 @@ def loss_fn(data, target, task):
     acc = torch.where(torch.stack(pred).reshape(data.shape[:-1]) == target, 1., 0.)
     return acc
 
-def sort_loss_fn(data, target, task):
-    pred = []
-    x = data.flatten(0,-2)
-    for i in x:
-      pred.append(task(list(i)))
-    acc = torch.where(torch.tensor(np.array(pred)).reshape(*data.shape[:-1], -1) == target, 1., 0.)
-    return acc.prod(dim=-1)
-
 class Trainer():
   def __init__(self, model, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, dim, sample_count, task, task_type, seed):
     self.model_dir = model_dir
@@ -301,75 +293,51 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
     random.seed(seed)
 
-    for task_type in ['sum_2', 'sum_3', 'sum_4', 'add_sub', 'eq', 'how_many_3_4', 'less_than', 'mod', 'mult', 'sort_2', 'not_3_4', 'add_mod_3']:
-      if task_type == 'sum':
-        task = task_program.sum_m
-        task_type = f'sum_{digits}'
-        l = loss_fn
-      elif task_type == 'sum_2':
+    for task_type in ['sum_2', 'sum_3', 'sum_4', 'add_sub', 'eq', 'how_many_3_4', 'less_than', 'mod', 'mult', 'not_3_4', 'add_mod_3']:
+      if task_type == 'sum_2':
         task = task_program.sum_m
         digits = 2
         sample_count = 5
-        l = loss_fn
       elif task_type == 'sum_3':
         task = task_program.sum_m
         digits = 3
         sample_count = 4
-        l = loss_fn
       elif task_type == 'sum_4':
         task = task_program.sum_m
         digits = 4
         sample_count = 3
-        l = loss_fn
       elif task_type == 'add_sub':
         task = task_program.add_sub
         digits = 3
         sample_count = 4
-        l = loss_fn
       elif task_type == 'eq':
         task = task_program.eq
         digits = 2
         sample_count = 5
-        l = loss_fn
       elif task_type == 'how_many_3_4':
         task = task_program.how_many_3_4
         digits = 8
         sample_count = 2
-        l = loss_fn
       elif task_type == 'less_than':
         task = task_program.less_than
         digits = 2
         sample_count = 5
-        l = loss_fn
       elif task_type == 'mod':
         task = task_program.mod_2
         digits = 2
         sample_count = 5
-        l = loss_fn
       elif task_type == 'add_mod_3':
         task = task_program.add_mod_3
         digits = 2
         sample_count = 5
-        l = loss_fn
       elif task_type == 'not_3_4':
         task = task_program.not_3_4
         digits = 1
         sample_count = 10
-        l = loss_fn
       elif task_type == 'mult':
         task = task_program.mult_2
         digits = 2
         sample_count = 5
-        l = loss_fn
-      elif task_type == 'sort_2':
-        task = task_program.sort
-        digits = 2
-        l = sort_loss_fn
-        sample_count = 5
-      elif task_type == 'sort_4':
-        task = task_program.sort
-        digits = 4
-        l = sort_loss_fn
       else:
         raise Exception("Unknown task name")
 
@@ -388,7 +356,7 @@ if __name__ == "__main__":
       train_loader, test_loader = mnist_digits_loader(data_dir, batch_size, digits, task)
 
       # Create trainer and train
-      trainer = Trainer(MNISTTaskNet, l, train_loader, test_loader, model_dir, learning_rate, grad_type, digits, sample_count, task, task_type, seed)
+      trainer = Trainer(MNISTTaskNet, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, digits, sample_count, task, task_type, seed)
 
       dict = trainer.train(n_epochs)
       dict["random seed"] = seed

@@ -2,6 +2,9 @@ from typing import Optional, Callable
 import os
 import random
 
+import csv
+import time
+
 import torch
 import torchvision
 import torch.optim as optim
@@ -10,7 +13,6 @@ from torch import nn
 from PIL import Image
 
 from argparse import ArgumentParser
-from tqdm import tqdm
 
 import leaves_config
 
@@ -66,7 +68,7 @@ class LeavesDataset(torch.utils.data.Dataset):
     labels = torch.stack([torch.tensor(item[1]).long() for item in batch])
     return (imgs, labels)
 
-def leaves_loader(data_root, data_dir, n_train, batch_size, n_test):
+def leaves_loader(data_root, data_dir, n_train, n_test, batch_size):
   dataset = LeavesDataset(data_root, data_dir, (n_train+n_test))
   num_train = n_train*11
   num_test = len(dataset) - num_train
@@ -135,7 +137,7 @@ class Trainer():
     else:
       device = torch.device("cpu")
     self.device = device
-    self.network = LeavesNet() #.to(self.device)
+    self.network = LeavesNet().to(self.device)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -144,7 +146,7 @@ class Trainer():
 
   def loss_fn(self, output, ground_truth):
     dim = output.shape[1]
-    gt = torch.stack([torch.tensor([1.0 if i == t else 0.0 for i in range(dim)]) for t in ground_truth])
+    gt = torch.stack([torch.tensor([1.0 if i == t else 0.0 for i in range(dim)]) for t in ground_truth]).to(self.device)
     return F.binary_cross_entropy(output, gt)
   
   def train_epoch(self, epoch):
@@ -152,8 +154,7 @@ class Trainer():
     num_items = 0
     total_correct = 0
     train_loss = 0
-    iter = tqdm(self.train_loader, total=len(self.train_loader))
-    for (i, (input, target)) in enumerate(iter):
+    for (i, (input, target)) in enumerate(self.train_loader):
       self.optimizer.zero_grad()
       input = input.to(self.device)
       target = target.to(self.device)
@@ -166,7 +167,8 @@ class Trainer():
       correct_perc = 100. * total_correct / num_items
       train_loss += loss.item()
       avg_loss = train_loss / (i + 1)
-      iter.set_description(f"[Train Epoch {epoch}] Avg Loss: {avg_loss:.4f}, Overall Accuracy: {int(total_correct)}/{int(num_items)} ({correct_perc:.2f})%")
+    print(f"[Train Epoch {epoch}] Avg Loss: {avg_loss:.4f}, Overall Accuracy: {int(total_correct)}/{int(num_items)} ({correct_perc:.2f})%")
+    return train_loss
 
   def test_epoch(self, epoch):
     self.network.eval()
@@ -174,8 +176,7 @@ class Trainer():
     num_correct = 0
     test_loss = 0
     with torch.no_grad():
-      iter = tqdm(self.test_loader, total=len(self.test_loader))
-      for i, (input, target) in enumerate(iter):
+      for i, (input, target) in enumerate(self.test_loader):
         input = input.to(self.device)
         target = target.to(self.device)
         output = self.network(input)
@@ -184,38 +185,55 @@ class Trainer():
         num_correct += (output.argmax(dim=1)==target).float().sum()
         perc = 100.*num_correct/num_items
         avg_loss = test_loss / (i + 1)
-        iter.set_description(f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {int(num_correct)}/{int(num_items)} ({perc:.2f})%")
+      print(f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {int(num_correct)}/{int(num_items)} ({perc:.2f})%")
+    
+    return float(num_correct/num_items)
   
   def train(self, n_epochs):
+    dict = {}
     for epoch in range(1, n_epochs+1):
-      self.train_epoch(epoch)
-      self.test_epoch(epoch)
+      t0 = time.time()
+      train_loss = self.train_epoch(epoch)
+      t1 = time.time()
+      acc = self.test_epoch(epoch)
+      dict["L " + str(epoch)] = round(float(train_loss), ndigits=6)
+      dict["A " + str(epoch)] = round(float(acc), ndigits=6)
+      dict["T " + str(epoch)] = round(t1 - t0, ndigits=6)
+    return dict
 
 if __name__ == "__main__":
   parser = ArgumentParser("leaves")
   parser.add_argument("--model-name", type=str, default="leaves.pkl")
-  parser.add_argument("--n-epochs", type=int, default=30)
-  parser.add_argument("--seed", type=int, default=1234)               # 3177, 5848, 9175, 8725
-  parser.add_argument("--train-nums", type=int, default=30)           # 10, 20, 30, 50, 100
-  parser.add_argument("--test-nums", type=int, default=10)
-  parser.add_argument("--data-dir", type=str, default='leaf_11')
+  parser.add_argument("--n-epochs", type=int, default=50)
   parser.add_argument("--gpu", type=int, default=-1)
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--cuda", action="store_true")
   args = parser.parse_args()
 
-  # Setup parameters
-  torch.manual_seed(args.seed)
-  random.seed(args.seed)
+  random_seeds = [1357, 2468, 548, 6787, 8371]
+  train_nums = 30
+  test_nums = 10
+  data_dir = 'leaf_11'
+  accuracies = ["A " + str(i+1) for i in range(args.n_epochs)]
+  times = ["T " + str(i+1) for i in range(args.n_epochs)]
+  losses = ["L " + str(i+1) for i in range(args.n_epochs)]
+  field_names = ['random seed'] + accuracies + times + losses
 
-  # Load data
-  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
-  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
-  if not os.path.exists(model_dir): os.makedirs(model_dir)
+  for seed in random_seeds:
+        torch.manual_seed(seed)
+        random.seed(seed)
+        
+        data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
+        model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
+        if not os.path.exists(model_dir): os.makedirs(model_dir)
+        
+        (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums, test_nums, args.batch_size)
+        trainer = Trainer(train_loader, test_loader, args.learning_rate, args.gpu)
 
-  (train_loader, test_loader) = leaves_loader(data_root, args.data_dir, args.train_nums, args.batch_size, args.test_nums)
-  trainer = Trainer(train_loader, test_loader, args.learning_rate, args.gpu)
-
-  # Run
-  trainer.train(args.n_epochs)
+        dict = trainer.train(args.n_epochs)
+        dict["random seed"] = seed
+        with open('neuro-symbolic/leaf_baseline.csv', 'a', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=field_names)
+            writer.writerow(dict)
+            csvfile.close() 

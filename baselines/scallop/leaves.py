@@ -12,6 +12,7 @@ from itertools import chain
 import csv
 import scallopy
 from argparse import ArgumentParser
+import time
 
 torch.use_deterministic_algorithms(True)
 
@@ -203,7 +204,7 @@ class Scallop_Leaf_Net(nn.Module):
     self.texture_net = Leaf_Net_Texture()
     self.shape_net = Leaf_Net_Shape()
     self.base_ctx = scallopy.Context(provenance)
-    self.base_ctx.import_file("baselines/scallop/leaves_config.scl")
+    self.base_ctx.import_file("scallop/leaves_config.scl")
     self.base_ctx.add_relation("margin", str, input_mapping=self.margin_net.f1)
     self.base_ctx.add_relation("shape", str, input_mapping=self.shape_net.f2)    
     self.base_ctx.add_relation("texture", str, input_mapping=self.texture_net.f3)
@@ -246,8 +247,7 @@ class Trainer():
     num_items = 0
     train_loss = 0
     total_correct = 0
-    iterator = tqdm(self.train_loader, total=len(self.train_loader))
-    for (i, (x, y)) in enumerate(iterator):
+    for (i, (x, y)) in enumerate(train_loader):
       batch_size = len(y)
       x = x.to(device)
       # Do the prediction and obtain the loss/accuracy
@@ -268,8 +268,9 @@ class Trainer():
       avg_loss = train_loss / (i + 1)
 
       # Prints
-      iterator.set_description(f"[Train Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
+    print(f"[Train Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
     torch.save(self.network, self.model_root + '/latest.pt')
+    return train_loss
 
   def test_epoch(self, epoch):
     self.network.eval()
@@ -277,8 +278,7 @@ class Trainer():
     test_loss = 0
     total_correct = 0
     with torch.no_grad():
-      iterator = tqdm(self.test_loader, total=len(self.test_loader))
-      for i, (x, y) in enumerate(iterator):
+      for i, (x, y) in enumerate(test_loader):
         x = x.to(device)
         batch_size = len(y)
 
@@ -295,10 +295,9 @@ class Trainer():
         avg_loss = test_loss / (i + 1)
 
         self.max_test_acc = max(self.max_test_acc, perc)
-        print(self.max_test_acc)
 
         # Prints
-        iterator.set_description(f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
+      print(f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
 
     # Save model
     if test_loss < self.min_test_loss and self.phase == "train":
@@ -310,10 +309,13 @@ class Trainer():
   def train(self, n_epochs):
     dict = {}
     for epoch in range(1, n_epochs + 1):
-      self.train_epoch(epoch)
-      acc = self.test_epoch(epoch)
-      dict["accuracy epoch " + str(epoch)] = round(float(acc), ndigits=6)
-      print(f"Test accuracy: {acc}")
+      t0 = time.time()
+      train_loss = self.train_epoch(epoch)
+      t1 = time.time()
+      test_acc = self.test_epoch(epoch)
+      dict["L " + str(epoch)] = round(float(train_loss), ndigits=6)
+      dict["A " + str(epoch)] = round(float(test_acc), ndigits=6)
+      dict["T " + str(epoch)] = round(t1 - t0, ndigits=6)
     return dict
 
   def test(self):
@@ -323,7 +325,7 @@ class Trainer():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("mnist_sum_2")
-  parser.add_argument("--n-epochs", type=int, default=30)
+  parser.add_argument("--n-epochs", type=int, default=50)
   parser.add_argument("--batch-size-train", type=int, default=16)
   parser.add_argument("--batch-size-test", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
@@ -345,28 +347,22 @@ if __name__ == "__main__":
   provenance = args.provenance
   device = args.device
 
-  accuracies = ["accuracy epoch " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'lr'] + accuracies
-  
-  #with open('examples/leaves.csv', 'w', newline='') as csvfile:
-  #  writer = csv.DictWriter(csvfile, fieldnames=field_names)
-  #  writer.writeheader()
-  #  csvfile.close()
+  accuracies = ["A " + str(i+1) for i in range(args.n_epochs)]
+  times = ["T " + str(i+1) for i in range(args.n_epochs)]
+  losses = ["L " + str(i+1) for i in range(args.n_epochs)]
+  field_names = ['random seed'] + accuracies + times + losses
 
-  for seed in [1234, 3177, 5848, 9175, 8725]:
+  for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
     torch.manual_seed(seed)
     random.seed(seed)
     
-    data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data"))
+    data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../neuro-symbolic-dataset/benchmarks/data"))
     model_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../"))
     
     train_loader, test_loader = leaves_loader(data_root, "leaf_11", batch_size_train, 30, 10)
-
     trainer = Trainer(train_loader=train_loader, test_loader=test_loader, learning_rate=learning_rate, device=device, model_root=model_root, provenance=provenance)
     dict = trainer.train(n_epochs)
     dict["random seed"] = seed
-    dict["lr"] = learning_rate
-    print("Best test accuracy: " + str(trainer.max_test_acc))
 
     with open('examples/leaves.csv', 'a', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=field_names)

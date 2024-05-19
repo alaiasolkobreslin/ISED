@@ -363,7 +363,7 @@ if __name__ == "__main__":
   losses = ["L " + str(i+1) for i in range(args.n_epochs)]
   field_names = ['random seed', 'grad_type', 'task_type', 'sample count'] + accuracies + times + losses
 
-  for seed in [3177, 5848, 9175, 8725, 1234]: # 1357, 2468, 548, 6787, 8371
+  for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
       torch.manual_seed(seed)
       random.seed(seed)
       

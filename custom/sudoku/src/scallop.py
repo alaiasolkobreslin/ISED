@@ -18,10 +18,10 @@ class SudokuNet(nn.Module):
     def __init__(self, provenance):
         super(SudokuNet, self).__init__()
         self.network = get_model(block_len=81)
-        self.network.load_pretrained_models('big_kaggle')
+        self.network.load_pretrained_models('satnet')
         
-        self.base_ctx = scallopy.Context(provenance = provenance, k=1)
-        self.base_ctx.import_file("src/sudoku_solver/sudoku_scallop.scl")
+        self.base_ctx = scallopy.Context(provenance)
+        self.base_ctx.import_file("src/sudoku_solver.scl")
         self.base_ctx.add_relation("digit_1", int, input_mapping=list(range(10)))
         self.base_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
         self.base_ctx.add_relation("digit_3", int, input_mapping=list(range(10)))
@@ -141,7 +141,7 @@ def adjust_learning_rate(optimizer, epoch, args):
     
 class Trainer():
   def __init__(self, train_loader, test_loader, path, args):
-    self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     self.network = SudokuNet(args.provenance).to(self.device)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -188,7 +188,7 @@ class Trainer():
       num_items += images.size(0)
       train_loss += loss.item()
 
-      torch.cuda.empty_cache()
+      torch.cuda.empty_cache() 
       
       if args.print_freq >= 0 and i % args.print_freq == 0:
         avg_loss = train_loss/num_items
@@ -214,7 +214,7 @@ class Trainer():
         num_items += images.size(0)
         test_loss += loss.item()
         
-        ttorch.cuda.empty_cache()
+        torch.cuda.empty_cache()
 
         if args.print_freq >= 0 and i % args.print_freq == 0:
           avg_loss = (test_loss / num_items)
@@ -254,13 +254,13 @@ if __name__ == "__main__":
   parser.add_argument('--solver', type=str, default='prolog')
 
   parser.add_argument('--block-len', default=81, type=int)
-  parser.add_argument('--data', type=str, default='big_kaggle')
+  parser.add_argument('--data', type=str, default='satnet')
   parser.add_argument('--noise-setting', default='xxx/yyy.json', type=str)
   parser.add_argument('--train-only-mask', default = False, type = bool)
 
   parser.add_argument('--epochs', default=1, type=int)
   parser.add_argument('--warmup', default=10, type=int)
-  parser.add_argument('-b', '--batch-size', default=2, type=int)
+  parser.add_argument('-b', '--batch-size', default=256, type=int)
   parser.add_argument('--lr', default=0.00001, type=float)
   parser.add_argument('--weight-decay', default=3e-1, type=float)
   parser.add_argument('--clip-grad-norm', default=1., type=float)

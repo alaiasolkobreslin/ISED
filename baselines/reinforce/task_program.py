@@ -1,5 +1,3 @@
-import numpy as np
-
 def sum_m(*inputs):
     return sum(inputs)
 
@@ -27,7 +25,3 @@ def not_3_4(a):
 
 def add_mod_3(a, b):
   return (a + b) % 3
-
-def sort(*num_list):
-  num_list = list(num_list)
-  return np.argsort(num_list)

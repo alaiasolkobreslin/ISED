@@ -278,7 +278,7 @@ if __name__ == "__main__":
         print(grad_type)
 
         # Data
-        data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../finite_diff/data"))
+        data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
         model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), f"../../model/hwf"))
         os.makedirs(model_dir, exist_ok=True)
 
