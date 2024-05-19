@@ -2,14 +2,16 @@
 
 Run the following:
 
-1. Activate the virtual environment: `conda activate ISED`
+1. `cd baselines/a-nesi`
 
 2. Install additional dependencies inside the virtual environment: `bash setup_anesi.sh`
+
+3. Install the A-NeSI module:  `pip install -e .`
 
 ## Experiments
 The experiments are organized with Weights&Biases. To reproduce the experiments from the paper, run
 ```bash
-wandb sweep baselines/a-nesi/anesi/experiments/<TASK>/repeat/test_predict_only.yaml
+wandb sweep anesi/experiments/<TASK>/repeat/test_predict_only.yaml
 wandb agent <sweep_id>
 ```
 Note that you will need to update the entity and project parameters of wandb in the sweep files. 

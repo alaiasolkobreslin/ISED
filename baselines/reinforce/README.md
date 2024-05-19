@@ -3,7 +3,8 @@
 ## Experiments
 To reproduce the experiments for REINFORCE and Catlog, set the variable `grad_type` to either `reinforce` or `icr`, and run
 ```bash
-python baselines/reinforce/<TASK>.py
+cd baselines/reinforce
+python <TASK>.py
 ```
 
 ## Paper

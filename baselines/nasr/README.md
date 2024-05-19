@@ -3,7 +3,8 @@
 ## Experiments
 To reproduce the experiments from the paper, run
 ```bash
-python baselines/nasr/<TASK>.py
+cd baselines/nasr
+python PATH_TO_FILE.py
 ```
 
 ## Paper

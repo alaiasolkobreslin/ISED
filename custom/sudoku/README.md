@@ -14,10 +14,6 @@ NOTE: if unable to install prolog we provide another symbolic-solver for Sudoku:
 ## Experiments
 To reproduce the experiments from the paper, run
 ```bash
-python sudokusrc/<METHOD>.py
+`cd custom/sudoku`
+python src/<METHOD>.py
 ```
-for training, and
-```bash
-python sudokusrc/eval.py
-```
-for evaluation.

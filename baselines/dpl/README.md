@@ -7,9 +7,16 @@ DeepProbLog has the following requirements:
 
 Run the following:
 
-1. Activate the virtual environment: `conda activate ISED`
+1. `cd baselines/dpl`
 
 2. Install additional dependencies inside the virtual environment: `bash setup_dpl.sh`
+
+## Experiments
+To reproduce results in the paper,
+```bash
+cd baselines/dpl
+python <TASK>/<FILE>.py
+```
 
 ## Papers
 1. Robin Manhaeve, Sebastijan Dumancic, Angelika Kimmig, Thomas Demeester, Luc De Raedt:
@@ -18,3 +25,5 @@ Run the following:
 *Neural Probabilistic Logic Programming in DeepProbLog*. AIJ ([paper](https://www.sciencedirect.com/science/article/abs/pii/S0004370221000552))
 3. Robin Manhaeve, Giuseppe Marra, Luc De Raedt:
 *Approximate Inference for Neural Probabilistic Logic Programming*. KR 2021
+
+GitHub: https://github.com/ML-KULeuven/deepproblog

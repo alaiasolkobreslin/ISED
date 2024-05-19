@@ -1,4 +1,10 @@
 # Scallop
 
 ## Requirements
-Follow [instructions](https://github.com/scallop-lang/scallop/blob/master/etc/scallopy/readme.md) to install python package `scallopy` for scallop.
+Follow instructions to install [scallop](https://github.com/scallop-lang/scallop/blob/master/readme.md) and python package [`scallopy`](https://github.com/scallop-lang/scallop/blob/master/etc/scallopy/readme.md).
+
+## Experiments
+```bash
+cd baselines/scallop
+python <TASK>.py
+```
