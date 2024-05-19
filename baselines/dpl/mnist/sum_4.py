@@ -46,7 +46,7 @@ if pretrain is not None and pretrain > 0:
 net = Network(network, "mnist_net", batching=True)
 net.optimizer = torch.optim.Adam(network.parameters(), lr=1e-3)
 
-model = Model("models/sum_4.pl", [net])
+model = Model("mnist/models/sum_4.pl", [net])
 if method == "exact":
     model.set_engine(ExactEngine(model), cache=True)
 elif method == "geometric_mean":

@@ -168,8 +168,8 @@ class LeavesDataset(torch.utils.data.Dataset):
     
     # Get all image paths and their labels
     self.samples = []
-    data_root = "/workspace/neuro-symbolic-dataset/data"
-    data_dir = os.path.join(data_root, data_dir)
+    data_root = os.path.dirname(os.path.realpath(__name__))
+    data_dir = os.path.join(data_root + "/../../data", data_dir)
     data_dirs = os.listdir(data_dir)
     for sample_group in data_dirs:
       sample_group_dir = os.path.join(data_dir, sample_group)
@@ -201,7 +201,7 @@ class LeavesDataset(torch.utils.data.Dataset):
     return (imgs, labels)
   
 dir_path = os.path.dirname(os.path.realpath(__name__))
-data_root = os.path.join(dir_path, 'data')
+data_root = os.path.join(dir_path, '../../data')
 leaf_dataset = LeavesDataset(data_root, 'leaf_11', 40)
 num_train = 330
 num_test = len(leaf_dataset) - num_train
@@ -385,7 +385,7 @@ net_margin.optimizer = torch.optim.Adam(network_margin.parameters(), lr=1e-3)
 net_shape.optimizer = torch.optim.Adam(network_shape.parameters(), lr=1e-3)
 net_texture.optimizer = torch.optim.Adam(network_texture.parameters(), lr=1e-3)
 
-model = Model("/workspace/neuro-symbolic-dataset/baselines/dpl/leaf/models/leaf_11.pl", [net_margin, net_shape, net_texture])
+model = Model("leaf/models/leaf_11.pl", [net_margin, net_shape, net_texture])
 if method == "exact":
     model.set_engine(ExactEngine(model), cache=False)
 elif method == "geometric_mean":
