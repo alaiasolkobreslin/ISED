@@ -7,18 +7,24 @@ import mnist
 from os import listdir
 from os.path import isfile, join
 from tqdm import tqdm
+import torchvision
 
 try:
     from sudoku_solver.sudoku_pl import solve_sudoku
 except Exception:
     print('-->> Prolog not installed')
     
-
-
+test_dataset = torchvision.datasets.MNIST(
+                            'data',
+                            train=False,
+                            transform=torchvision.transforms.Compose([torchvision.transforms.ToTensor(),]),
+                            download=True,
+                            )
+images, labels = test_dataset.data, test_dataset.targets
 
 data_path = 'data/'
 
-def get_number_img(num,labels= mnist.test_labels(),images=mnist.test_images()):
+def get_number_img(num,labels= labels,images=images):
     idxs = np.where(labels == num)[0]
     idx = np.random.choice(idxs, 1)
     img = images[idx].reshape((28, 28)).astype(int)

@@ -15,6 +15,7 @@ import shutil
 import multiprocessing as mp
 from joblib import Parallel, delayed
 import argparse
+import torchvision
 
 try:
     from pyswip import Prolog
@@ -30,7 +31,7 @@ def init_parser():
                         help='min amount of noise in the data generation')
     parser.add_argument('--max_noise', type=int, default=None,
                         help='max amount of noise in the data generation')
-    parser.add_argument('--dataset', type=str, default='all',
+    parser.add_argument('--dataset', type=str, default='satnet',
                         help='dataset to generate between [multiple_sol,minimal_17,big_kaggle,satnet_data,all]')
     return parser
 
@@ -170,15 +171,30 @@ def train_val_test_split_satnet(data_name, final_data, final_images, final_solut
 def images_generation(data_name,flag):
     print('Generating board images - ', flag)
     if flag == 'test':
-        labels =  mnist.test_labels()
-        images = mnist.test_images()
+        test_dataset = torchvision.datasets.MNIST(
+                            'data',
+                            train=False,
+                            transform=torchvision.transforms.Compose([torchvision.transforms.ToTensor(),]),
+                            download=True,
+                            )
+        images, labels = test_dataset.data.numpy(), test_dataset.targets.numpy()
     elif flag == 'train':
-        labels = mnist.train_labels()[:-10000]
-        images = mnist.train_images()[:-10000]
+        train_dataset = torchvision.datasets.MNIST(
+                            'data',
+                            train=True,
+                            transform=torchvision.transforms.Compose([torchvision.transforms.ToTensor(),]),
+                            download=True,
+                            )
+        images, labels = train_dataset.data.numpy()[:-10000], train_dataset.targets.numpy()[:-10000]
     else:
         assert(flag == 'valid')
-        labels = mnist.train_labels()[-10000:]
-        images = mnist.train_images()[-10000:]
+        val_dataset = torchvision.datasets.MNIST(
+                            '../finite_diff/data',
+                            train=True,
+                            transform=torchvision.transforms.Compose([torchvision.transforms.ToTensor(),]),
+                            download=True,
+                            )
+        images, labels = val_dataset.data.numpy()[-10000:], val_dataset.targets.numpy()[-10000:]
     data_in = f'data/{data_name}/{data_name}-{flag}.npy'
     data_out_imgs_path = f'data/{data_name}/images/'
     try:
@@ -388,83 +404,6 @@ def train_val_test_split(data_name):
         os.remove(file2+str(i)+'.npy')
     shutil.rmtree(f'data/{data_name}/images/')
 
-
-def process_big_kaggle(args):
-    print('----------------------------------------------')
-    print('Processing dataset big_kaggle (puzzles0_kaggle)')
-    print('----------------------------------------------')
-    # best with noise in [0,10]
-    data_name = 'puzzles0_kaggle'
-    data_new_name = 'big_kaggle'
-    min_noise=0
-    max_noise=10
-    if args.min_noise and args.max_noise and args.min_noise < args.max_noise:
-        min_noise=args.min_noise
-        max_noise=args.max_noise
-    if not isdir('data/' + data_new_name):
-        os.mkdir('data/' + data_new_name)
-    format_conversion(data_name,data_new_name)
-    assert args.solver in ['default','prolog','backtrack'] , 'choose a solver in [default, prolog, backtrack]'
-    solver = args.solver
-    if args.solver== 'default':
-        solver = 'backtrack'        
-    dataset_generation(data_new_name,solver)
-    mask_data_generation(data_new_name,min_noise,max_noise,factor_num=1,noise_input=True)
-    train_val_test_split(data_new_name)
-    
-
-def process_minimal_17(args):
-    print('----------------------------------------------')
-    print('Processing dataset minimal_17 (puzzles2_17_clue)')
-    print('----------------------------------------------')
-    # best with noise in [20,40]
-    data_name = 'puzzles2_17_clue'
-    data_new_name = "minimal_17"
-    min_noise=20
-    max_noise=40
-    if args.min_noise and args.max_noise and args.min_noise < args.max_noise:
-        min_noise=args.min_noise
-        max_noise=args.max_noise
-
-    if not isdir('data/' + data_new_name):
-        os.mkdir('data/' + data_new_name)
-    format_conversion(data_name,data_new_name)
-    assert args.solver in ['default','prolog','backtrack'] , 'choose a solver in [default, prolog, backtrack]'
-    solver = args.solver
-    if args.solver== 'default':
-        solver = 'prolog'
-
-    dataset_generation(data_new_name,solver)
-    mask_data_generation(data_new_name,min_noise,max_noise,factor_num=1,noise_input=True)
-    train_val_test_split(data_new_name)
-
-
-def process_multiple_sol(args):
-    print('----------------------------------------------')
-    print('Processing dataset multiple_sol (puzzles7_serg_benchmark)')
-    print('----------------------------------------------')
-    # best with noise in [0,10]
-    data_name = 'puzzles7_serg_benchmark'
-    data_new_name = 'multiple_sol'
-    min_noise=0
-    max_noise=10
-    if args.min_noise and args.max_noise and args.min_noise < args.max_noise:
-        min_noise=args.min_noise
-        max_noise=args.max_noise
-    if not isdir('data/' + data_new_name):
-        os.mkdir('data/' + data_new_name)
-    format_conversion(data_name,data_new_name)
-    assert args.solver in ['default','prolog','backtrack'] , 'choose a solver in [default, prolog, backtrack]'
-    solver = args.solver
-    if args.solver== 'default':
-        solver = 'backtrack'
-
-    dataset_generation(data_new_name,solver)
-    mask_data_generation(data_new_name,min_noise,max_noise,factor_num=10,noise_input=True)
-    train_val_test_split(data_new_name)
-
-
-
 def test_load(filename,idx=0):
     
     data_type = '-train'
@@ -561,26 +500,7 @@ def statistics_satnet():
 def main_data_gen():
     parser = init_parser()
     args = parser.parse_args()
-
-    if args.dataset == 'multiple_sol':
-        process_multiple_sol(args) # multiple_sol
-    elif args.dataset == 'minimal_17':
-        process_minimal_17(args) # minimal_17
-    elif args.dataset == 'big_kaggle':
-        process_big_kaggle(args) # big_kaggle
-    elif args.dataset == 'satnet_data':
-        process_satnet_data(args) # satnet_data
-    else:
-        print(' Generating all datasets...')
-        process_multiple_sol(args) # multiple_sol
-        process_minimal_17(args) # minimal_17
-        process_big_kaggle(args) # big_kaggle
-        process_satnet_data(args) # satnet_data
-
-        
-    
-
-
+    process_satnet_data(args) # satnet_data
 
 if __name__=='__main__':
     random.seed(42)
@@ -590,10 +510,7 @@ if __name__=='__main__':
     main_data_gen()
 
     # uncomment the following line for a dataset loading test 
-    # test_load('puzzles0_kaggle',42)
+    # test_load('satnet',42)
 
     # uncomment the following block for datasets statistics
-    # statistics_datasets('puzzles0_kaggle')
-    # statistics_datasets('puzzles7_serg_benchmark')
-    # statistics_datasets('puzzles2_17_clue')
     # statistics_satnet()

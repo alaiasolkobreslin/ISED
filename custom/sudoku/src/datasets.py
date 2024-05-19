@@ -20,7 +20,7 @@ import sys
 import os
 
 data_path = 'data/'
-sys.path.append('../data/')
+sys.path.append('../../data/')
 
 
 class SudokuDataset_Perception(data.Dataset):

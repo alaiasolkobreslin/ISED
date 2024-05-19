@@ -10,7 +10,7 @@ import statistics
 from models.transformer_sudoku import get_model
 from datasets import SudokuDataset_RL
 import random
-from train import compute_reward
+from nasr import compute_reward
 from sudoku_solver.board import Board
 try:
     from pyswip import Prolog
@@ -35,7 +35,7 @@ def init_parser():
                         help='Batch size')
     parser.add_argument('--nasr', type=str, default='rl',
                         help='choice of nasr with nasr_rl or pretrained (without rl)')
-    parser.add_argument('--data', type=str, default='big_kaggle',
+    parser.add_argument('--data', type=str, default='satnet',
                         help='dataset name between big_kaggle, minimal_17, multiple_sol and satnet')
     parser.add_argument('--noise-setting', default='xxx/yyy.json', type=str,
                         help='Json file of noise setting (dict)')
@@ -66,7 +66,7 @@ def final_output(model,ground_truth_sol,solution_boards,masking_boards,args):
     final_boards = []
     if args.solver == "prolog":
         prolog_instance = Prolog()
-        prolog_instance.consult("src/sudoku_solver/sudoku_prolog.pl")
+        prolog_instance.consult("sudoku/src/sudoku_solver/sudoku_prolog.pl")
     for i in range(len(cleaned_boards)):
         board_to_solver = Board(cleaned_boards[i].reshape((9,9)).int())
         time_begin = time()
@@ -160,7 +160,7 @@ def validate(val_loader, model, args, epoch=None, time_begin=None):
 
 
 def intuition_eval(input_boards,y_pred,y_pred_b,mask_b,y_targ,args):
-    perception_path = 'outputs/perception/'+args.data+'/checkpoint_best.pth'
+    perception_path = 'sudoku/outputs/perception/'+args.data+'/checkpoint_best.pth'
     perception = SequentialPerception()
     perception.to(args.gpu_id)
     perception.load_state_dict(torch.load(perception_path, map_location='cpu')) 
@@ -232,11 +232,11 @@ def intuition_eval(input_boards,y_pred,y_pred_b,mask_b,y_targ,args):
         if nens_s!=0:
             n_error_ns_masked_s.append(nens_m_s/nens_s)
         
-    print(f"Num errors of the perception corrected by the SolverNN (avg): {statistics.mean(n_errors_p_corrected_by_ns)}%)")   
-    print(f"Num errors of the perception corrected by the Mask-Predictor (avg): {statistics.mean(n_error_perception_masked)}%)")   
+    print(f"Num errors of the perception corrected by the SolverNN (avg): {statistics.mean(n_errors_p_corrected_by_ns)*100}%)")   
+    print(f"Num errors of the perception corrected by the Mask-Predictor (avg): {statistics.mean(n_error_perception_masked)*100}%)")   
     print("\n---\n")
-    print(f"Num errors of the solverNN in the input corrected (avg): {statistics.mean(n_error_ns_masked_i)}%)")   
-    print(f"Num errors of the solverNN in the solutions corrected(avg): {statistics.mean(n_error_ns_masked_s)}%)")   
+    print(f"Num errors of the solverNN in the input corrected (avg): {statistics.mean(n_error_ns_masked_i)*100}%)")   
+    print(f"Num errors of the solverNN in the solutions corrected(avg): {statistics.mean(n_error_ns_masked_s)*100}%)")   
 
 
 def eval_improvement(y_pred,y_pred_b,y_target,dataset_name=None):
@@ -295,7 +295,7 @@ def eval_improvement(y_pred,y_pred_b,y_target,dataset_name=None):
         print(f"* Num. of wrong solution boards (from Neuro-solver) \n  that have been corrected with NASR: {num_corrected_boards}/{num_total-num_correct_b} -- ({(num_corrected_boards*100.)/(num_total-num_correct_b):.2f}%)")
     if num_correct_b>0 :
         print(f"* Num. of correct solution boards (from Neuro-solver) \n  that have been corrupted with NASR: {num_wrong_boards}/{num_correct_b} -- ({num_wrong_boards*100./num_correct_b:.2f}%)")
-    print(f"* Num correct cells (avg): {statistics.mean(average_correct_cells)}%")   
+    print(f"* Num correct cells (avg): {statistics.mean(average_correct_cells)*100}%")   
     return time_solutions
 
 
@@ -303,8 +303,7 @@ def main():
     parser = init_parser()
     args = parser.parse_args()
     # ---------------------------------- checkpoint_best
-    # ckpt_path = f'outputs/rl/{args.data}/checkpoint_best_L.pth' # usually worse
-    ckpt_path = f'outputs/rl/{args.data}/checkpoint_best_L.pth'
+    ckpt_path = f'sudoku/checkpoint/ised/checkpoint_1234_best_R.pth' 
     # ----------------------------------
     if os.path.isfile(args.noise_setting):
         with open(args.noise_setting) as f:
