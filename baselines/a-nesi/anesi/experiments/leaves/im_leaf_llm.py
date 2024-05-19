@@ -15,13 +15,13 @@ class InferenceModelLeaf(InferenceModelBase[LeafState]):
         self.layers = layers
         self.output_dims = output_dims
 
-        input_queries = [nn.Linear(15 * N + sum(output_dims[:i]), hidden_size) for i in range(len(output_dims))]
+        input_queries = [nn.Linear(12 * N + sum(output_dims[:i]), hidden_size) for i in range(len(output_dims))]
         output_queries = [nn.Linear(hidden_size, dim) for dim in output_dims]
 
         y_size = sum(output_dims)
 
         self.input_layer = nn.ModuleList(input_queries +
-                                     [nn.Linear(15 * N + y_size + i * 3, hidden_size) for i in range(1 * N)])
+                                     [nn.Linear(12 * N + y_size + i * 3, hidden_size) for i in range(1 * N)])
         self.hiddens = nn.ModuleList([nn.Linear(hidden_size, hidden_size) for _ in range((1 * N + len(output_dims)) * (layers - 1))])
         self.outputs = nn.ModuleList(output_queries +
                                      [nn.Linear(hidden_size, 11) for _ in range(1 * N)])

@@ -52,3 +52,16 @@ class LeafNet(nn.Module):
     has_f2 = self.net2(x)
     has_f3 = self.net3(x)
     return (has_f1, has_f2, has_f3)
+
+class LLMLeafNet(nn.Module):
+  def __init__(self):
+    super(LLMLeafNet, self).__init__()
+    self.net1 = _LeafNet(3, 2304)
+    self.net2 = _LeafNet(6, 2304)
+    self.net3 = _LeafNet(3, 2304)
+
+  def forward(self, x):
+    has_f1 = self.net1(x)
+    has_f2 = self.net2(x)
+    has_f3 = self.net3(x)
+    return (has_f1, has_f2, has_f3)

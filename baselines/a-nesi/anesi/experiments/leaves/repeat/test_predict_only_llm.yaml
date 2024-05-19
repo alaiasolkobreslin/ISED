@@ -1,5 +1,5 @@
-program: anesi/experiments/leaves/leafop.py
-project: leaves
+program: anesi/experiments/leaves/llmop.py
+project: leavesgpt
 entity: seewonchoi
 method: grid
 parameters:

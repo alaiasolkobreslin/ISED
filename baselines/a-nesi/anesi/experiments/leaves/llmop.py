@@ -7,7 +7,7 @@ import torch
 import wandb
 
 from inference_models import NoPossibleActionsException
-from experiments.leaves.anesi_leaf_id import LeavesModel
+from experiments.leaves.anesi_leaf_llm import LeavesModel
 from experiments.leaves.dataset import datasets
 
 SWEEP = True

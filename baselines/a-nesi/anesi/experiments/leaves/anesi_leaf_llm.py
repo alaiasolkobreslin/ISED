@@ -5,11 +5,11 @@ import torch
 
 EPS = 1E-6
 
-from experiments.leaves.dataset import classify_11
+from experiments.leaves.dataset import classify_llm_11 as classify_11
 from experiments.leaves import LeafState
 from experiments.leaves.anesi_leaf import ANeSIBase
-from experiments.leaves.leafnet import LeafNet
-from experiments.leaves.im_leaf import InferenceModelLeaf, IndependentIMLeaf
+from experiments.leaves.leafnet import LLMLeafNet as LeafNet
+from experiments.leaves.im_leaf_llm import InferenceModelLeaf, IndependentIMLeaf
 
 class LeavesState(LeafState):
 
@@ -38,7 +38,7 @@ class LeafModel(ANeSIBase[LeafState]):
         super().__init__(im,
                          # Perception network
                          LeafNet(),
-                         belief_size=[6, 5, 4],
+                         belief_size=[3, 6, 3],
                          **args)
 
     def output_dims(self, N: int, y_encoding: str) -> List[int]:
@@ -99,9 +99,9 @@ class LeavesModel(LeafModel):
     def op(self, margin: torch.Tensor, shape: torch.Tensor, texture: torch.Tensor) -> torch.Tensor:
       result = torch.zeros(margin.shape)
       for i in range(len(margin)):
-        m = l11_margin[margin[i]]
-        s = l11_shape[shape[i]]
-        t = l11_texture[texture[i]]
+        m = l11_margin[margin[i]]   
+        s = l11_shape[shape[i]]     
+        t = l11_texture[texture[i]] 
         y = classify_11(m, s, t)
         result[i] = l11_labels.index(y)
       return result.long()
@@ -109,10 +109,9 @@ class LeavesModel(LeafModel):
     def output_dims(self, N: int, y_encoding: str):
       return [11]
 
-l11_margin = ['entire', 'indented', 'lobed', 'serrate', 'serrulate', 'undulate']
-l11_shape = ['elliptical', 'lanceolate', 'oblong', 'obovate', 'ovate']
-l11_texture = ['glossy', 'leathery', 'medium', 'rough']
+l11_margin = ['entire', 'lobed', 'serrate']
+l11_shape = ['cordate', 'lanceolate', 'oblong', 'oval', 'ovate', 'palmate']
+l11_texture = ['glossy', 'papery', 'smooth']
 l11_labels = ['Alstonia Scholaris', 'Citrus limon', 'Jatropha curcas', 'Mangifera indica', 'Ocimum basilicum',
               'Platanus orientalis', 'Pongamia Pinnata', 'Psidium guajava', 'Punica granatum', 'Syzygium cumini', 'Terminalia Arjuna']
-
 
