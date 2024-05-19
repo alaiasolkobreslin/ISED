@@ -2,6 +2,7 @@ import os
 from typing import *
 import random
 from PIL import Image
+import numpy as np
 
 import torch
 import torchvision
@@ -10,7 +11,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from openai import OpenAI
-import pickle
+from ultralytics import YOLO
+from ultralytics.models.sam import Predictor as SAMPredictor
+import supervision as sv
 
 class SceneNet(nn.Module):
     def __init__(self):
@@ -125,7 +128,7 @@ class SceneDataset(torch.utils.data.Dataset):
     return (imgs, names, labels)
 
 def scene_loader(batch_size):
-  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../../finite_diff/data/scene"))
+  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../../../data/scene"))
   train_dataset = SceneDataset(data_root, "train")
   test_dataset = SceneDataset(data_root, "test")
   train_loader = torch.utils.data.DataLoader(train_dataset, collate_fn=SceneDataset.collate_fn, batch_size=batch_size, shuffle=True)
@@ -146,7 +149,27 @@ def prepare_inputs(img, files, file_dict):
       if file in file_dict: 
         results.append(file_dict[file])
       else:
-        raise Exception("No")
+        yolo = YOLO('scene/yolov8x.pt') # load a pretrained model
+        sam = SAMPredictor(overrides=dict(task='segment', mode='predict', model="scene/mobile_sam.pt", imgsz=(512, 768), verbose = False, save=False))
+        im = torchvision.transforms.functional.to_pil_image(img[i])
+        result = yolo.predict(im, imgsz=(512, 768), conf=0.25, max_det=10, verbose = False)[0]  # return a list of Results objects)
+        detections = sv.Detections.from_ultralytics(result)
+        detections = detections[np.isin(detections.class_id, yolo_cls)]
+
+        sam.set_image(im)
+        sam_result = sam(conf_thres = 0.95)[0]
+        sam_detections = sv.Detections.from_ultralytics(sam_result)
+        sam_detections.mask = None
+        sam_detections.class_id = sam_detections.class_id + 80
+        sam_detections.confidence = np.zeros_like(sam_detections.confidence)
+        sam_detections = sam_detections[np.logical_and(sam_detections.box_area < 50000, sam_detections.box_area > 1000)]
+        sam.reset_image()
+
+        merged = sv.Detections.merge([detections, sam_detections])
+        merged = merged.with_nms(0.7, True)
+
+        results.append(merged)
+        dict[file] = merged
     
     box_len, pred, box_list, conf = [], [], [], []
     for n, result in enumerate(results):
@@ -172,16 +195,12 @@ def prepare_inputs(img, files, file_dict):
     return (box_len, pred, box_list, conf)
 
 client = OpenAI(
-  api_key='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'
+  api_key=os.environ["OPENAI_API_KEY"]
 )
 
 system_msg = "You are an expert at identifying room types based on the object detected. Give short single responses."
 question = "\n What type of room is most likely? Choose among basement, bathroom, bedroom, living room, home lobby, office, lab, kitchen, dining room."
 queries = {}
-
-data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../../finite_diff/scene"))
-with open(data_root + '/llm_single.pkl', 'rb') as f: 
-  queries = pickle.load(f)
 
 def classify_llm(objects):
   random_scene = ['basement', 'bathroom', 'bedroom', 'dining', 'kitchen', 'lab', 'living', 'lobby', 'office']
@@ -202,7 +221,6 @@ def call_llm(objects):
     if o in queries.keys():
       r.append(queries[o])
       continue
-    raise("wrong")
     response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[

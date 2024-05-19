@@ -54,19 +54,11 @@ class HWFDataset(torch.utils.data.Dataset):
     return (img_seqs, img_seq_len, results)
 
 def hwf_loader(batch_size, batch_size_test):
-  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../../neuro-symbolic-dataset/data"))
+  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../../../data"))
   prefix = "expr"
   train_loader = torch.utils.data.DataLoader(HWFDataset(data_dir, prefix, "train"), collate_fn=HWFDataset.collate_fn, batch_size=batch_size, shuffle=True)
   test_loader = torch.utils.data.DataLoader(HWFDataset(data_dir, prefix, "test"), collate_fn=HWFDataset.collate_fn, batch_size=batch_size_test, shuffle=True)
   return (train_loader, test_loader)
-
-#_train_set, _val_set = hwf_loader()
-#datasets = {
-#    "train": _train_set,
-#    "val": _val_set,
-#    #"full_train": _full_train_set,
-#    "test": _val_set,
-#}
 
 def hwf_eval(expr, n):
   for i in range(n):

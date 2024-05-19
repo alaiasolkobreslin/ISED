@@ -1,14 +1,9 @@
 import argparse
 import time
-import os
-import pickle
 
 import yaml
 import torch
-import torch.nn.functional as F
-import torchvision
 import wandb
-from PIL import Image
 
 from inference_models import NoPossibleActionsException
 from experiments.scene.anesi_scene_id import SceneModel
@@ -16,10 +11,6 @@ from experiments.scene.dataset import scene_loader, prepare_inputs
 
 SWEEP = True
 file_dict = {}
-
-data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../../finite_diff/scene"))
-with open(data_root + '/yolo_only.pkl', 'rb') as f: 
-    file_dict = pickle.load(f)
 
 def test(x, target, box_len, cls, conf, model):
     try:

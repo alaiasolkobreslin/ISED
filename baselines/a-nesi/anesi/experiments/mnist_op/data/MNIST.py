@@ -16,14 +16,14 @@ from typing import Callable, List, Iterable, Tuple
 from torch.utils.data import random_split
 
 
-_DATA_ROOT = Path(__file__).parent
+_DATA_ROOT = Path(__file__).parent.parent.parent.parent.parent.parent.parent
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
 )
 
 _full_train_set = torchvision.datasets.MNIST(
-        root=str(_DATA_ROOT), train=True, download=True, transform=transform
+        root=str(_DATA_ROOT)+"/data/", train=True, download=True, transform=transform
     )
 _train_set, _val_set = random_split(_full_train_set, [50000, 10000])
 
@@ -37,7 +37,7 @@ def get_datasets(arity : int):
         "full_train": _full_train_set,
         "test": torch.utils.data.Subset(
             torchvision.datasets.MNIST(
-                root=str(_DATA_ROOT), train=False, download=True, 
+                root=str(_DATA_ROOT)+"/data/", train=False, download=True, 
                 transform=transform), range(test_length)),
     }
     return datasets

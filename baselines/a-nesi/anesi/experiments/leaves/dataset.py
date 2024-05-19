@@ -9,10 +9,9 @@ import torchvision
 
 from openai import OpenAI
 import json
-import pickle
 
 client = OpenAI(
-  api_key='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'
+  api_key=os.environ["OPENAI_API_KEY"]
 )
 
 leaves_img_transform = torchvision.transforms.Compose([
@@ -65,21 +64,18 @@ class LeavesDataset(torch.utils.data.Dataset):
     return (img, label)
 
 def leaves_loader():
-  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../../neuro-symbolic-dataset/benchmarks/data"))
+  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../../../data"))
 
   dataset = LeavesDataset(data_root, "leaf_11", 40)
   num_train = 30*11
   num_test = len(dataset) - num_train
   (train_dataset, test_dataset) = torch.utils.data.random_split(dataset, [num_train, num_test])
-  #train_loader = torch.utils.data.DataLoader(train_dataset, collate_fn=LeavesDataset.collate_fn, batch_size=batch_size, shuffle=True)
-  #test_loader = torch.utils.data.DataLoader(test_dataset, collate_fn=LeavesDataset.collate_fn, batch_size=batch_size, shuffle=True)
   return (train_dataset, test_dataset)
 
 _train_set, _val_set = leaves_loader()
 datasets = {
     "train": _train_set,
     "val": _val_set,
-    #"full_train": _full_train_set,
     "test": _val_set,
 }
 
@@ -105,26 +101,22 @@ def classify_11(margin, shape, texture):
 
 queries = {}
 
-dict_path = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../../finite_diff/neuro-symbolic/leaf11.pkl"))
-with open(dict_path, 'rb') as f: 
-  queries = pickle.load(f)
-
 def classify_llm_11(feature1, feature2, feature3):
   result1 = call_llm(labels, features_1)
   plants1 = parse_response(result1, feature1)
   if len(plants1) == 1: return plants1[0]
   elif len(plants1) == 0: 
-    plants1 = labels # return 'unknown'
+    plants1 = labels 
   else:
     results2 = call_llm(plants1, features_2)
     plants2 = parse_response(results2, feature2)
     if len(plants2) == 1: return plants2[0]
     elif len(plants2) == 0: 
-      plants2 = plants1  # return 'unknown'
+      plants2 = plants1 
     results3 = call_llm(plants2, features_3)
     plants3 = parse_response(results3, feature3)
     if len(plants3) == 1: return plants3[0]
-    elif len(plants3) == 0: return plants2[random.randrange(len(plants2))] # return 'unknown'
+    elif len(plants3) == 0: return plants2[random.randrange(len(plants2))]
     else: return plants3[random.randrange(len(plants3))]
 
 def call_llm(plants, features):
@@ -134,7 +126,6 @@ def call_llm(plants, features):
   user_msg = user_list + question
   if user_msg in queries.keys():
     return queries[user_msg]
-  raise Exception("WRONG")
   response = client.chat.completions.create(
               model="gpt-4-1106-preview",
               messages=[
@@ -146,9 +137,7 @@ def call_llm(plants, features):
   if response.choices[0].finish_reason == 'stop':
     ans = response.choices[0].message.content
     print(ans[7:-3])
-    queries[user_msg] = ans[7:-3] # ans
-    with open('neuro-symbolic/leaf11.pkl', 'wb') as f: 
-      pickle.dump(queries, f)
+    queries[user_msg] = ans[7:-3]
     return ans[7:-3]
   raise Exception("LLM failed to provide an answer") 
 

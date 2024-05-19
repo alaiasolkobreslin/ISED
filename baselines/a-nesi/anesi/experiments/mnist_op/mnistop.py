@@ -62,6 +62,8 @@ if __name__ == '__main__':
         "dirichlet_iters": 10,
         "dirichlet_L2": 100000.0,
         "K_beliefs": 100,
+        "op":'sum_2',
+        "arity":2,
     }
 
     parser = argparse.ArgumentParser()
@@ -77,7 +79,7 @@ if __name__ == '__main__':
         print(config)
     elif SWEEP:
         # TODO: I don't get how it's supposed to know what yaml file to open here.
-        with open("sweeps/sweep.yaml", 'r') as f:
+        with open("anesi/experiments/mnist_op/sweeps/sweep.yaml", 'r') as f:
             sweep_config = yaml.load(f, Loader=yaml.FullLoader)
 
         run = wandb.init(config=sweep_config)
