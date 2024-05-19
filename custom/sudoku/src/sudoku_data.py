@@ -172,7 +172,7 @@ def images_generation(data_name,flag):
     print('Generating board images - ', flag)
     if flag == 'test':
         test_dataset = torchvision.datasets.MNIST(
-                            'data',
+                            '../../../data',
                             train=False,
                             transform=torchvision.transforms.Compose([torchvision.transforms.ToTensor(),]),
                             download=True,
@@ -180,7 +180,7 @@ def images_generation(data_name,flag):
         images, labels = test_dataset.data.numpy(), test_dataset.targets.numpy()
     elif flag == 'train':
         train_dataset = torchvision.datasets.MNIST(
-                            'data',
+                            '../../../data',
                             train=True,
                             transform=torchvision.transforms.Compose([torchvision.transforms.ToTensor(),]),
                             download=True,
@@ -189,7 +189,7 @@ def images_generation(data_name,flag):
     else:
         assert(flag == 'valid')
         val_dataset = torchvision.datasets.MNIST(
-                            '../finite_diff/data',
+                            '../../../data',
                             train=True,
                             transform=torchvision.transforms.Compose([torchvision.transforms.ToTensor(),]),
                             download=True,

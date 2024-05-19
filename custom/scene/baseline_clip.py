@@ -33,7 +33,7 @@ model, preprocess = clip.load("ViT-B/32", device=device)
 
 # Prepare the inputs
 samples = []
-data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data/scene"))
+data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data/scene"))
 data_dir = os.path.join(data_root, "test")
 data_dirs = os.listdir(data_dir)
 for sample_group in data_dirs:

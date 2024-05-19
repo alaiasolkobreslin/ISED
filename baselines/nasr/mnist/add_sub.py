@@ -178,15 +178,10 @@ if __name__ == "__main__":
 
   args = parser.parse_args()
   
-  # Data
-  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data"))
-  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/mnist_add_sub"))
-  os.makedirs(model_dir, exist_ok=True)
-
   torch.manual_seed(args.seed)
   random.seed(args.seed)
 
-  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
+  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../data"))
   model_dir = os.path.join('model', 'nasr')
   outputs_dir = os.path.join('outputs', 'nasr')
   os.makedirs(model_dir, exist_ok=True)

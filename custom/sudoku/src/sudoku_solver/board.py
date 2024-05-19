@@ -15,7 +15,7 @@ except Exception:
     print('-->> Prolog not installed')
     
 test_dataset = torchvision.datasets.MNIST(
-                            'data',
+                            '../../data',
                             train=False,
                             transform=torchvision.transforms.Compose([torchvision.transforms.ToTensor(),]),
                             download=True,

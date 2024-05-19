@@ -167,7 +167,7 @@ if __name__ == "__main__":
   torch.manual_seed(args.seed)
   random.seed(args.seed)
 
-  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data/scene"))
+  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data/scene"))
   model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/scene/nasr"))
   os.makedirs(model_dir, exist_ok=True)
 

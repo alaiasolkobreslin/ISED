@@ -20,8 +20,8 @@ class SudokuNet(nn.Module):
         self.network = get_model(block_len=81)
         self.network.load_pretrained_models('satnet')
         
-        self.base_ctx = scallopy.Context(provenance)
-        self.base_ctx.import_file("src/sudoku_solver.scl")
+        self.base_ctx = scallopy.Context(provenance, k=1)
+        self.base_ctx.import_file("src/sudoku_solver/sudoku_scallop.scl")
         self.base_ctx.add_relation("digit_1", int, input_mapping=list(range(10)))
         self.base_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
         self.base_ctx.add_relation("digit_3", int, input_mapping=list(range(10)))
@@ -181,8 +181,7 @@ class Trainer():
       loss.backward()
       self.optimizer.step()  
 
-      #if args.clip_grad_norm > 0:
-      #  nn.utils.clip_grad_norm_(self.network.parameters(), max_norm=args.clip_grad_norm, norm_type=2)
+      nn.utils.clip_grad_norm_(self.network.parameters(), max_norm=args.clip_grad_norm, norm_type=2)
 
       total_correct += self.acc(y_pred_vals, y_pred_probs, target)
       num_items += images.size(0)
@@ -259,6 +258,7 @@ if __name__ == "__main__":
   parser.add_argument('--train-only-mask', default = False, type = bool)
 
   parser.add_argument('--epochs', default=1, type=int)
+  parser.add_argument('--seed', default=1234, type=int)
   parser.add_argument('--warmup', default=10, type=int)
   parser.add_argument('-b', '--batch-size', default=256, type=int)
   parser.add_argument('--lr', default=0.00001, type=float)
@@ -273,12 +273,12 @@ if __name__ == "__main__":
 
   args = parser.parse_args()
 
-  torch.manual_seed(3177)
+  torch.manual_seed(args.seed)
 
   train_dataset = SudokuDataset_RL(args.data,'-train')
   test_dataset = SudokuDataset_RL(args.data,'-valid')
 
-  model_dir = os.path.join('outputs', 'scallop')
+  model_dir = os.path.join('checkpoint', 'scallop')
   os.makedirs(model_dir, exist_ok=True)
 
   train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)

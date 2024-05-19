@@ -129,9 +129,9 @@ class LeavesDataset(torch.utils.data.Dataset):
     labels = torch.stack([torch.tensor(item[1]).long() for item in batch])
     return (imgs, labels)
 
-def leaves_loader(data_root, data_dir, batch_size, n_train, n_test):
+def leaves_loader(data_root, batch_size, n_train, n_test):
   num_class = 11
-  dataset = LeavesDataset(data_root, data_dir, (n_train+n_test))
+  dataset = LeavesDataset(data_root, "leaf_11", (n_train+n_test))
   num_train = n_train*num_class
   num_test = len(dataset) - num_train
   (train_dataset, test_dataset) = torch.utils.data.random_split(dataset, [num_train, num_test])
@@ -362,7 +362,7 @@ if __name__ == "__main__":
   os.makedirs(model_dir, exist_ok=True)
 
   # Dataloaders
-  train_loader, test_loader = leaves_loader(data_dir, args.data_dir, batch_size, args.train_num, args.test_num)
+  train_loader, test_loader = leaves_loader(data_dir, batch_size, args.train_num, args.test_num)
 
   # Create trainer and train
   trainer = Trainer(LeavesNet, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, dim, sample_count, seed)

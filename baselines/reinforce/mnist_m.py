@@ -261,7 +261,7 @@ if __name__ == "__main__":
   parser.add_argument("--n-epochs", type=int, default=50)
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
-  parser.add_argument("--task-type", type=str, default='sum_1')
+  parser.add_argument("--task-type", type=str, default='sum_2')
   parser.add_argument("--sample-count", type=int, default=100)
   parser.add_argument("--grad-type", type=str, default='icr')
   parser.add_argument("--seed", type=int, default=1234)

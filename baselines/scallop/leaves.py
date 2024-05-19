@@ -342,8 +342,8 @@ if __name__ == "__main__":
   torch.manual_seed(seed)
   random.seed(seed)
     
-  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
-  model_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../"))
+  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data"))
+  model_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../leaves"))
     
   train_loader, test_loader = leaves_loader(data_root, "leaf_11", batch_size_train, 30, 10)
   trainer = Trainer(train_loader=train_loader, test_loader=test_loader, learning_rate=learning_rate, device=device, model_root=model_root, provenance=provenance)

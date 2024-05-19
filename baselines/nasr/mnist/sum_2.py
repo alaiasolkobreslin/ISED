@@ -163,7 +163,7 @@ def final_output(model,ground_truth, args, a, b):
 
 if __name__ == "__main__":
   parser = ArgumentParser('sum_2')
-  parser.add_argument('--gpu-id', default='cuda:0', type=str)
+  parser.add_argument('--gpu-id', default='mps', type=str)
   parser.add_argument('-j', '--workers', default=0, type=int)
   parser.add_argument('--print-freq', default=5, type=int)
   parser.add_argument('--seed', default=1234, type=int)
@@ -179,14 +179,10 @@ if __name__ == "__main__":
   args = parser.parse_args()
   
   # Data
-  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data"))
-  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/mnist_sum_2"))
-  os.makedirs(model_dir, exist_ok=True)
-
   torch.manual_seed(args.seed)
   random.seed(args.seed)
 
-  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
+  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../data"))
   model_dir = os.path.join('model', 'nasr')
   outputs_dir = os.path.join('outputs', 'nasr')
   os.makedirs(model_dir, exist_ok=True)

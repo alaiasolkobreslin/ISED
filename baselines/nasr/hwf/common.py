@@ -131,7 +131,7 @@ class Trainer():
       
       if self.args.print_freq >= 0 and i % self.args.print_freq == 0:
         stats2 = {'epoch': epoch, 'train': i, 'avr_train_loss': avg_loss, 'avr_train_reward': rewards_mean}
-        with open(f"model/detail_log.txt", "a") as f:
+        with open(f"../model/detail_log.txt", "a") as f:
           f.write(json.dumps(stats2) + "\n")
       self.model.rewards = []
       self.model.shared_log_probs = []

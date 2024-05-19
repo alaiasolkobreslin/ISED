@@ -182,9 +182,9 @@ class Trainer():
 if __name__ == "__main__":
   parser = ArgumentParser('sudoku_reinforce')
   parser.add_argument('--gpu-id', default=0, type=int)
-  parser.add_argument('-j', '--workers', default=4, type=int)
+  parser.add_argument('-j', '--workers', default=0, type=int)
   parser.add_argument('--solver', type=str, default='prolog')
-  parser.add_argument('-j', '--workers', default=0, type=int) 
+  parser.add_argument('-print-freq', default=10, type=int) 
 
   parser.add_argument('--block-len', default=81, type=int)
   parser.add_argument('--data', type=str, default='satnet')
