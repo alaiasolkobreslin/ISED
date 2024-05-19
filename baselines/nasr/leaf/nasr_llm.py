@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-import csv
 import os
 import json
 import numpy as np
@@ -243,20 +242,13 @@ class Trainer():
 
   def train(self, n_epochs):
     time_begin = time()
-    dict = {}
     for epoch in range(1, n_epochs+1):
-      t0 = time()
       train_loss, train_reward = self.train_epoch(epoch)
-      t1 = time()
       test_loss, test_reward, test_acc = self.test_epoch(epoch, time_begin)
       stats = {'epoch': epoch, 
                'train_loss': train_loss, 'val_loss': test_loss, 'best_loss': self.best_loss,
                'train_reward': train_reward, 'val_rewards': test_reward, 'best_reward': self.best_reward,
                'test_acc': test_acc, 'best_acc': self.best_acc}
-      dict["L " + str(epoch)] = round(float(train_loss), ndigits=6)
-      dict["A " + str(epoch)] = round(float(test_acc), ndigits=6)
-      dict["T " + str(epoch)] = round(t1 - t0, ndigits=6)
-    return dict
 
 
 if __name__ == "__main__":
@@ -265,6 +257,7 @@ if __name__ == "__main__":
   parser.add_argument('-j', '--workers', default=4, type=int)
   parser.add_argument('--print-freq', default=10, type=int)
   parser.add_argument('--block-len', default=3, type=int)
+  parser.add_argument('--seed', default=1234, type=int)
 
   parser.add_argument('--n-epochs', default=100, type=int)
   parser.add_argument('--warmup', default=10, type=int)
@@ -279,30 +272,19 @@ if __name__ == "__main__":
   train_nums = 30
   test_nums = 10
   data_dir = 'leaf_11'
-  accuracies = ["A " + str(i+1) for i in range(args.n_epochs)]
-  times = ["T " + str(i+1) for i in range(args.n_epochs)]
-  losses = ["L " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'task'] + accuracies + times + losses
   
-  for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
-    torch.manual_seed(seed)
-    random.seed(seed)
+  torch.manual_seed(args.seed)
+  random.seed(args.seed)
 
-    data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../data"))
-    model_dir = 'nasr'
-    os.makedirs(model_dir, exist_ok=True)
+  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../data"))
+  model_dir = 'nasr'
+  os.makedirs(model_dir, exist_ok=True)
 
-    model = RLLeavesNet()
-    model.to(args.gpu_id)
+  model = RLLeavesNet()
+  model.to(args.gpu_id)
 
-    (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums, args.batch_size, test_nums)
-    trainer = Trainer(train_loader, test_loader, model, model_dir, seed, args)
+  (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_nums, args.batch_size, test_nums)
+  trainer = Trainer(train_loader, test_loader, model, model_dir, args.seed, args)
 
-    # Run
-    dict = trainer.train(args.n_epochs)
-    dict["random seed"] = seed
-    dict["task"] = 'llm'
-    with open('nasr/leaf.csv', 'a', newline='') as csvfile:
-          writer = csv.DictWriter(csvfile, fieldnames=field_names)
-          writer.writerow(dict)
-          csvfile.close()
+  # Run
+  trainer.train(args.n_epochs)

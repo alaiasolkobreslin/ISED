@@ -201,6 +201,7 @@ if __name__ == "__main__":
   parser.add_argument('--train-only-mask', default = False, type = bool)
 
   parser.add_argument('--epochs', default=5, type=int)
+  parser.add_argument('--seed', default=1234, type=int)
   parser.add_argument('--warmup', default=10, type=int)
   parser.add_argument('-b', '--batch-size', default=256, type=int)
   parser.add_argument('--lr', default=0.00001, type=float)
@@ -211,23 +212,22 @@ if __name__ == "__main__":
 
   args = parser.parse_args()
 
-  for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
-    torch.manual_seed(seed)
+  torch.manual_seed(args.seed)
 
-    train_dataset = SudokuDataset_RL(args.data,'-train')
-    test_dataset = SudokuDataset_RL(args.data,'-valid')
+  train_dataset = SudokuDataset_RL(args.data,'-train')
+  test_dataset = SudokuDataset_RL(args.data,'-valid')
 
-    # Model
-    model = get_model(block_len=args.block_len)
-    model.load_pretrained_models(args.data)
-    model.to(args.gpu_id)
+  # Model
+  model = get_model(block_len=args.block_len)
+  model.load_pretrained_models(args.data)
+  model.to(args.gpu_id)
 
-    model_dir = os.path.join('checkpoint', 'ised')
-    os.makedirs(model_dir, exist_ok=True)
+  model_dir = os.path.join('checkpoint', 'ised')
+  os.makedirs(model_dir, exist_ok=True)
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers)
+  train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
+  test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers)
 
-    # load pre_trained models
-    trainer = Trainer(train_loader, test_loader, model, model_dir, seed, args)
-    trainer.train(args.epochs)
+  # load pre_trained models
+  trainer = Trainer(train_loader, test_loader, model, model_dir, args.seed, args)
+  trainer.train(args.epochs)

@@ -1,19 +1,13 @@
-from typing import Optional, Callable
 import os
 import random
-
-import csv
 import time
 
 import torch
-import torchvision
 import torch.optim as optim
 import torch.nn.functional as F
 from torch import nn
-from PIL import Image
 
 from argparse import ArgumentParser
-from tqdm import tqdm
 
 import blackbox
 from leaves_config import leaves_loader, LeafNet, l11_labels, l11_margin, l11_shape, l11_texture, classify_11
@@ -117,22 +111,18 @@ class Trainer():
     return float(num_correct/num_items)
 
   def train(self, n_epochs):
-    dict = {}
     for epoch in range(1, n_epochs+1):
       t0 = time.time()
       train_loss = self.train_epoch(epoch)
       t1 = time.time()
       acc = self.test_epoch(epoch)
-      dict["L " + str(epoch)] = round(float(train_loss), ndigits=6)
-      dict["A " + str(epoch)] = round(float(acc), ndigits=6)
-      dict["T " + str(epoch)] = round(t1 - t0, ndigits=6)
-    return dict
 
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("leaves")
   parser.add_argument("--model-name", type=str, default="leaves.pkl")
   parser.add_argument("--n-epochs", type=int, default=30)
+  parser.add_argument('--seed', default=1234, type=int)
   parser.add_argument("--sample-count", type=int, default=100)
   parser.add_argument("--gpu", type=int, default=-1)
   parser.add_argument("--batch-size", type=int, default=16)
@@ -141,36 +131,21 @@ if __name__ == "__main__":
   parser.add_argument("--cuda", action="store_true")
   args = parser.parse_args()
 
-  random_seeds = [1357, 2468, 548, 6787, 8371, 3177, 5848, 9175, 8725, 1234]
   train_num = 30
   test_nums = 10
   data_dir = 'leaf_11'
-  accuracies = ["A " + str(i+1) for i in range(args.n_epochs)]
-  times = ["T " + str(i+1) for i in range(args.n_epochs)]
-  losses = ["L " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'sample count'] + accuracies + times + losses
 
-  for seed in random_seeds:
-        # Setup parameters
-        torch.manual_seed(seed)
-        random.seed(seed)
+  # Setup parameters
+  torch.manual_seed(args.seed)
+  random.seed(args.seed)
 
-        print(seed)
-        print(args.sample_count)
-
-        # Load data
-        data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
-        model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
-        if not os.path.exists(model_dir): os.makedirs(model_dir)
+  # Load data
+  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
+  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves"))
+  if not os.path.exists(model_dir): os.makedirs(model_dir)
         
-        (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_num, args.batch_size, test_nums)
-        trainer = Trainer(train_loader, test_loader, args.learning_rate, args.sample_count, model_dir, args.caching, args.gpu, seed)
+  (train_loader, test_loader) = leaves_loader(data_root, data_dir, train_num, args.batch_size, test_nums)
+  trainer = Trainer(train_loader, test_loader, args.learning_rate, args.sample_count, model_dir, args.caching, args.gpu, args.seed)
 
-        # Run
-        dict = trainer.train(args.n_epochs)
-        dict["random seed"] = seed
-        dict['sample count'] = args.sample_count
-        with open('neuro-symbolic/leaf_bbox.csv', 'a', newline='') as csvfile:
-          writer = csv.DictWriter(csvfile, fieldnames=field_names)
-          writer.writerow(dict)
-          csvfile.close()
+  # Run
+  trainer.train(args.n_epochs)

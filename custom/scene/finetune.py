@@ -3,7 +3,6 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch import nn
 
-import csv
 import time
 from argparse import ArgumentParser
 import os
@@ -88,22 +87,18 @@ class Trainer():
     return float(num_correct/num_items)
 
   def train(self, n_epochs):
-    dict = {}
     for epoch in range(1, n_epochs+1):
       t0 = time.time()      
       train_loss = self.train_epoch(epoch)
       t1 = time.time()
       acc = self.test_epoch(epoch)
-      dict["L " + str(epoch)] = round(float(train_loss), ndigits=6)
-      dict["A " + str(epoch)] = round(float(acc), ndigits=6)
-      dict["T " + str(epoch)] = round(t1 - t0, ndigits=6)
     torch.save(self.network.state_dict(), model_dir+f"/{self.seed}_last.pth")
-    return dict
 
 if __name__ == "__main__":
   parser = ArgumentParser("scene")
   parser.add_argument("--model-name", type=str, default="scene.pkl")
   parser.add_argument("--n-epochs", type=int, default=100)
+  parser.add_argument('--seed', default=1234, type=int)
   parser.add_argument("--gpu", type=int, default=-1)
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--max-det", type=int, default=10)
@@ -112,28 +107,14 @@ if __name__ == "__main__":
   parser.add_argument("--cuda", action="store_true")
   args = parser.parse_args()
 
+  torch.manual_seed(args.seed)
+  random.seed(args.seed)
 
-  accuracies = ["A " + str(i+1) for i in range(args.n_epochs)]
-  times = ["T " + str(i+1) for i in range(args.n_epochs)]
-  losses = ["L " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'sample_count', 'grad_type'] + accuracies + times + losses
-
-  for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
-    torch.manual_seed(seed)
-    random.seed(seed)
-
-    data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data/scene"))
-    model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/scene/ised"))
-    if not os.path.exists(model_dir): os.makedirs(model_dir)
+  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data/scene"))
+  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/scene/ised"))
+  if not os.path.exists(model_dir): os.makedirs(model_dir)
             
-    (train_loader, test_loader) = scene_loader(data_root, args.batch_size)
-    trainer = Trainer(train_loader, test_loader, args.learning_rate, args.sample_count, args.max_det, model_dir, seed)
+  (train_loader, test_loader) = scene_loader(data_root, args.batch_size)
+  trainer = Trainer(train_loader, test_loader, args.learning_rate, args.sample_count, args.max_det, model_dir, args.seed)
 
-    dict = trainer.train(args.n_epochs)
-    dict["random seed"] = seed
-    dict["sample_count"] = args.sample_count
-    dict["grad_type"] = 'ised'
-    with open('scene/bbox.csv', 'a', newline='') as csvfile:
-          writer = csv.DictWriter(csvfile, fieldnames=field_names)
-          writer.writerow(dict)
-          csvfile.close()
+  trainer.train(args.n_epochs)

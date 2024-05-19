@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 
 import os
-import csv
 import numpy as np
 from time import time
 import random
@@ -141,7 +140,6 @@ class Trainer():
     return avg_loss, avg_reward, acc
 
   def train(self, n_epochs):
-    dict = {}
     time_begin = time()
     for epoch in range(1, n_epochs+1):
       t0 = time()
@@ -152,16 +150,13 @@ class Trainer():
                'train_loss': train_loss, 'val_loss': test_loss, 'best_loss': self.best_loss,
                'train_reward': train_reward, 'val_rewards': test_reward, 'best_reward': self.best_reward,
                'test_acc': test_acc, 'best_acc': self.best_acc}
-      dict["L " + str(epoch)] = round(float(train_loss), ndigits=6)
-      dict["A " + str(epoch)] = round(float(test_acc), ndigits=6)
-      dict["T " + str(epoch)] = round(t1 - t0, ndigits=6)
-    return dict
 
 if __name__ == "__main__":
   parser = ArgumentParser('scene-nasr')
   parser.add_argument('-j', '--workers', default=0, type=int)
   parser.add_argument('--print-freq', default=10, type=int)
   parser.add_argument('--n-epochs', default=50, type=int)
+  parser.add_argument('--seed', default=1234, type=int)
   parser.add_argument('-b', '--batch-size', default=16, type=int)
   parser.add_argument('--learning-rate', default=5e-4, type=float)
   parser.add_argument('--warmup', default=10, type=int)
@@ -169,27 +164,14 @@ if __name__ == "__main__":
   parser.add_argument('--clip-grad-norm', default=1., type=float)
   args = parser.parse_args()
 
-  accuracies = ["A " + str(i+1) for i in range(args.n_epochs)]
-  times = ["T " + str(i+1) for i in range(args.n_epochs)]
-  losses = ["L " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'sample_count', 'grad_type'] + accuracies + times + losses
+  torch.manual_seed(args.seed)
+  random.seed(args.seed)
 
-  for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
-    torch.manual_seed(seed)
-    random.seed(seed)
+  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data/scene"))
+  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/scene/nasr"))
+  os.makedirs(model_dir, exist_ok=True)
 
-    data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data/scene"))
-    model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/scene/nasr"))
-    os.makedirs(model_dir, exist_ok=True)
-
-    (train_loader, test_loader) = scene_loader(data_root, args.batch_size)
-    trainer = Trainer(train_loader, test_loader, model_dir, seed, args)
+  (train_loader, test_loader) = scene_loader(data_root, args.batch_size)
+  trainer = Trainer(train_loader, test_loader, model_dir, args.seed, args)
     
-    dict = trainer.train(args.n_epochs)
-    dict["random seed"] = seed
-    dict["sample_count"] = 0
-    dict["grad_type"] = 'nasr'
-    with open('scene/bbox.csv', 'a', newline='') as csvfile:
-          writer = csv.DictWriter(csvfile, fieldnames=field_names)
-          writer.writerow(dict)
-          csvfile.close()
+  trainer.train(args.n_epochs)

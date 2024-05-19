@@ -2,7 +2,6 @@ import os
 import random
 from typing import *
 from PIL import Image
-import csv
 import time
 
 import torch
@@ -46,7 +45,7 @@ def call_llm(plants, features):
   if response.choices[0].finish_reason == 'stop':
     ans = response.choices[0].message.content
     if ans[3:7] == 'json': ans  = ans[7:-3]
-    print(ans) #
+    print(ans)
     queries[user_msg] = ans
     return ans
   raise Exception("LLM failed to provide an answer") 
@@ -63,17 +62,17 @@ def classify_llm(feature1, feature2, feature3):
   plants1 = parse_response(result1, feature1)
   if len(plants1) == 1: return plants1[0]
   elif len(plants1) == 0: 
-    plants1 = l11_labels # return 'unknown'
+    plants1 = l11_labels
   else:
     results2 = call_llm(plants1, l11_4_two)
     plants2 = parse_response(results2, feature2)
     if len(plants2) == 1: return plants2[0]
     elif len(plants2) == 0: 
-      plants2 = plants1  # return 'unknown'
+      plants2 = plants1 
     results3 = call_llm(plants2, l11_4_three)
     plants3 = parse_response(results3, feature3)
     if len(plants3) == 1: return plants3[0]
-    elif len(plants3) == 0: return plants2[random.randrange(len(plants2))] # return 'unknown'
+    elif len(plants3) == 0: return plants2[random.randrange(len(plants2))]
     else: return plants3[random.randrange(len(plants3))]
 
 leaves_img_transform = torchvision.transforms.Compose([
@@ -320,18 +319,13 @@ class Trainer():
     return perc
 
   def train(self, n_epochs):
-    dict = {}
     for epoch in range(1, n_epochs + 1):
       t0 = time.time()
       train_loss = self.train_epoch(epoch)
       t1 = time.time()
       acc = self.test()
-      dict["L " + str(epoch)] = round(float(train_loss), ndigits=6)
-      dict["A " + str(epoch)] = round(float(acc), ndigits=6)
-      dict["T " + str(epoch)] = round(t1 - t0, ndigits=6)
       print(f"Test accuracy: {acc}")
     torch.save(self.network, model_dir+f"/{self.grad_type}_{self.seed}_last.pkl")
-    return dict
 
 if __name__ == "__main__":
   # Argument parser
@@ -339,11 +333,10 @@ if __name__ == "__main__":
   parser.add_argument("--n-epochs", type=int, default=50)
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
-  parser.add_argument("--sample-count", type=int, default=9)
+  parser.add_argument("--sample-count", type=int, default=100)
   parser.add_argument("--train-num", type=int, default=30)
   parser.add_argument("--test-num", type=int, default=10)
   parser.add_argument("--grad_type", type=str, default='reinforce')
-  parser.add_argument("--data-dir", type=str, default="leaf_11")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--jit", action="store_true")
   parser.add_argument("--dispatch", type=str, default="parallel")
@@ -355,40 +348,22 @@ if __name__ == "__main__":
   learning_rate = args.learning_rate
   grad_type = args.grad_type
   sample_count = args.sample_count
+  seed = args.seed
   dim = 3
   cache = {}
 
-  accuracies = ["A " + str(i+1) for i in range(args.n_epochs)]
-  times = ["T " + str(i+1) for i in range(args.n_epochs)]
-  losses = ["L " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'grad_type', 'task_type', 'sample count'] + accuracies + times + losses
+  torch.manual_seed(seed)
+  random.seed(seed)
 
-  for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
-      torch.manual_seed(seed)
-      random.seed(seed)
-      
-      if grad_type == 'reinforce': sample_count = 100
-      print(sample_count)
-      print(seed)
-      print(grad_type)
 
-      # Data
-      data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
-      model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves_llm"))
-      os.makedirs(model_dir, exist_ok=True)
+  # Data
+  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
+  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/leaves_llm"))
+  os.makedirs(model_dir, exist_ok=True)
 
-      # Dataloaders
-      train_loader, test_loader = leaves_loader(data_dir, args.data_dir, batch_size, args.train_num, args.test_num)
+  # Dataloaders
+  train_loader, test_loader = leaves_loader(data_dir, args.data_dir, batch_size, args.train_num, args.test_num)
 
-      # Create trainer and train
-      trainer = Trainer(LeavesNet, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, dim, sample_count, seed)
-      dict = trainer.train(n_epochs)
-      dict["random seed"] = seed
-      dict['grad_type'] = grad_type
-      dict['task_type'] = "leaf"
-      dict['sample count'] = sample_count
-
-      with open('baselines/reinforce/icr.csv', 'a', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=field_names)
-        writer.writerow(dict)
-        csvfile.close()
+  # Create trainer and train
+  trainer = Trainer(LeavesNet, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, dim, sample_count, seed)
+  trainer.train(n_epochs)

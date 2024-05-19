@@ -1,8 +1,6 @@
 import os
 import random
 from typing import *
-import csv
-import numpy as np
 import time
 
 import torch
@@ -210,7 +208,7 @@ class Trainer():
     indecater_expression = indecater_expression.sum(dim=-1)
 
     icr_prob = (f_mean - indecater_expression).detach() + indecater_expression
-    loss = -torch.log(indecater_expression + 1e-8) # -torch.log(icr_prob + 1e-8)
+    loss = -torch.log(indecater_expression + 1e-8)
     loss = loss.mean(dim=0)
     return loss
   
@@ -249,18 +247,13 @@ class Trainer():
     return perc
 
   def train(self, n_epochs):
-    dict = {}
     for epoch in range(1, n_epochs + 1):
       t0 = time.time()
       train_loss = self.train_epoch(epoch)
       t1 = time.time()
       acc = self.test()
-      dict["L " + str(epoch)] = round(float(train_loss), ndigits=6)
-      dict["A " + str(epoch)] = round(float(acc), ndigits=6)
-      dict["T " + str(epoch)] = round(t1 - t0, ndigits=6)
       print(f"Test accuracy: {acc}")
     torch.save(self.network, model_dir+f"/{self.grad_type}_{self.seed}_last.pkl")
-    return dict
 
 if __name__ == "__main__":
   # Argument parser
@@ -268,9 +261,9 @@ if __name__ == "__main__":
   parser.add_argument("--n-epochs", type=int, default=50)
   parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=0.0001)
-  # parser.add_argument("--digit", type=int, default=12)
-  parser.add_argument("--sample-count", type=int, default=1)
-  parser.add_argument("--grad_type", type=str, default='icr')
+  parser.add_argument("--task-type", type=str, default='sum_1')
+  parser.add_argument("--sample-count", type=int, default=100)
+  parser.add_argument("--grad-type", type=str, default='icr')
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--jit", action="store_true")
   parser.add_argument("--dispatch", type=str, default="parallel")
@@ -280,90 +273,58 @@ if __name__ == "__main__":
   n_epochs = args.n_epochs
   batch_size = args.batch_size
   learning_rate = args.learning_rate
-  # digits = args.digit
   sample_count = args.sample_count
   grad_type = args.grad_type
+  task_type = args.task_type
+  seed = args.seed
 
-  accuracies = ["A " + str(i+1) for i in range(args.n_epochs)]
-  times = ["T " + str(i+1) for i in range(args.n_epochs)]
-  losses = ["L " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed', 'grad_type', 'task_type', 'sample count'] + accuracies + times + losses
-  
-  for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
-    torch.manual_seed(seed)
-    random.seed(seed)
+  torch.manual_seed(seed)
+  random.seed(seed)
 
-    for task_type in ['sum_2', 'sum_3', 'sum_4', 'add_sub', 'eq', 'how_many_3_4', 'less_than', 'mod', 'mult', 'not_3_4', 'add_mod_3']:
-      if task_type == 'sum_2':
+  if task_type == 'sum_2':
         task = task_program.sum_m
         digits = 2
-        sample_count = 5
-      elif task_type == 'sum_3':
+  elif task_type == 'sum_3':
         task = task_program.sum_m
         digits = 3
-        sample_count = 4
-      elif task_type == 'sum_4':
+  elif task_type == 'sum_4':
         task = task_program.sum_m
         digits = 4
-        sample_count = 3
-      elif task_type == 'add_sub':
+  elif task_type == 'add_sub':
         task = task_program.add_sub
         digits = 3
-        sample_count = 4
-      elif task_type == 'eq':
+  elif task_type == 'eq':
         task = task_program.eq
         digits = 2
-        sample_count = 5
-      elif task_type == 'how_many_3_4':
+  elif task_type == 'how_many_3_4':
         task = task_program.how_many_3_4
         digits = 8
-        sample_count = 2
-      elif task_type == 'less_than':
+  elif task_type == 'less_than':
         task = task_program.less_than
         digits = 2
-        sample_count = 5
-      elif task_type == 'mod':
+  elif task_type == 'mod':
         task = task_program.mod_2
         digits = 2
-        sample_count = 5
-      elif task_type == 'add_mod_3':
+  elif task_type == 'add_mod_3':
         task = task_program.add_mod_3
         digits = 2
-        sample_count = 5
-      elif task_type == 'not_3_4':
+  elif task_type == 'not_3_4':
         task = task_program.not_3_4
         digits = 1
-        sample_count = 10
-      elif task_type == 'mult':
-        task = task_program.mult_2
+  elif task_type == 'mult':
+        task = task_program.mult_2xs
         digits = 2
-        sample_count = 5
-      else:
+  else:
         raise Exception("Unknown task name")
-
-      if grad_type == 'reinforce': sample_count = 100
-      print(task_type)
-      print(sample_count)
-      print(seed)
-      print(grad_type)
       
-      # Data
-      data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
-      model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), f"../../model/{task_type}"))
-      os.makedirs(model_dir, exist_ok=True)
+  # Data
+  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
+  model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), f"../../model/{task_type}"))
+  os.makedirs(model_dir, exist_ok=True)
 
-      # Dataloaders
-      train_loader, test_loader = mnist_digits_loader(data_dir, batch_size, digits, task)
+  # Dataloaders
+  train_loader, test_loader = mnist_digits_loader(data_dir, batch_size, digits, task)
 
-      # Create trainer and train
-      trainer = Trainer(MNISTTaskNet, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, digits, sample_count, task, task_type, seed)
-
-      dict = trainer.train(n_epochs)
-      dict["random seed"] = seed
-      dict["grad_type"] = grad_type
-      dict['task_type'] = task_type
-      dict['sample count'] = sample_count
-      with open('baselines/reinforce/icr.csv', 'a', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=field_names)
-        writer.writerow(dict)
-        csvfile.close()
+  # Create trainer and train
+  trainer = Trainer(MNISTTaskNet, loss_fn, train_loader, test_loader, model_dir, learning_rate, grad_type, digits, sample_count, task, task_type, seed)
+  trainer.train(n_epochs)

@@ -1,5 +1,4 @@
 from typing import Optional, Callable
-import numpy as np
 import torch
 import torchvision
 from torch import nn, optim
@@ -7,9 +6,6 @@ from PIL import Image
 import random
 import os
 import torch.nn.functional as F
-from tqdm import tqdm
-from itertools import chain
-import csv
 import scallopy
 from argparse import ArgumentParser
 import time
@@ -307,16 +303,11 @@ class Trainer():
     return float(total_correct / num_items)
 
   def train(self, n_epochs):
-    dict = {}
     for epoch in range(1, n_epochs + 1):
       t0 = time.time()
       train_loss = self.train_epoch(epoch)
       t1 = time.time()
       test_acc = self.test_epoch(epoch)
-      dict["L " + str(epoch)] = round(float(train_loss), ndigits=6)
-      dict["A " + str(epoch)] = round(float(test_acc), ndigits=6)
-      dict["T " + str(epoch)] = round(t1 - t0, ndigits=6)
-    return dict
 
   def test(self):
     self.test_epoch(0)
@@ -346,25 +337,14 @@ if __name__ == "__main__":
   k = args.top_k
   provenance = args.provenance
   device = args.device
+  seed = args.seed
 
-  accuracies = ["A " + str(i+1) for i in range(args.n_epochs)]
-  times = ["T " + str(i+1) for i in range(args.n_epochs)]
-  losses = ["L " + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed'] + accuracies + times + losses
-
-  for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
-    torch.manual_seed(seed)
-    random.seed(seed)
+  torch.manual_seed(seed)
+  random.seed(seed)
     
-    data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../neuro-symbolic-dataset/benchmarks/data"))
-    model_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../"))
+  data_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../data"))
+  model_root = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../"))
     
-    train_loader, test_loader = leaves_loader(data_root, "leaf_11", batch_size_train, 30, 10)
-    trainer = Trainer(train_loader=train_loader, test_loader=test_loader, learning_rate=learning_rate, device=device, model_root=model_root, provenance=provenance)
-    dict = trainer.train(n_epochs)
-    dict["random seed"] = seed
-
-    with open('examples/leaves.csv', 'a', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=field_names)
-        writer.writerow(dict)
-        csvfile.close()
+  train_loader, test_loader = leaves_loader(data_root, "leaf_11", batch_size_train, 30, 10)
+  trainer = Trainer(train_loader=train_loader, test_loader=test_loader, learning_rate=learning_rate, device=device, model_root=model_root, provenance=provenance)
+  trainer.train(n_epochs)

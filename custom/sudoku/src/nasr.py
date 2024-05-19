@@ -1,21 +1,13 @@
 import os
 import argparse
-from token import TILDE
-from numpy.testing._private.utils import requires_memory
-from torch.functional import atleast_2d
 import torch.nn as nn
 import torch
-import random
-from torch.autograd import Variable
 import math
 from sudoku_solver.board import Board
 import json
 from time import time
 from datasets import SudokuDataset_RL
-import matplotlib.pyplot as plt
 import numpy as np
-from utils.utils import print_loss_graph_from_details_file_rl, print_loss_graph_from_file,print_loss_graph_from_file_rl
-from torch.distributions import Categorical
 from torch.distributions.bernoulli import Bernoulli
 import torch.nn.functional as F
 from models.transformer_sudoku import get_model
@@ -235,66 +227,61 @@ def train(train_loader, model, optimizer, epoch, args):
 def main():
     parser = init_parser()
     args = parser.parse_args()
+    seed = 1234
 
-    for seed in [3177, 5848, 9175, 8725, 1234, 1357, 2468, 548, 6787, 8371]:
-        torch.manual_seed(seed)
+    torch.manual_seed(seed)
 
-        train_dataset = SudokuDataset_RL(args.data,'-train')
-        val_dataset = SudokuDataset_RL(args.data,'-valid')
+    train_dataset = SudokuDataset_RL(args.data,'-train')
+    val_dataset = SudokuDataset_RL(args.data,'-valid')
         
-        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,num_workers=args.workers)
-        val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False,num_workers=args.workers)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,num_workers=args.workers)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False,num_workers=args.workers)
         
-        # Model 
-        model = get_model(block_len=args.block_len)
-        model.load_pretrained_models(args.data)
-        model.to(args.gpu_id)
+    # Model 
+    model = get_model(block_len=args.block_len)
+    model.load_pretrained_models(args.data)
+    model.to(args.gpu_id)
 
-        # load pre_trained models
-        if args.train_only_mask == True:
-            # only training the mask network
-            optimizer = torch.optim.AdamW(model.mask_nn.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-        else:
-            optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    # load pre_trained models
+    if args.train_only_mask == True:
+        # only training the mask network
+        optimizer = torch.optim.AdamW(model.mask_nn.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    else:
+        optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+
+    # Main loop 
+    print("Beginning training")
+    ckpt_path = os.path.join('checkpoint', 'nasr')
+    os.makedirs(ckpt_path, exist_ok=True)
+    best_loss = None
+    best_reward = None
+    time_begin = time()
+    with open(f"{ckpt_path}/log_{seed}.txt", 'w'): pass
+    for epoch in range(args.epochs):
+        lr = adjust_learning_rate(optimizer, epoch, args)
+
+        train_loss, train_rewards = train(train_loader, model, optimizer, epoch, args)
+        loss, valid_rewards = validate(val_loader, model, args, epoch=epoch, time_begin=time_begin)
             
-            # to exclude only the perception from the training
-            #optimizer = torch.optim.AdamW(model.mask_nn.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-            #optimizer = torch.optim.AdamW(model.nn_solver.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-
-        # Main loop 
-        print("Beginning training")
-        ckpt_path = os.path.join('checkpoint', 'nasr')
-        os.makedirs(ckpt_path, exist_ok=True)
-        best_loss = None
-        best_reward = None
-        time_begin = time()
-        with open(f"{ckpt_path}/log_{seed}.txt", 'w'): pass
-        for epoch in range(args.epochs):
-            lr = adjust_learning_rate(optimizer, epoch, args)
-
-            train_loss, train_rewards = train(train_loader, model, optimizer, epoch, args)
-            loss, valid_rewards = validate(val_loader, model, args, epoch=epoch, time_begin=time_begin)
+        if best_reward is None or valid_rewards > best_reward :
+            best_reward = valid_rewards
+            torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_best_R_{seed}.pth')
             
-            if best_reward is None or valid_rewards > best_reward :
-                best_reward = valid_rewards
-                torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_best_R_{seed}.pth')
-            
-            if best_loss is None or loss < best_loss :
-                best_loss = loss
-                torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_best_L_{seed}.pth')
+        if best_loss is None or loss < best_loss :
+            best_loss = loss
+            torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_best_L_{seed}.pth')
 
-            stats = {'epoch': epoch, 'lr': lr, 'train_loss': train_loss, 
-                        'val_loss': loss, 'best_loss': best_loss , 
-                        'train_rewards': train_rewards, 'valid_rewards': valid_rewards}
-            with open(f"{ckpt_path}/log_{seed}.txt", "a") as f:
-                f.write(json.dumps(stats) + "\n")
-            torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_{epoch}_{seed}.pth')
+        stats = {'epoch': epoch, 'lr': lr, 'train_loss': train_loss, 
+                 'val_loss': loss, 'best_loss': best_loss , 
+                 'train_rewards': train_rewards, 'valid_rewards': valid_rewards}
+        with open(f"{ckpt_path}/log_{seed}.txt", "a") as f:
+            f.write(json.dumps(stats) + "\n")
+        torch.save(model.state_dict(), f'{ckpt_path}/checkpoint_{epoch}_{seed}.pth')
 
-        total_mins = (time() - time_begin) / 60
-        print(f'[rl] finished in {total_mins:.2f} minutes, '
+    total_mins = (time() - time_begin) / 60
+    print(f'[rl] finished in {total_mins:.2f} minutes, '
             f'best loss: {best_loss:.6f}, '
             f'final loss: {loss:.6f}')
-        print_loss_graph_from_file_rl(f"{ckpt_path}/log_{seed}.txt",f"{ckpt_path}/loss_rl_sudoku")
 
 if __name__ == '__main__':
 
