@@ -1,6 +1,6 @@
 program: anesi/experiments/leaves/llmop.py
 project: leavesgpt
-entity: seewonchoi
+entity: blackbox-learning
 method: grid
 parameters:
   N:

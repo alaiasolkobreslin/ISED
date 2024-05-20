@@ -62,7 +62,7 @@ if __name__ == '__main__':
         with open(config_file, 'r') as f:
             config.update(yaml.safe_load(f))
 
-        run = wandb.init(config=config, project="leaf", entity="seewonchoi")
+        run = wandb.init(config=config, project="leaf", entity="blackbox-learning")
         config = wandb.config
         print(config)
     elif SWEEP:

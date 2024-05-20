@@ -1,6 +1,6 @@
 program: anesi/experiments/hwf/hwfop.py
 project: hwf
-entity: seewonchoi
+entity: blackbox-learning
 method: grid
 parameters:
   N:

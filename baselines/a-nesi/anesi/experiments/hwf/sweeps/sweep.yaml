@@ -1,6 +1,6 @@
 program: hwfop.py
 project: hwf
-entity: seewonchoi
+entity: blackbox-learning
 method: random
 metric:
   name: val_accuracy

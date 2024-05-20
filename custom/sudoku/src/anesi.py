@@ -63,7 +63,7 @@ if __name__ == '__main__':
         with open(config_file, 'r') as f:
             config.update(yaml.safe_load(f))
 
-        run = wandb.init(config=config, project="sudoku", entity="seewonchoi")
+        run = wandb.init(config=config, project="sudoku", entity="blackbox-learning")
         config = wandb.config
         print(config)
     elif SWEEP:
@@ -78,7 +78,7 @@ if __name__ == '__main__':
         name = "sudoku"
         wandb.init(
             project=f"sudoku",
-            entity="seewonchoi",
+            entity="blackbox-learning",
             name=name,
             notes="Test run",
             mode="disabled",

@@ -1,6 +1,6 @@
 program: anesi/experiments/scene/run.py
 project: scene
-entity: seewonchoi
+entity: blackbox-learning
 method: grid
 parameters:
   N:

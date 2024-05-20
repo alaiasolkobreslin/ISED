@@ -1,6 +1,6 @@
 program: leafop.py
 project: anesi
-entity: seewonchoi
+entity: blackbox-learning
 method: random
 metric:
   name: val_accuracy

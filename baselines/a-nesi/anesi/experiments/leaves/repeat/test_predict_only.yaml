@@ -1,6 +1,6 @@
 program: anesi/experiments/leaves/leafop.py
 project: leaves
-entity: seewonchoi
+entity: blackbox-learning
 method: grid
 parameters:
   N:
