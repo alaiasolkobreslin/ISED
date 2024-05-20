@@ -397,7 +397,7 @@ model.add_tensor_source("train", Leaf_train)
 model.add_tensor_source("test", Leaf_test)
 
 loader = DataLoader(train_set, 2, False, seed=args.seed)
-train = train_model(model, loader, 10, log_iter=100, profile=0)
+train = train_model(model, loader, 30, log_iter=100, profile=0)
 model.save_state("snapshot/" + name + ".pth")
 train.logger.comment(dumps(model.get_hyperparameters()))
 train.logger.comment(
