@@ -194,7 +194,7 @@ if __name__ == "__main__":
   else: device = torch.device("cpu")
 
   # Data
-  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../data/"))
+  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../../generation-pipeline/data/"))
   model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../model/hwf"))
   if not os.path.exists(model_dir): os.makedirs(model_dir)
 
