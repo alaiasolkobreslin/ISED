@@ -17,5 +17,5 @@ Tasks include
 To reproduce the experiments in the paper, run 
 ```bash
 cd generation_pipeline
-python run.py --task TASK
+python run.py --task <TASK>
 ```
