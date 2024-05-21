@@ -1,10 +1,6 @@
 
 from typing import *
 import random
-import string
-
-from sklearn.metrics import confusion_matrix
-import numpy
 
 import torch
 
@@ -44,30 +40,6 @@ class UnstructuredDataset:
         """
         pass
 
-    def confusion_matrix(self, network):
-        """
-        Plots the confusion matrix
-        """
-        pass
-
-    def plot_confusion_matrix(self, network, dataset):
-        loader = torch.utils.data.DataLoader(
-            dataset, batch_size=64)
-
-        network.eval()
-
-        y_true, y_pred = [], []
-        with torch.no_grad():
-            for (imgs, gt) in loader:
-                preds = numpy.argmax(network(imgs), axis=1)
-                y_true += [d.item() for d in gt]
-                y_pred += [d.item() for d in preds]
-
-        # Compute confusion matrix
-        cm = confusion_matrix(y_true, y_pred)
-
-        print(cm)
-
     def get_full_dataset(self):
         """
         Returns the entire unstructured dataset
@@ -102,11 +74,6 @@ class MNISTDataset(UnstructuredDataset):
     def net(self):
         return MNIST_net.MNISTNet(n_preds=10).to(DEVICE)
 
-    def confusion_matrix(self, network):
-        digits = [i for i in range(10)]
-        mnist_dataset, _ = MNIST_dataset.get_data(train=False, digits=digits)
-        self.plot_confusion_matrix(network=network, dataset=mnist_dataset)
-
 
 class SVHNDataset(UnstructuredDataset):
     def __init__(self, train):
@@ -132,8 +99,3 @@ class SVHNDataset(UnstructuredDataset):
 
     def net(self):
         return SVHN_net.SVHNNet().to(DEVICE)
-
-    def confusion_matrix(self, network):
-        svhn_dataset, _ = SVHN_dataset.get_data(train=False)
-        self.plot_confusion_matrix(network=network, dataset=svhn_dataset)
-
