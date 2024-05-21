@@ -12,11 +12,11 @@ Run the following:
 3. (Optional) Install package for Neural-GPT experiments: `pip install openai`
 
 ### Datasets
-* Leaf Identification: download the [leaf dataset](TBD) and place it under `data/leaf_11`.
+* Leaf Identification: download the [leaf dataset](https://drive.google.com/file/d/1A9399fqTk3cR8eaRWCByCuh0_85D1JQc/view?usp=share_link) and place it under `data/leaf_11`.
 
-* Scene Recognization: download the [scene dataset](TBD) and place it under `data/scene`.
+* Scene Recognization: download the [scene dataset](https://drive.google.com/file/d/1ICXMkwP4gWzcC4My_UWALpXaAoRIiSTt/view?usp=share_link) and place it under `data/scene`.
 
-* Hand-written Formula: download the [hwf dataset](https://drive.google.com/file/d/1G07kw-wK-rqbg_85tuB7FNfA49q8lvoy/view) and place it under `data/hwf`.
+* Hand-written Formula: download the [hwf dataset](https://drive.google.com/file/d/1VW--BO_CSxzB9C7-ZpE3_hrZbXDqlMU-/view?usp=share_link) and place it under `data/hwf`.
 
 * Visual Sudoku: download the [SatNet dataset](https://powei.tw/sudoku.zip), unzip the data, and place `features.pt`, `features_img.pt`, `labels.pt`, and `perm.pt` under `data/original_data`. 
 

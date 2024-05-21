@@ -30,7 +30,6 @@ anesi/experiments/leaves/leafop.py
 anesi/experiments/leaves/llmop.py
 anesi/experiments/leaves/state_leaf.py
 anesi/experiments/mnist_op/__init__.py
-anesi/experiments/mnist_op/anesi.py
 anesi/experiments/mnist_op/anesi_mnist.py
 anesi/experiments/mnist_op/anesi_mnist_add_mod_3.py
 anesi/experiments/mnist_op/anesi_mnist_add_sub.py

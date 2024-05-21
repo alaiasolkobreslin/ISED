@@ -7,6 +7,8 @@ Run the following:
 
 2. Install additional dependencies inside the virtual environment: `bash setup_dpl.sh`
 
+3. (Optional) For HWF tasks, clone the repository and `cd` to the repository and `pip install -e .`
+
 ## Experiments
 To reproduce results in the paper,
 ```bash

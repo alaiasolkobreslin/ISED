@@ -14,9 +14,6 @@ __pycache__
 # Scallop
 *.sclcmpl
 
-benchmarks/data
-generation-pipeline/data
-
 model
 data
-.tmp
+wandb
