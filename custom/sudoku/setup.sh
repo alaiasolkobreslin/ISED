@@ -1,4 +1,5 @@
-mkdir data/original_data
+mkdir ../../data/original_data
+mkdir outputs
 
 pip install pyswip
 conda install joblib
