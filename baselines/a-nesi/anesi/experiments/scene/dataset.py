@@ -37,46 +37,27 @@ class SceneNet(nn.Module):
         x = F.softmax(self.linear2(x), dim=1)
         return x
 
-yolo = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light', 
-        'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 
-        'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 
-        'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket', 'bottle', 
-        'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange', 
-        'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 
-        'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 
-        'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
-
-yolo_cls = [1, 10, 13, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 56, 57, 58, 59,
-            60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
-
 scenes = ['basement', 'bathroom', 'bedroom', 'dining', 'kitchen', 'lab', 'living', 'lobby', 'office']
 
-lobby_objects = ['coat rack', 'shoe rack', 'umbrella stand', 'key holder', 'shoes', 'mail organizer', 'coats', 'golf bag', 'door', 'welcome sign']
+lobby_objects = ['coat rack', 'shoe rack', 'umbrella stand', 'key holder', 'shoes']
 
-lab_objects = ['microscope', 'fume hood', 'safety goggles', 'machines', 'chemicals', 'cabinets', 'fire extinguisher', 'extension cords', 'machine parts']
+lab_objects = ['microscope', 'fume hood', 'safety goggles', 'machines', 'chemicals']
 
-bathroom_objects = ['toilet', 'shampoo', 'hairdryer', 'towel', 'shower curtain', 'toothbrush', 'bathtub', 'toilet paper', 'toothpaste', 'soap']
+bathroom_objects = ['toilet', 'shampoo', 'hairdryer', 'towel', 'shower curtain']
 
-bedroom_objects = ['bed', 'pillows', 'nightstand', 'wardrobe',  'blanket', 'hangers','family photos', 'clothes', 'lamp', 'bag']
+bedroom_objects = ['bed', 'pillows', 'nightstand', 'wardrobe',  'blanket']
 
-living_objects = ['sofa', 'tv', 'fire place', 'gaming console', 'coffee table', 'magazines', 'console table', 'cushion', 
-                  'plants', 'piano', 'painting']
+living_objects = ['sofa', 'tv', 'fire place', 'gaming console', 'coffee table']
 
-kitchen_objects = ['dishwasher', 'refrigerator', 'oven', 'stove', 'kettle', 'sink', 'knives', 'pans', 'cutting board', 'toaster',
-                   'dish rack', 'jars', 'coffe maker', 'dish soap']
+kitchen_objects = ['dishwasher', 'refrigerator', 'oven', 'stove', 'kettle']
 
-dining_objects = ['dining table', 'wine glasses', 'placemats', 'wine rack', 'silverware', 'fruit', 'vase',  'dish',  'wine']
+dining_objects = ['dining table', 'wine glasses', 'placemats', 'wine rack', 'silverware']
 
-office_objects = ['desk', 'computer', 'printer', 'whiteboard', 'stationary', 'paper', 'chair', 'keyboard', 'mouse', 'file cabinet',
-                  'rulers']
+office_objects = ['desk', 'computer', 'printer', 'whiteboard', 'stationary']
 
-basement_objects = ['washer', 'storage boxes', 'generator', 'bicycles', 'toolbox', 'lawnmower',  'storage shelves',
-                    'board game', 'cleaning supplies', 'luggage',  'sports equipments','camping gear', 'barbeque grill', 'tires']
+basement_objects = ['washer', 'storage boxes', 'generator', 'bicycles', 'toolbox']
 
-objects = ["skip", "ball"] + bathroom_objects[:5] + bedroom_objects[:5] + office_objects[:5] + lab_objects[:5] + \
-                lobby_objects[:5] + basement_objects[:5] + dining_objects[:5] + kitchen_objects[:5] + living_objects[:5]
-
-objects_long = bathroom_objects + bedroom_objects + office_objects + lab_objects + lobby_objects \
+objects = bathroom_objects + bedroom_objects + office_objects + lab_objects + lobby_objects \
           + basement_objects + dining_objects + kitchen_objects + living_objects + ["skip", "ball"]
 
 class SceneDataset(torch.utils.data.Dataset):
@@ -150,26 +131,22 @@ def prepare_inputs(img, files, file_dict):
         results.append(file_dict[file])
       else:
         yolo = YOLO('scene/yolov8x.pt') # load a pretrained model
-        sam = SAMPredictor(overrides=dict(task='segment', mode='predict', model="scene/mobile_sam.pt", imgsz=(512, 768), verbose = False, save=False))
         im = torchvision.transforms.functional.to_pil_image(img[i])
-        result = yolo.predict(im, imgsz=(512, 768), conf=0.25, max_det=10, verbose = False)[0]  # return a list of Results objects)
-        detections = sv.Detections.from_ultralytics(result)
-        detections = detections[np.isin(detections.class_id, yolo_cls)]
+        result = yolo.predict(im, imgsz=(512, 768), conf=0.0001, max_det=10, verbose = False)[0]  # return a list of Results objects)
+        
+        if len(result)==0:
+          sam = SAMPredictor(overrides=dict(task='segment', mode='predict', model="scene/mobile_sam.pt", imgsz=(512, 768), verbose = False, save=False))
+          sam.set_image(im)
+          sam_result = sam(conf_thres = 0.95)[0]
+          sam_detections = sv.Detections.from_ultralytics(sam_result)
+          sam_detections.mask = None
+          sam_detections.class_id = sam_detections.class_id + 80
+          result = sam_detections[np.logical_and(sam_detections.box_area < 50000, sam_detections.box_area > 1000)]
+          sam.reset_image()
 
-        sam.set_image(im)
-        sam_result = sam(conf_thres = 0.95)[0]
-        sam_detections = sv.Detections.from_ultralytics(sam_result)
-        sam_detections.mask = None
-        sam_detections.class_id = sam_detections.class_id + 80
-        sam_detections.confidence = np.zeros_like(sam_detections.confidence)
-        sam_detections = sam_detections[np.logical_and(sam_detections.box_area < 50000, sam_detections.box_area > 1000)]
-        sam.reset_image()
-
-        merged = sv.Detections.merge([detections, sam_detections])
-        merged = merged.with_nms(0.7, True)
-
-        results.append(merged)
-        dict[file] = merged
+        detections = sv.Detections.from_ultralytics(result) 
+        results.append(detections)
+        dict[file] = detections
     
     box_len, pred, box_list, conf = [], [], [], []
     for n, result in enumerate(results):

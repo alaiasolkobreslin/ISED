@@ -145,7 +145,7 @@ class Trainer():
         print(f'[rl][Epoch {epoch}][Train][{i}/{len(train_loader)}] \t AvgLoss: {avg_loss:.4f} \t AvgRewards: {rewards_mean:.4f}')
 
       model.rewards = []
-      model.shared_log_probs = []
+      model.saved_log_probs = []
       torch.cuda.empty_cache()   
     
     return (train_loss/num_items), rewards_mean
