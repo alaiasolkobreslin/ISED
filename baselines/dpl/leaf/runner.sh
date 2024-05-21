@@ -13,7 +13,7 @@ mkdir -p outputs
 for file in "${python_files[@]}"; do
     # Loop through each seed and execute the command
     for seed in "${seeds[@]}"; do
-        output_file="outputs/${file%.py}_seed_${seed}_output.txt"  # Generate output file name
+        output_file="outputs_lr4/${file%.py}_seed_${seed}_output.txt"  # Generate output file name
         python -u "$file" --seed "$seed" > "$output_file" 2>&1  # Redirect output to file
     done
 done

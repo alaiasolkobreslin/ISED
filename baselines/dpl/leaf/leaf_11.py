@@ -169,7 +169,7 @@ class LeavesDataset(torch.utils.data.Dataset):
     # Get all image paths and their labels
     self.samples = []
     data_root = os.path.dirname(os.path.realpath(__name__))
-    data_dir = os.path.join(data_root + "/../../data", data_dir)
+    data_dir = os.path.join(data_root + "/../../../data", data_dir)
     data_dirs = os.listdir(data_dir)
     for sample_group in data_dirs:
       sample_group_dir = os.path.join(data_dir, sample_group)
@@ -381,11 +381,11 @@ network_texture = Leaf_Net_Texture()
 net_margin = Network(network_margin, "leaf_net_margin", batching=True)
 net_shape = Network(network_margin, "leaf_net_shape", batching=True)
 net_texture = Network(network_margin, "leaf_net_texture", batching=True)
-net_margin.optimizer = torch.optim.Adam(network_margin.parameters(), lr=1e-3)
-net_shape.optimizer = torch.optim.Adam(network_shape.parameters(), lr=1e-3)
-net_texture.optimizer = torch.optim.Adam(network_texture.parameters(), lr=1e-3)
+net_margin.optimizer = torch.optim.Adam(network_margin.parameters(), lr=1e-4)
+net_shape.optimizer = torch.optim.Adam(network_shape.parameters(), lr=1e-4)
+net_texture.optimizer = torch.optim.Adam(network_texture.parameters(), lr=1e-4)
 
-model = Model("leaf/models/leaf_11.pl", [net_margin, net_shape, net_texture])
+model = Model("models/leaf_11.pl", [net_margin, net_shape, net_texture])
 if method == "exact":
     model.set_engine(ExactEngine(model), cache=False)
 elif method == "geometric_mean":
