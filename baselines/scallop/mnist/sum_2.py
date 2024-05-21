@@ -13,8 +13,6 @@ from tqdm import tqdm
 
 import scallopy
 
-import csv
-import time
 
 mnist_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -203,16 +201,9 @@ class Trainer():
     return correct.item() / num_items
 
   def train(self, n_epochs):
-    dict = {}
     for epoch in range(1, n_epochs + 1):
-      t0 = time.time()
-      train_loss = self.train_epoch(epoch)
-      t1 = time.time()
-      dict['L ' + str(epoch)] = round(train_loss, ndigits=4)
-      dict['T ' + str(epoch)] = round(t1 - t0, ndigits=4)
-      acc = self.test_epoch(epoch)
-      dict['A ' + str(epoch)] = round(acc, ndigits=6)
-    return dict
+      self.train_epoch(epoch)
+      self.test_epoch(epoch)
 
 
 if __name__ == "__main__":
@@ -245,23 +236,10 @@ if __name__ == "__main__":
   data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data"))
   model_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../model/mnist_sum_2"))
   os.makedirs(model_dir, exist_ok=True)
-  
-  losses = ['L ' + str(i+1) for i in range(args.n_epochs)]
-  accuracies = ['A ' + str(i+1) for i in range(args.n_epochs)]
-  times = ['T ' + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed'] + losses + accuracies + times
-  
-  dir_path = os.path.dirname(os.path.realpath(__file__))
-  results_file =  dir_path + '/experiments10/sum_2.csv'
 
   # Dataloaders
   train_loader, test_loader = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
 
   # Create trainer and train
   trainer = Trainer(train_loader, test_loader, model_dir, learning_rate, loss_fn, k, provenance)
-  dict = trainer.train(n_epochs)
-  dict['random seed'] = args.seed
-  with open(results_file, 'a', newline='') as csvfile:
-      writer = csv.DictWriter(csvfile, fieldnames=field_names)
-      writer.writerow(dict)
-      csvfile.close()
+  trainer.train(n_epochs)

@@ -14,8 +14,6 @@ from tqdm import tqdm
 
 import scallopy
 
-import csv
-import time
 
 mnist_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -189,7 +187,6 @@ class Trainer():
       loss.backward()
       self.optimizer.step()
       iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}")
-    return train_loss
 
   def test_epoch(self, epoch):
     self.network.eval()
@@ -205,19 +202,11 @@ class Trainer():
         correct += pred.eq(target.data.view_as(pred)).sum()
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
-    return correct.item() / num_items
 
   def train(self, n_epochs):
-    dict = {}
     for epoch in range(1, n_epochs + 1):
-      t0 = time.time()
-      train_loss = self.train_epoch(epoch)
-      t1 = time.time()
-      dict['L ' + str(epoch)] = round(train_loss, ndigits=4)
-      dict['T ' + str(epoch)] = round(t1 - t0, ndigits=4)
-      acc = self.test_epoch(epoch)
-      dict['A ' + str(epoch)] = round(acc, ndigits=6)
-    return dict
+      self.train_epoch(epoch)
+      self.test_epoch(epoch)
 
 
 def print_random_distribution(num_elements):
@@ -254,23 +243,10 @@ if __name__ == "__main__":
   # Data
   data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data"))
 
-  losses = ['L ' + str(i+1) for i in range(args.n_epochs)]
-  accuracies = ['A ' + str(i+1) for i in range(args.n_epochs)]
-  times = ['T ' + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['random seed'] + losses + accuracies + times
-
-  dir_path = os.path.dirname(os.path.realpath(__file__))
-  results_file =  dir_path + '/experiments10/how_many_3_or_4.csv'
-
   # Dataloaders
   train_loader, test_loader = mnist_how_many_3_or_4_loader(data_dir, args.num_elements, args.dataset_up_scale, args.batch_size_train, args.batch_size_test)
   print_random_distribution(args.num_elements)
 
   # Create trainer and train
   trainer = Trainer(train_loader, test_loader, args.learning_rate, args.loss_fn, args.num_elements, args.top_k, args.provenance)
-  dict = trainer.train(args.n_epochs)
-  dict['random seed'] = args.seed
-  with open(results_file, 'a', newline='') as csvfile:
-      writer = csv.DictWriter(csvfile, fieldnames=field_names)
-      writer.writerow(dict)
-      csvfile.close()
+  trainer.train(args.n_epochs)

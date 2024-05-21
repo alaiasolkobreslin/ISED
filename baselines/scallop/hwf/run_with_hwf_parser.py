@@ -10,8 +10,6 @@ from torch import nn, optim
 import torch.nn.functional as F
 import torchvision
 from PIL import Image
-import csv
-import time
 
 import scallopy
 import math
@@ -245,16 +243,9 @@ class Trainer():
     return total_correct / num_items
 
   def train(self, n_epochs):
-    dict = {}
     for epoch in range(1, n_epochs + 1):
-      t0 = time.time()
-      train_loss = self.train_epoch(epoch)
-      t1 = time.time()
-      dict['L ' + str(epoch)] = round(train_loss, ndigits=4)
-      dict['T ' + str(epoch)] = round(t1 - t0, ndigits=4)
-      acc = self.test_epoch(epoch)
-      dict['A ' + str(epoch)] = round(acc, ndigits=6)
-    return dict
+      self.train_epoch(epoch)
+      self.test_epoch(epoch)
 
 if __name__ == "__main__":
   # Command line arguments
@@ -277,17 +268,6 @@ if __name__ == "__main__":
   parser.add_argument("--recompile", action="store_true")
   args = parser.parse_args()
 
-  losses = ['L ' + str(i+1) for i in range(args.n_epochs)]    
-  accuracies = ['A ' + str(i+1) for i in range(args.n_epochs)]
-  times = ['T ' + str(i+1) for i in range(args.n_epochs)]
-  field_names = ['task name', 'random seed'] + losses + accuracies + times
-
-  results_file = "hwf_results.csv"
-  # with open(results_file, 'w', newline='') as csvfile:
-  #     writer = csv.DictWriter(csvfile, fieldnames=field_names)
-  #     writer.writeheader()
-  #     csvfile.close()
-
   # Parameters
   torch.manual_seed(args.seed)
   random.seed(args.seed)
@@ -304,10 +284,4 @@ if __name__ == "__main__":
 
   # Training
   trainer = Trainer(train_loader, test_loader, device, model_dir, args.model_name, args.learning_rate, args.no_sample_k, args.sample_k, args.provenance, args.top_k)
-  dict = trainer.train(args.n_epochs)
-  dict["task name"] = "hwf"
-  dict["random seed"] = args.seed
-  with open(results_file, 'a', newline='') as csvfile:
-      writer = csv.DictWriter(csvfile, fieldnames=field_names)
-      writer.writerow(dict)
-      csvfile.close()
+  trainer.train(args.n_epochs)
