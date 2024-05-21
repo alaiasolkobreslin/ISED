@@ -213,71 +213,6 @@ class ListOutputMapping(OutputMapping):
         return y_sim, y
 
 
-class SudokuOutputMapping(OutputMapping):
-    def __init__(self, size, fallback, loss_aggregator):
-        super().__init__(loss_aggregator)
-        self.size = size
-        self.num_options = [str(i+1) for i in range(self.size)]
-        self.fallback = fallback
-
-    def vectorize(self, results: List, result_probs: torch.Tensor) -> torch.Tensor:
-        batch_size, sample_count = result_probs.shape
-
-        result_tensor_sim = torch.zeros(
-            (batch_size, self.size, self.size, self.size), device=DEVICE)
-        for i, result in enumerate(results):
-            for j, r in enumerate(result):
-                result_prob = result_probs[i][j]
-                for row in range(self.size):
-                    for col in range(self.size):
-                        elt = r[row][col]
-                        if elt in self.num_options:
-                            idx = int(elt) - 1
-                            result_tensor_sim[i][row][col][idx] += result_prob
-
-        result_tensor_sim = torch.nn.functional.normalize(
-            result_tensor_sim, dim=2)
-
-        elements = list(
-            set([(util.get_hashable_elem(elem)) for batch in results for elem in batch if elem != RESERVED_FAILURE]))
-        element_indices = {e: i for (i, e) in enumerate(elements)}
-
-        # If there is no element being derived...
-        if len(elements) == 0:
-            # We return a single fallback value, while the probability of result being fallback are all 0
-            return ([self.fallback], torch.tensor([[0.0]] * batch_size, requires_grad=True, device=DEVICE))
-
-        # Vectorize the results
-        result_tensor = torch.zeros((batch_size, len(elements)), device=DEVICE)
-        for i in range(batch_size):
-            for j in range(sample_count):
-                if results[i][j] != RESERVED_FAILURE:
-                    idx = util.get_hashable_elem(results[i][j])
-                    result_tensor[i, element_indices[idx]
-                                  ] += result_probs[i, j]
-        result_tensor = torch.nn.functional.normalize(
-            result_tensor, dim=1)
-
-        # Return the elements mapping and also the result probability tensor
-        return (elements, result_tensor_sim, result_tensor)
-
-    def get_normalized_labels(self, y_pred, target, output_mapping):
-        batch_size = y_pred.shape[0]
-        y_sim = torch.zeros((batch_size, self.size, self.size, self.size), device=DEVICE)
-        for i, l in enumerate(target):
-            for row in range(self.size):
-                for col in range(self.size):
-                    elt = l[row][col]
-                    if elt in self.num_options:
-                        idx = int(elt) - 1
-                        y_sim[i][row][col][idx] = 1.0
-
-        y = torch.tensor([1.0 if self.eval_result_eq(
-            util.get_hashable_elem(l), m) else 0.0 for l in target for m in output_mapping], device=DEVICE).view(batch_size, -1)
-
-        return y_sim, y
-
-
 def get_output_mapping(task_config):
     output_config = task_config[OUTPUT]
     om = output_config[OUTPUT_MAPPING]
@@ -295,9 +230,5 @@ def get_output_mapping(task_config):
     elif om == DISCRETE_OUTPUT_MAPPING:
         if "range" in output_config:
             return DiscreteOutputMapping(elements=list(range(output_config["range"][0], output_config["range"][1])), loss_aggregator=la)
-    elif om == SUDOKU_OUTPUT_MAPPING:
-        size = output_config[N_ROWS]
-        n_classes = output_config[N_CLASSES]
-        return SudokuOutputMapping(size=size, fallback=0, loss_aggregator=la)
     else:
         raise Exception(f"Unknown output mapping {om}")

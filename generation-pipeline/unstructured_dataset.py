@@ -11,12 +11,8 @@ import torch
 from constants import *
 from unstructured import MNIST_dataset
 from unstructured import MNIST_net
-from unstructured import EMNIST_dataset
-from unstructured import EMNIST_net
 from unstructured import SVHN_dataset
 from unstructured import SVHN_net
-from unstructured import HWF_dataset
-from unstructured import HWF_symbol_net
 
 
 class UnstructuredDataset:
@@ -112,36 +108,6 @@ class MNISTDataset(UnstructuredDataset):
         self.plot_confusion_matrix(network=network, dataset=mnist_dataset)
 
 
-class EMNISTDataset(UnstructuredDataset):
-    def __init__(self, train):
-        self.name = EMNIST
-        self.data, self.ids_of_character = EMNIST_dataset.get_data(
-            train)
-
-    def __len__(self):
-        return len(self.data)
-
-    @staticmethod
-    def collate_fn(batch):
-        return EMNIST_dataset.EMNISTDataset.collate_fn(batch)
-
-    def input_mapping(self):
-        return EMNIST_MAPPING
-
-    def sample_with_y(self, character: int) -> int:
-        return self.ids_of_character[character][random.randrange(0, len(self.ids_of_character[character]))]
-
-    def get(self, index: int) -> Tuple[torch.Tensor, chr]:
-        return self.data[index]
-
-    def net(self):
-        return EMNIST_net.EMNISTNet().to(DEVICE)
-
-    def confusion_matrix(self, network):
-        emnist_dataset, _ = EMNIST_dataset.get_data(train=False)
-        self.plot_confusion_matrix(network=network, dataset=emnist_dataset)
-
-
 class SVHNDataset(UnstructuredDataset):
     def __init__(self, train):
         self.name = SVHN
@@ -170,35 +136,4 @@ class SVHNDataset(UnstructuredDataset):
     def confusion_matrix(self, network):
         svhn_dataset, _ = SVHN_dataset.get_data(train=False)
         self.plot_confusion_matrix(network=network, dataset=svhn_dataset)
-
-
-class HWFDataset(UnstructuredDataset):
-
-    def __init__(self, train):
-        self.name = HWF_SYMBOL
-        self.data, self.ids_of_expr = HWF_dataset.get_data(train)
-
-    def __len__(self):
-        return len(self.data)
-
-    @staticmethod
-    def collate_fn(batch):
-        return HWF_dataset.HWFDataset.collate_fn(batch)
-
-    def input_mapping(self):
-        return [str(x) for x in range(10)] + ['+', '-', '*', '/']
-
-    def sample_with_y(self, expr_id: int) -> int:
-        expr = self.data.metadata[expr_id]['expr']
-        return self.ids_of_expr[expr][random.randrange(0, len(self.ids_of_expr[expr]))]
-
-    def get(self, index: int) -> Tuple[torch.Tensor, str]:
-        (expr, string, _) = self.data[index]
-        return ((expr, len(string)), string)
-
-    def net(self):
-        return HWF_symbol_net.SymbolNet().to(DEVICE)
-
-    def confusion_matrix(self, network):
-        pass
 
