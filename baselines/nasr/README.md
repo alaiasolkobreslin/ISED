@@ -8,6 +8,4 @@ python PATH_TO_FILE.py
 ```
 
 ## Paper
-ICLR Publication: [Learning Where and When to Reason in Neuro-Symbolic Inference](https://openreview.net/forum?id=en9V5F8PR-)
-
-GitHub: https://github.com/SamsungLabs/NASR/tree/main 
+* Learning Where and When to Reason in Neuro-Symbolic Inference [[paper](https://openreview.net/forum?id=en9V5F8PR-)] [[github](https://github.com/SamsungLabs/NASR/tree/main )]

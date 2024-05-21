@@ -17,6 +17,4 @@ wandb agent <sweep_id>
 Note that you will need to update the entity and project parameters of wandb in the sweep files. 
 
 ## Paper
-Arxiv: [A-NeSI: A Scalable Approximate Method for Probabilistic Neurosymbolic Inference](https://arxiv.org/abs/2212.12393)
-
-GitHub: https://github.com/HEmile/a-nesi
+* A-NeSI: A Scalable Approximate Method for Probabilistic Neurosymbolic Inference [[paper](https://arxiv.org/abs/2212.12393)] [[github](https://github.com/HEmile/a-nesi)]
