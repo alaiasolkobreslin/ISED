@@ -228,5 +228,3 @@ class Trainer():
     print(f"Best Model Test Loss: {avg_loss}")
     print(f"Best Model Test Reward: {rewards_mean}")
     print(f"Best Model Test Accuracy: {perc}")
-    
-    return dict
