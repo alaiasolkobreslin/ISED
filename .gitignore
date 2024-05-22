@@ -1,6 +1,3 @@
-target
-/Cargo.lock
-
 # MacOS
 .DS_Store
 
@@ -14,6 +11,9 @@ __pycache__
 # Scallop
 *.sclcmpl
 
-model
-data
+# A-NeSI
 wandb
+
+model
+data/*
+outputs

@@ -178,17 +178,41 @@ class Trainer():
     logits = self.network(data)
     d = torch.distributions.Categorical(logits=logits)
     samples = d.sample((self.sample_count,))
-    f_sample = self.loss_fn(samples, target, self.task)
-    log_p_sample = d.log_prob(samples).sum(dim=-1)
+    log_p_sample = d.log_prob(samples).sum(dim=-1) # digit sum
+
+    f_sample = self.loss_fn(samples, target, self.task) # reward
     f_mean = f_sample.mean(dim=0)
 
-    reinforce = (f_sample.detach() * log_p_sample).mean(dim=0)
-    reinforce_prob = (f_mean - reinforce).detach() + reinforce
-    loss = -torch.log(reinforce_prob + 1e-8)
-    loss = loss.mean(dim=0)
+    f_sample = (f_sample - f_mean)/(f_sample.std() + 1e-8)
+    loss = -log_p_sample * f_sample
+    loss = loss.mean()
     return loss
   
   def indecater_grads(self, data, target):
+    logits = self.network(data)
+    d = torch.distributions.Categorical(logits=logits)
+    samples = d.sample((self.sample_count,))
+    f_sample = self.loss_fn(samples, target.unsqueeze(0), self.task)
+    f_mean = f_sample.mean(dim=0)
+    batch_size = data[0].shape[0]
+
+    outer_samples = torch.stack([samples] * 10, dim=0)
+    outer_samples = torch.stack([outer_samples] * self.dim, dim=0)
+    m, r = self.indecater_multiplier(batch_size)
+    outer_samples = outer_samples * (1 - m) + r
+    outer_loss = self.loss_fn(outer_samples, target.unsqueeze(0).unsqueeze(0).unsqueeze(0), self.task)
+    
+    variable_loss = outer_loss.mean(dim=2).permute(2,0,1)
+    indecater_expression = variable_loss.detach() * F.softmax(logits, dim=-1)
+    indecater_expression = indecater_expression.sum(dim=-1)
+    indecater_expression = indecater_expression.sum(dim=-1)
+
+    icr_prob = (f_mean - indecater_expression).detach() + indecater_expression
+    loss = -torch.log(indecater_expression + 1e-8)
+    loss = loss.mean(dim=0)
+    return loss
+  
+  def advanced_indecater_grads(self, data, target):
     logits = self.network(data)
     d = torch.distributions.Categorical(logits=logits)
     samples = d.sample((self.sample_count * self.dim,))
@@ -208,7 +232,7 @@ class Trainer():
     indecater_expression = indecater_expression.sum(dim=-1)
 
     icr_prob = (f_mean - indecater_expression).detach() + indecater_expression
-    loss = -torch.log(indecater_expression + 1e-8) # -torch.log(icr_prob + 1e-8)
+    loss = -torch.log(indecater_expression + 1e-8)
     loss = loss.mean(dim=0)
     return loss
   
@@ -217,6 +241,8 @@ class Trainer():
       return self.reinforce_grads(data, target)
     elif self.grad_type == 'icr':
       return self.indecater_grads(data, target)
+    elif self.grad_type == 'advanced_icr':
+      return self.advanced_indecater_grads(data, target)
 
   def train_epoch(self, epoch):
     train_loss = 0
@@ -260,7 +286,7 @@ if __name__ == "__main__":
   parser = ArgumentParser("mnist_r")
   parser.add_argument("--n-epochs", type=int, default=100)
   parser.add_argument("--seed", type=int, default=1234)
-  parser.add_argument("--batch-size", type=int, default=10)
+  parser.add_argument("--batch-size", type=int, default=16)
   parser.add_argument("--learning-rate", type=float, default=1e-3)
   parser.add_argument("--sample-count", type=int, default=100)
   parser.add_argument("--digits", type=int, default=16)

@@ -34,6 +34,8 @@ python run.py --task <TASK>
 ```
 where possible task names are sum_2_mnist, sum_3_mnist, sum_4_mnist, less_than_mnist, eq_2_mnist, mod_2_mnist, add_mod_3_mnist, add_sub_mnist, mult_2_mnist, not_3_or_4_mnist, how_many_3_or_4_mnist.
 
+We used 10 random seeds [1357, 2468, 3177, 5848, 9175, 1234, 8725, 548, 6787, 8371] for all experiments, except for `custom/sample_count` where we used the first 5.  
+
 To reproduce experiements for the baselines, we provide additional instructions for [A-NeSI](baselines/a-nesi/readme.md), [DeepProbLog](baselines/dpl/readme.md), [NASR](baselines/nasr/readme.md), [REINFORCE, IndeCateR](baselines/reinforce/readme.md), and [Scallop](baselines/scallop/readme.md).
 
 
