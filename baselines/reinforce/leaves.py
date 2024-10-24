@@ -104,7 +104,7 @@ class LeafNet(nn.Module):
       nn.Linear(self.dim, self.dim),
       nn.ReLU(),
       nn.Linear(self.dim, self.num_features),
-      nn.Softmax(dim=1)
+      # nn.Softmax(dim=1)
     )
     
   def forward(self, x):
@@ -290,7 +290,7 @@ if __name__ == "__main__":
   parser.add_argument("--sample-count", type=int, default=100)
   parser.add_argument("--train-num", type=int, default=30)
   parser.add_argument("--test-num", type=int, default=10)
-  parser.add_argument("--grad_type", type=str, default='reinforce')
+  parser.add_argument("--grad_type", type=str, default='icr')
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--jit", action="store_true")
   parser.add_argument("--dispatch", type=str, default="parallel")
