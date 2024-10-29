@@ -130,12 +130,12 @@ def prepare_inputs(img, files, file_dict):
       if file in file_dict: 
         results.append(file_dict[file])
       else:
-        yolo = YOLO('scene/yolov8x.pt') # load a pretrained model
+        yolo = YOLO('yolov8x.pt') # load a pretrained model
         im = torchvision.transforms.functional.to_pil_image(img[i])
         result = yolo.predict(im, imgsz=(512, 768), conf=0.0001, max_det=10, verbose = False)[0]  # return a list of Results objects)
         
         if len(result)==0:
-          sam = SAMPredictor(overrides=dict(task='segment', mode='predict', model="scene/mobile_sam.pt", imgsz=(512, 768), verbose = False, save=False))
+          sam = SAMPredictor(overrides=dict(task='segment', mode='predict', model="mobile_sam.pt", imgsz=(512, 768), verbose = False, save=False))
           sam.set_image(im)
           sam_result = sam(conf_thres = 0.95)[0]
           sam_detections = sv.Detections.from_ultralytics(sam_result)

@@ -1,6 +1,3 @@
-target
-/Cargo.lock
-
 # MacOS
 .DS_Store
 
@@ -14,9 +11,9 @@ __pycache__
 # Scallop
 *.sclcmpl
 
-benchmarks/data
-generation-pipeline/data
+# A-NeSI
+wandb
 
 model
-data
-.tmp
+data/*
+outputs

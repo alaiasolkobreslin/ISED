@@ -10,7 +10,6 @@ import numpy as np
 from time import time
 import random
 from typing import Optional, Callable
-import csv
 
 from argparse import ArgumentParser
 
@@ -187,21 +186,4 @@ if __name__ == "__main__":
 
   (train_loader, valid_loader, test_loader) = mnist_not_3_4_loader(data_dir, args.batch_size, args.batch_size)
   trainer = common.Trainer(train_loader, valid_loader, test_loader, model, model_dir, final_output, args)
-  results_dict = trainer.train(args.epochs)
-  results_dict['task name'] = 'not_3_4'
-  results_dict['random seed'] = args.seed
-  
-  dir_path = os.path.dirname(os.path.realpath(__file__))
-  results_file =  dir_path + '/experiments10/not_3_4.csv'
-  
-  losses = ['L ' + str(i+1) for i in range(args.epochs)]
-  accuracies = ['A ' + str(i+1) for i in range(args.epochs)]
-  rewards = ['R ' + str(i+1) for i in range(args.epochs)]
-  times = ['T ' + str(i+1) for i in range(args.epochs)]
-  field_names = ['task name', 'random seed'] + losses + rewards + accuracies + times
-
-  with open(results_file, 'a', newline='') as csvfile:
-      writer = csv.DictWriter(csvfile, fieldnames=field_names)
-      writer.writerow(results_dict)
-      csvfile.close()
-  
+  trainer.train(args.epochs)

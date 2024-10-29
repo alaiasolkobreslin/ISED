@@ -1,5 +1,8 @@
 import os
+import pickle
 import json
+import csv
+import time
 import random
 from typing import *
 from functools import partial
@@ -8,6 +11,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.multiprocessing import Pool
 
 from argparse import ArgumentParser
 from tqdm import tqdm
@@ -21,9 +25,6 @@ import output
 import blackbox
 from constants import *
 
-def data_to_device(data):
-    for key in data:
-        data[key] = data[key].to(DEVICE)
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(
@@ -72,7 +73,7 @@ class TaskNet(nn.Module):
     def __init__(
             self,
             unstructured_datasets: List[unstructured_dataset.UnstructuredDataset],
-            task_config: dict,
+            config: dict,
             fn: Callable,
             output_mapping: output.OutputMapping,
             sample_count: int,
@@ -80,12 +81,10 @@ class TaskNet(nn.Module):
             caching: bool):
         super(TaskNet, self).__init__()
 
-        input_configs = task_config[INPUTS]
-
-        self.config = input_configs
+        self.config = config
         self.unstructured_datasets = unstructured_datasets
         self.structured_datasets = [
-            structured_dataset.get_structured_dataset_static(input) for input in input_configs]
+            structured_dataset.get_structured_dataset_static(input) for input in config]
 
         self.nets_dict = {}
         self.nets = self.get_nets_list()
@@ -93,7 +92,7 @@ class TaskNet(nn.Module):
         self.forward_fns = [partial(sd.forward, self.nets[i])
                             for i, sd in enumerate(self.structured_datasets)]
         input_mappings = tuple([sd.get_input_mapping(
-            input_configs[i]) for i, sd in enumerate(self.structured_datasets)])
+            config[i]) for i, sd in enumerate(self.structured_datasets)])
         loss_aggregator = task_config.get(LOSS_AGGREGATOR, ADD_MULT)
         self.eval_formula = \
             blackbox.BlackBoxFunction(function=fn,
@@ -103,6 +102,8 @@ class TaskNet(nn.Module):
                                       loss_aggregator=loss_aggregator,
                                       caching=caching,
                                       sample_count=sample_count)
+
+        self.pool = Pool(processes=batch_size_train)
 
     def get_nets_list(self):
         nets = []
@@ -136,9 +137,8 @@ class TaskNet(nn.Module):
         for net in self.nets_dict.values():
             net.train()
 
-    def confusion_matrix(self):
-        # Just print one confusion matrix for the first UD
-        self.unstructured_datasets[0].confusion_matrix(self.nets[0])
+    def close(self):
+        self.pool.close()
 
 
 class Trainer():
@@ -148,14 +148,14 @@ class Trainer():
             test_loader: torch.utils.data.DataLoader,
             unstructured_datasets: List[unstructured_dataset.UnstructuredDataset],
             learning_rate: float,
-            task_config: dict,
+            config: dict,
             fn: Callable,
             output_mapping: output.OutputMapping,
             sample_count: int,
             batch_size_train: int,
             caching: bool):
         self.network = TaskNet(unstructured_datasets=unstructured_datasets,
-                               task_config=task_config,
+                               config=config,
                                fn=fn,
                                output_mapping=output_mapping,
                                sample_count=sample_count,
@@ -175,7 +175,6 @@ class Trainer():
         total_correct = 0
         iter = tqdm(self.train_loader, total=len(self.train_loader))
         for (i, (data, target)) in enumerate(iter):
-            data_to_device(data)
             (output_mapping, y_pred_sim, y_pred) = self.network(data)
 
             # Normalize label format
@@ -221,7 +220,6 @@ class Trainer():
         with torch.no_grad():
             iter = tqdm(self.test_loader, total=len(self.test_loader))
             for i, (data, target) in enumerate(iter):
-                data_to_device(data)
                 (output_mapping, y_pred_sim, y_pred) = self.network(data)
 
                 # Normalize label format
@@ -255,10 +253,14 @@ class Trainer():
                 iter.set_description(
                     f"[Test Epoch {epoch}] Avg loss: {avg_loss:.4f}, Accuracy: {total_correct}/{num_items} ({perc:.2f}%)")
 
-        # self.network.confusion_matrix()
+        dir = f"{os.path.dirname(os.path.abspath(__file__))}/checkpoint/{args.task}/"
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        ckpt_path = os.path.join(dir, f"{args.seed}-{epoch}.pkl")
+        torch.save(self.network.nets[0].state_dict(), ckpt_path)
+
 
     def train(self, n_epochs):
-        # self.test_epoch(0)
         for epoch in range(1, n_epochs + 1):
             self.train_epoch(epoch)
             self.test_epoch(epoch)
@@ -268,57 +270,57 @@ class Trainer():
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("neuro-symbolic-dataset")
-    parser.add_argument("--n-epochs", type=int, default=100)
-    parser.add_argument("--seed", type=int, default=1234)
+    parser.add_argument("--n-epochs", type=int, default=10)
     parser.add_argument("--n-samples", type=int, default=100)
+    parser.add_argument("--seed", type=int, default=1234)
+    parser.add_argument("--task", type=str, default='sum_2_mnist')
     parser.add_argument("--configuration", type=str,
                         default="configuration.json")
     parser.add_argument("--caching", type=bool, default=True)
     parser.add_argument("--threaded", type=int, default=0)
     args = parser.parse_args()
+    
+    dir_path = os.path.dirname(os.path.realpath(__file__))
 
     # environment init
     torch.multiprocessing.set_start_method('spawn')
 
     # Read json
-    dir_path = os.path.dirname(os.path.realpath(__file__))
     configuration = json.load(
         open(os.path.join(dir_path, args.configuration)))
 
     # Parameters
     n_epochs = args.n_epochs
+
     torch.manual_seed(args.seed)
     random.seed(args.seed)
 
-    # Dataloaders
-    for task in configuration:
-        print('Task: {}'.format(task))
+    task_config = configuration[args.task]
 
-        task_config = configuration[task]
+    # Initialize the train and test loaders
+    batch_size_train = task_config[BATCH_SIZE_TRAIN]
+    batch_size_test = task_config[BATCH_SIZE_TEST]
+    train_loader, test_loader = train_test_loader(
+        task_config, batch_size_train, batch_size_test)
 
-        # Initialize the train and test loaders
-        batch_size_train = task_config[BATCH_SIZE_TRAIN]
-        batch_size_test = task_config[BATCH_SIZE_TEST]
-        train_loader, test_loader = train_test_loader(
-            task_config, batch_size_train, batch_size_test)
+    # Set the output mapping
+    om = output.get_output_mapping(task_config)
 
-        # Set the output mapping
-        om = output.get_output_mapping(task_config)
-
-        # Create trainer and train
-        py_func = task_config[PY_PROGRAM]
-        learning_rate = task_config[LEARNING_RATE]
-        fn = task_program.dispatcher[py_func]
-        unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
-            input, train=True) for input in task_config[INPUTS]]
-        trainer = Trainer(train_loader=train_loader,
-                          test_loader=test_loader,
-                          unstructured_datasets=unstructured_datasets,
-                          learning_rate=learning_rate,
-                          task_config=task_config,
-                          fn=fn,
-                          output_mapping=om,
-                          sample_count=args.n_samples,
-                          batch_size_train=batch_size_train,
-                          caching=args.caching)
-        trainer.train(n_epochs)
+    # Create trainer and train
+    py_func = task_config[PY_PROGRAM]
+    learning_rate = task_config[LEARNING_RATE]
+    fn = task_program.dispatcher[py_func]
+    config = task_config[INPUTS]
+    unstructured_datasets = [task_dataset.TaskDataset.get_unstructured_dataset(
+        input, train=True) for input in task_config[INPUTS]]
+    trainer = Trainer(train_loader=train_loader,
+                        test_loader=test_loader,
+                        unstructured_datasets=unstructured_datasets,
+                        learning_rate=learning_rate,
+                        config=config,
+                        fn=fn,
+                        output_mapping=om,
+                        sample_count=args.n_samples,
+                        batch_size_train=batch_size_train,
+                        caching=args.caching)
+    trainer.train(n_epochs)
