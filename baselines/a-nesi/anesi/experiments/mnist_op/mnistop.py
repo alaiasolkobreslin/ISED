@@ -3,7 +3,7 @@ import time
 
 import yaml
 from torch.utils.data import DataLoader
-from experiments.mnist_op import MNISTSum2Model, MNISTSum3Model, MNISTSum4Model
+from experiments.mnist_op import MNISTSum2Model, MNISTSum3Model, MNISTSum4Model, MNISTSumNModel
 from experiments.mnist_op import MNISTMult2Model, MNISTMod2Model, MNISTEqualModel
 from experiments.mnist_op import MNISTSort2Model, MNISTAddSubModel, MNISTNot3Or4Model
 from experiments.mnist_op import MNISTHowMany3Or4Model, MNISTAddMod3Model
@@ -11,7 +11,7 @@ import torch
 import wandb
 import random
 
-from experiments.mnist_op.data import sum_2, sum_3, sum_4, mult_2, mod_2, eq_2, less_than, not_3_or_4, how_many_3_or_4, add_sub, add_mod_3
+from experiments.mnist_op.data import sum_n, sum_2, sum_3, sum_4, mult_2, mod_2, eq_2, less_than, not_3_or_4, how_many_3_or_4, add_sub, add_mod_3
 from inference_models import NoPossibleActionsException
 
 SWEEP = True
@@ -103,7 +103,10 @@ if __name__ == '__main__':
 
     op = None
     model = None
-    if config["op"] == "sum_2":
+    if config["op"] == "sum_n":
+        op = sum_n
+        model = MNISTSumNModel(config).to(device)
+    elif config["op"] == "sum_2":
         op = sum_2
         model = MNISTSum2Model(config).to(device)
     elif config["op"] == "sum_3":
@@ -137,11 +140,11 @@ if __name__ == '__main__':
         op = add_mod_3
         model = MNISTAddMod3Model(config).to(device)
     if config["test"]:
-        train_set = op(config["N"], "train")
-        val_set = op(config["N"], "test")
+        train_set = op(config["N"], config["arity"], "train")
+        val_set = op(config["N"], config["arity"], "test")
     else:
-        train_set = op(config["N"], "train")
-        val_set = op(config["N"], "val")
+        train_set = op(config["N"], config["arity"], "train")
+        val_set = op(config["N"], config["arity"], "val")
 
     train_loader = DataLoader(train_set, config["batch_size"], False)
     val_loader = DataLoader(val_set, config["batch_size_test"], False)

@@ -11,5 +11,9 @@ Classifier: Intended Audience :: Science/Research
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
 Requires-Python: >=3.8
+Requires-Dist: torch
+Requires-Dist: torchvision
+Requires-Dist: wandb
 Provides-Extra: examples
 Provides-Extra: tests
+Requires-Dist: pytest; extra == "tests"

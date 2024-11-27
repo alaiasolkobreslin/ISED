@@ -39,6 +39,7 @@ anesi/experiments/mnist_op/anesi_mnist_mod_2.py
 anesi/experiments/mnist_op/anesi_mnist_mult_2.py
 anesi/experiments/mnist_op/anesi_mnist_not_3_or_4.py
 anesi/experiments/mnist_op/anesi_mnist_sort_2.py
+anesi/experiments/mnist_op/anesi_mnist_sum.py
 anesi/experiments/mnist_op/anesi_mnist_sum_2.py
 anesi/experiments/mnist_op/anesi_mnist_sum_3.py
 anesi/experiments/mnist_op/anesi_mnist_sum_4.py

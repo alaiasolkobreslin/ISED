@@ -59,41 +59,51 @@ def digits_to_number(digits: Iterable[int]) -> int:
         number += d
     return number
 
+def sum_n(n: int, a:int, dataset: str, seed=None):
+    """Returns a dataset for binary addition"""
+    return MNISTOperator(
+        dataset_name=dataset,
+        function_name="sum_n",
+        operator=sum,
+        size=n,
+        arity=a,
+        seed=seed,
+    )
 
-def sum_2(n: int, dataset: str, seed=None):
+def sum_2(n: int, a:int, dataset: str, seed=None):
     """Returns a dataset for binary addition"""
     return MNISTOperator(
         dataset_name=dataset,
         function_name="sum_2",
         operator=sum,
         size=n,
-        arity=2,
+        arity=a,
         seed=seed,
     )
 
-def sum_3(n: int, dataset: str, seed=None):
+def sum_3(n: int, a:int, dataset: str, seed=None):
 
     return MNISTOperator(
         dataset_name=dataset,
         function_name="sum_3",
         operator=sum,
         size=n,
-        arity=3,
+        arity=a,
         seed=seed,
     )
 
-def sum_4(n: int, dataset: str, seed=None):
+def sum_4(n: int, a:int, dataset: str, seed=None):
 
     return MNISTOperator(
         dataset_name=dataset,
         function_name="sum_4",
         operator=sum,
         size=n,
-        arity=4,
+        arity=a,
         seed=seed,
     )
 
-def mult_2(n: int, dataset: str, seed=None):
+def mult_2(n: int, a:int, dataset: str, seed=None):
     """Returns a dataset for binary multiplication"""
 
     return MNISTOperator(
@@ -101,11 +111,11 @@ def mult_2(n: int, dataset: str, seed=None):
         function_name="mult_2",
         operator=math.prod,
         size=n,
-        arity=2,
+        arity=a,
         seed=seed,
     )
 
-def mod_2(n: int, dataset: str, seed=None):
+def mod_2(n: int, a:int, dataset: str, seed=None):
     """Returns a dataset for binary multiplication"""
 
     return MNISTOperator(
@@ -113,73 +123,73 @@ def mod_2(n: int, dataset: str, seed=None):
         function_name="mod_2",
         operator=(lambda x: x[0] % (x[1]+1)),
         size=n,
-        arity=2,
+        arity=a,
         seed=seed,
     )
     
-def eq_2(n: int, dataset: str, seed=None):
+def eq_2(n: int, a:int, dataset: str, seed=None):
 
     return MNISTOperator(
         dataset_name=dataset,
         function_name="eq_2",
         operator=(lambda x: x[0] == x[1]),
         size=n,
-        arity=2,
+        arity=a,
         seed=seed,
     )
 
-def not_3_or_4(n: int, dataset: str, seed=None):
+def not_3_or_4(n: int, a:int, dataset: str, seed=None):
     
     return MNISTOperator(
         dataset_name=dataset,
         function_name="not_3_or_4",
         operator=(lambda x: x[0] != 3 and x[0] != 4),
         size=n,
-        arity=1,
+        arity=a,
         seed=seed,
     )
     
-def less_than(n: int, dataset: str, seed=None):
+def less_than(n: int, a:int, dataset: str, seed=None):
     
     return MNISTOperator(
         dataset_name=dataset,
         function_name="less_than",
         operator=(lambda x: 1 if x[0] < x[1] else 0),
         size=n,
-        arity=2,
+        arity=a,
         seed=seed,
     )
     
-def add_sub(n: int, dataset: str, seed=None):
+def add_sub(n: int, a:int, dataset: str, seed=None):
     
     return MNISTOperator(
         dataset_name=dataset,
         function_name="add_sub",
         operator=(lambda x: x[0] + x[1] - x[2] + 9),
         size=n,
-        arity=3,
+        arity=a,
         seed=seed,
     )
     
-def how_many_3_or_4(n: int, dataset: str, seed=None):
+def how_many_3_or_4(n: int, a:int, dataset: str, seed=None):
 
     return MNISTOperator(
         dataset_name=dataset,
         function_name="how_many_3_or_4",
         operator=(lambda x: sum([1 for i in x if i == 3 or i == 4])),
         size=n,
-        arity=8,
+        arity=a,
         seed=seed,
     )
     
-def add_mod_3(n: int, dataset: str, seed=None):
+def add_mod_3(n: int, a:int, dataset: str, seed=None):
 
     return MNISTOperator(
         dataset_name=dataset,
         function_name="add_mod_3",
         operator=(lambda x: (x[0] + x[1]) % 3),
         size=n,
-        arity=2,
+        arity=a,
         seed=seed,
     )
 
