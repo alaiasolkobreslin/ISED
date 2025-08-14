@@ -1167,29 +1167,6 @@
     "dataset_size_train": 5000,
     "dataset_size_test": 500
   },
-  "hwf": {
-    "py_func": "hwf",
-    "inputs": [
-      {
-        "name": "expr",
-        "type": "str",
-        "max_length": 7,
-        "strategy": "single_sample",
-        "preprocess": "id",
-        "dataset": "HWF",
-        "unstructured_input_type": "List[Tensor[1 x 45 x 45]]"
-      }
-    ],
-    "output": {
-      "type": "float",
-      "output_mapping": "unknown"
-    },
-    "learning_rate": 0.0001,
-    "batch_size_train": 16,
-    "batch_size_test": 16,
-    "dataset_size_train": 5000,
-    "dataset_size_test": 500
-  },
   "add_two_numbers_mnist": {
     "py_func": "add_two_numbers",
     "inputs": [
